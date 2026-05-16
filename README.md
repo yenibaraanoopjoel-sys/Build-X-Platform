@@ -197,7 +197,7 @@ npm start
 # 🌐 API Base URL
 
 ```bash
-http://localhost:5000/api
+https://build-x-platform.onrender.com
 ```
 
 ---

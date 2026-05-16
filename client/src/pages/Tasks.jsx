@@ -67,7 +67,7 @@ function Tasks() {
 
         const response =
           await axios.post(
-            "http://localhost:5000/api/ai",
+            "https://build-x-platform.onrender.com",
             {
               message: `
 Generate professional software development tasks for this project idea:

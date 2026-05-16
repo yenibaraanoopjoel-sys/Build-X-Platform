@@ -72,7 +72,7 @@ function ProjectWorkspace() {
 
         const response =
           await axios.post(
-            "http://localhost:5000/api/ai",
+            "https://build-x-platform.onrender.com",
             {
               message: `
 Create a professional meeting summary from these notes.

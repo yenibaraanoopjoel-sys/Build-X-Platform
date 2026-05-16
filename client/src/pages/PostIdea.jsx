@@ -52,7 +52,7 @@ function PostIdea() {
 
         const response =
           await axios.post(
-            "http://localhost:5000/api/ai",
+            "https://build-x-platform.onrender.com",
             {
               message: `
 Enhance this startup/project idea professionally.

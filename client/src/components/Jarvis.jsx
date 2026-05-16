@@ -47,7 +47,7 @@ function Jarvis() {
       try {
         const response =
           await axios.post(
-            "http://localhost:5000/api/ai",
+            "https://build-x-platform.onrender.com",
             {
               message:
                 userInput,
