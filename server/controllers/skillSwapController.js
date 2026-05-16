@@ -1,4 +1,4 @@
-const User = require("../models/user");
+const User = require("../models/User");
 
 // Get All Skill Swap Users
 exports.getSkillSwapUsers = async (
