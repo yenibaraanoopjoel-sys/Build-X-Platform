@@ -1,0 +1,145 @@
+/* Google Font Import */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap");
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Root Theme */
+:root {
+  --primary-color: #2563eb;
+  --secondary-color: #7c3aed;
+
+  --background-dark: #0f172a;
+  --background-card: rgba(255, 255, 255, 0.05);
+
+  --text-primary: #ffffff;
+  --text-secondary: #cbd5e1;
+
+  --border-color: rgba(255, 255, 255, 0.08);
+
+  --shadow-main: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Body */
+body {
+  font-family: "Inter", sans-serif;
+  background-color: var(--background-dark);
+  color: var(--text-primary);
+
+  min-height: 100vh;
+
+  overflow-x: hidden;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Poppins", sans-serif;
+}
+
+/* Links */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Buttons */
+button {
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  opacity: 0.95;
+}
+
+/* Inputs */
+input,
+textarea {
+  font-family: inherit;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #111827;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    to bottom,
+    #2563eb,
+    #7c3aed
+  );
+
+  border-radius: 20px;
+}
+
+/* Text Selection */
+::selection {
+  background: #7c3aed;
+  color: white;
+}
+
+/* Images */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Utility Classes */
+.container {
+  width: 100%;
+  max-width: 1300px;
+  margin: auto;
+  padding: 0 20px;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+
+  backdrop-filter: blur(15px);
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.08);
+
+  box-shadow: var(--shadow-main);
+
+  border-radius: 20px;
+}
+
+.gradient-text {
+  background: linear-gradient(
+    to right,
+    #2563eb,
+    #7c3aed
+  );
+
+  background-clip: text;
+
+  -webkit-background-clip: text;
+
+  color: transparent;
+
+  -webkit-text-fill-color: transparent;
+}
+
+/* Smooth Scroll */
+html {
+  scroll-behavior: smooth;
+}
