@@ -13,9 +13,6 @@ router.post("/", async (req, res) => {
       });
     }
 
-    console.log("API KEY CHECK:");
-    console.log(process.env.OPENROUTER_API_KEY);
-
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
@@ -25,7 +22,7 @@ router.post("/", async (req, res) => {
           {
             role: "system",
             content:
-              "You are JARVIS AI inside BuildX.",
+              "You are JARVIS AI inside BuildX. You help users with coding, productivity, startups, AI tools, collaboration, learning, and futuristic project management.",
           },
 
           {
@@ -36,8 +33,14 @@ router.post("/", async (req, res) => {
       },
       {
         headers: {
-          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
+
+          "HTTP-Referer":
+            "https://build-x-platform.vercel.app",
+
+          "X-Title":
+            "BuildX AI Platform",
         },
       }
     );
@@ -50,17 +53,14 @@ router.post("/", async (req, res) => {
     });
   } catch (error) {
     console.log(
-      "FULL OPENROUTER ERROR:"
-    );
-
-    console.log(
+      "OPENROUTER ERROR:",
       error.response?.data ||
-      error.message
+        error.message
     );
 
     res.status(500).json({
       reply:
-        "AI service temporarily unavailable",
+        "Sorry boss, AI service is temporarily unavailable.",
     });
   }
 });
