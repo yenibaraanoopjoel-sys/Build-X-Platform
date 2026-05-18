@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import axios from "axios";
+import API from "../services/api";
 
 function Jarvis() {
   const [open, setOpen] =
@@ -22,7 +22,7 @@ function Jarvis() {
   const [loading, setLoading] =
     useState(false);
 
-  // Send Message
+  // SEND MESSAGE
   const handleSendMessage =
     async () => {
       if (!input.trim()) return;
@@ -46,8 +46,8 @@ function Jarvis() {
 
       try {
         const response =
-          await axios.post(
-            "https://build-x-platform.onrender.com",
+          await API.post(
+            "/ai",
             {
               message:
                 userInput,
@@ -66,7 +66,10 @@ function Jarvis() {
           jarvisReply,
         ]);
       } catch (error) {
-        console.log(error);
+        console.log(
+          "JARVIS ERROR:",
+          error
+        );
 
         setMessages((prev) => [
           ...prev,
