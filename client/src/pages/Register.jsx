@@ -37,9 +37,15 @@ function Register() {
     try {
       setLoading(true);
 
-      await API.post(
-        "/api/auth/register",
-        formData
+      const response =
+        await API.post(
+          "/auth/register",
+          formData
+        );
+
+      console.log(
+        "REGISTER SUCCESS:",
+        response.data
       );
 
       alert(
@@ -48,6 +54,12 @@ function Register() {
 
       navigate("/login");
     } catch (error) {
+      console.log(
+        "REGISTER ERROR:",
+        error.response?.data ||
+          error.message
+      );
+
       alert(
         error.response?.data
           ?.message ||
