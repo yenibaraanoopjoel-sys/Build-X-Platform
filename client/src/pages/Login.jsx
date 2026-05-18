@@ -5,8 +5,6 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-import "@fontsource/dancing-script";
-
 import API from "../services/api";
 
 function Login() {
@@ -40,7 +38,7 @@ function Login() {
 
       const response =
         await API.post(
-          "/api/auth/login",
+          "/auth/login",
           formData
         );
 
@@ -78,24 +76,24 @@ function Login() {
         position: "relative",
 
         background:
-          "linear-gradient(to bottom right, #12071F, #1E0B36, #0F172A)",
+          "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
       }}
     >
-      {/* Animated Glow */}
+      {/* Glow */}
       <div
         style={{
           position: "absolute",
 
-          width: "500px",
+          width: "480px",
 
-          height: "500px",
+          height: "480px",
 
           background:
-            "rgba(168,85,247,0.18)",
+            "rgba(91,95,255,0.12)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(130px)",
 
           top: "-120px",
 
@@ -107,12 +105,12 @@ function Login() {
         style={{
           position: "absolute",
 
-          width: "450px",
+          width: "420px",
 
-          height: "450px",
+          height: "420px",
 
           background:
-            "rgba(236,72,153,0.18)",
+            "rgba(124,58,237,0.10)",
 
           borderRadius: "50%",
 
@@ -124,38 +122,27 @@ function Login() {
         }}
       />
 
-      {/* Main Container */}
+      {/* MAIN */}
       <div
+        className="glass-card"
         style={{
           width: "95%",
 
-          maxWidth: "1300px",
+          maxWidth: "1280px",
 
           display: "grid",
 
           gridTemplateColumns:
             "1fr 1fr",
 
-          background:
-            "rgba(255,255,255,0.05)",
-
-          backdropFilter:
-            "blur(20px)",
-
-          border:
-            "1px solid rgba(255,255,255,0.08)",
-
-          borderRadius: "34px",
-
           overflow: "hidden",
 
-          boxShadow:
-            "0 20px 60px rgba(168,85,247,0.18)",
+          position: "relative",
 
           zIndex: 2,
         }}
       >
-        {/* Left Side */}
+        {/* LEFT */}
         <div
           style={{
             padding: "70px",
@@ -171,35 +158,10 @@ function Login() {
               "center",
 
             background:
-              "linear-gradient(to bottom right, rgba(147,51,234,0.15), rgba(236,72,153,0.12))",
+              "linear-gradient(135deg, rgba(79,70,229,0.08), rgba(124,58,237,0.06))",
           }}
         >
-          {/* AI Image */}
-          <img
-            src="https://i.pinimg.com/736x/1e/f7/15/1ef715518bfdfe0355a3f51b875b933d.jpg"
-            alt="AI Assistant"
-            style={{
-              width: "200%",
-
-              maxWidth: "200px",
-
-              borderRadius: "24px",
-
-              marginBottom: "35px",
-
-              alignSelf: "center",
-
-              boxShadow:
-                "0 20px 50px rgba(236,72,153,0.22)",
-
-              border:
-                "1px solid rgba(255,255,255,0.08)",
-
-              zIndex: 2,
-            }}
-          />
-
-          {/* Floating AI Circle */}
+          {/* Glow */}
           <div
             style={{
               position: "absolute",
@@ -211,53 +173,71 @@ function Login() {
               borderRadius: "50%",
 
               background:
-                "linear-gradient(to right, rgba(192,132,252,0.28), rgba(244,114,182,0.25))",
+                "rgba(91,95,255,0.14)",
 
-              filter: "blur(20px)",
+              filter: "blur(60px)",
 
-              top: "60px",
+              top: "80px",
 
-              right: "60px",
+              right: "80px",
             }}
           />
 
-          <h1
+          {/* IMAGE */}
+          <img
+            src="https://i.pinimg.com/736x/1e/f7/15/1ef715518bfdfe0355a3f51b875b933d.jpg"
+            alt="AI Assistant"
             style={{
-              fontSize: "78px",
+              width: "100%",
 
-              fontFamily:
-                "'Dancing Script', cursive",
+              maxWidth: "220px",
+
+              borderRadius: "24px",
+
+              marginBottom: "40px",
+
+              alignSelf: "center",
+
+              boxShadow:
+                "0 16px 40px rgba(91,95,255,0.18)",
+
+              border:
+                "1px solid rgba(255,255,255,0.06)",
+
+              zIndex: 2,
+            }}
+          />
+
+          {/* TITLE */}
+          <h1
+            className="welcome-title"
+            style={{
+              fontSize: "68px",
 
               lineHeight: "1.1",
 
-              marginBottom: "25px",
+              marginBottom: "24px",
 
-              background:
-                "linear-gradient(to right, #C084FC, #F472B6)",
-
-              WebkitBackgroundClip:
-                "text",
-
-              WebkitTextFillColor:
-                "transparent",
+              color: "white",
 
               zIndex: 2,
             }}
           >
-            BuildX
+            BUILDX
             <br />
-            AI Platform ✨
+            AI PLATFORM
           </h1>
 
+          {/* DESC */}
           <p
             style={{
-              color: "#E9D5FF",
+              color: "#CBD5E1",
 
-              fontSize: "20px",
+              fontSize: "18px",
 
-              lineHeight: "1.9",
+              lineHeight: "2",
 
-              maxWidth: "520px",
+              maxWidth: "540px",
 
               zIndex: 2,
             }}
@@ -265,15 +245,15 @@ function Login() {
             The next-generation
             AI-powered collaboration
             and productivity platform
-            designed for creators,
-            developers, innovators,
-            and startup teams.
+            for creators, developers,
+            innovators, and modern
+            startup teams.
           </p>
 
-          {/* AI Feature Cards */}
+          {/* FEATURES */}
           <div
             style={{
-              marginTop: "40px",
+              marginTop: "42px",
 
               display: "flex",
 
@@ -295,19 +275,22 @@ function Login() {
                 key={item}
                 style={{
                   padding:
-                    "12px 18px",
+                    "11px 18px",
 
                   borderRadius:
-                    "16px",
+                    "14px",
 
                   background:
-                    "rgba(255,255,255,0.06)",
+                    "rgba(255,255,255,0.04)",
 
                   border:
-                    "1px solid rgba(255,255,255,0.08)",
+                    "1px solid rgba(255,255,255,0.06)",
 
                   color:
-                    "#F5D0FE",
+                    "#E2E8F0",
+
+                  fontSize:
+                    "14px",
 
                   backdropFilter:
                     "blur(10px)",
@@ -319,7 +302,7 @@ function Login() {
           </div>
         </div>
 
-        {/* Right Side */}
+        {/* RIGHT */}
         <div
           style={{
             padding: "70px",
@@ -333,54 +316,47 @@ function Login() {
               "center",
           }}
         >
-          {/* Header */}
+          {/* HEADER */}
           <div
             style={{
-              marginBottom: "35px",
+              marginBottom: "38px",
             }}
           >
             <h1
+              className="section-title"
               style={{
                 fontSize: "52px",
 
-                fontFamily:
-                  "'Dancing Script', cursive",
-
                 marginBottom: "14px",
 
-                background:
-                  "linear-gradient(to right, #C084FC, #F472B6)",
-
-                WebkitBackgroundClip:
-                  "text",
-
-                WebkitTextFillColor:
-                  "transparent",
+                color: "white",
               }}
             >
-              Welcome Back 👋
+              Welcome Back
             </h1>
 
             <p
               style={{
-                color: "#D8B4FE",
+                color: "#CBD5E1",
 
-                fontSize: "17px",
+                fontSize: "16px",
+
+                lineHeight: "1.8",
               }}
             >
               Login to continue your
-              AI-powered productivity
-              journey.
+              futuristic AI-powered
+              productivity journey.
             </p>
           </div>
 
-          {/* Form */}
+          {/* FORM */}
           <form
             onSubmit={
               submitHandler
             }
           >
-            {/* Email */}
+            {/* EMAIL */}
             <div
               style={{
                 marginBottom: "24px",
@@ -389,11 +365,12 @@ function Login() {
               <label
                 style={{
                   color:
-                    "#F5D0FE",
+                    "#E2E8F0",
 
-                  fontSize: "18px",
+                  fontSize: "15px",
 
-                  fontWeight: "600",
+                  fontWeight:
+                    "600",
                 }}
               >
                 Email
@@ -420,27 +397,13 @@ function Login() {
                   borderRadius:
                     "16px",
 
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  outline: "none",
-
-                  background:
-                    "rgba(255,255,255,0.05)",
-
-                  color:
-                    "white",
-
-                  backdropFilter:
-                    "blur(10px)",
-
                   fontSize:
-                    "17px",
+                    "15px",
                 }}
               />
             </div>
 
-            {/* Password */}
+            {/* PASSWORD */}
             <div
               style={{
                 marginBottom: "30px",
@@ -449,11 +412,12 @@ function Login() {
               <label
                 style={{
                   color:
-                    "#F5D0FE",
+                    "#E2E8F0",
 
-                  fontSize: "18px",
+                  fontSize: "15px",
 
-                  fontWeight: "600",
+                  fontWeight:
+                    "600",
                 }}
               >
                 Password
@@ -480,89 +444,67 @@ function Login() {
                   borderRadius:
                     "16px",
 
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  outline: "none",
-
-                  background:
-                    "rgba(255,255,255,0.05)",
-
-                  color:
-                    "white",
-
-                  backdropFilter:
-                    "blur(10px)",
-
                   fontSize:
-                    "17px",
+                    "15px",
                 }}
               />
             </div>
 
-            {/* Login Button */}
+            {/* BUTTON */}
             <button
               type="submit"
               disabled={loading}
               style={{
                 width: "100%",
 
-                padding: "17px",
+                padding: "16px",
 
                 borderRadius:
                   "18px",
 
-                border: "none",
-
-                cursor:
-                  "pointer",
-
                 background:
-                  "linear-gradient(to right, #9333EA, #EC4899)",
+                  "linear-gradient(135deg, #2563EB, #7C3AED)",
 
                 color:
                   "white",
 
                 fontSize:
-                  "17px",
+                  "15px",
 
                 fontWeight:
-                  "bold",
+                  "600",
 
                 boxShadow:
-                  "0 10px 30px rgba(236,72,153,0.25)",
-
-                transition:
-                  "0.3s ease",
+                  "0 0 24px rgba(124,58,237,0.22)",
               }}
             >
               {loading
                 ? "Entering BuildX..."
-                : "🚀 Enter BuildX"}
+                : "Enter BuildX"}
             </button>
           </form>
 
-          {/* Footer */}
+          {/* FOOTER */}
           <p
             style={{
               textAlign: "center",
 
               marginTop: "28px",
 
-              color: "#D8B4FE",
+              color: "#CBD5E1",
             }}
           >
             Don't have an account?{" "}
             <Link
               to="/register"
               style={{
-                color: "#F472B6",
+                color: "#C4B5FD",
 
                 textDecoration:
                   "none",
 
                 fontWeight:
-                  "bold",
+                  "600",
               }}
             >
               Register

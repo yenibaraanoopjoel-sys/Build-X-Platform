@@ -4,8 +4,6 @@ import axios from "axios";
 
 import { useNavigate } from "react-router-dom";
 
-import "@fontsource/dancing-script";
-
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
@@ -30,7 +28,7 @@ function SkillSwap() {
   const [aiLoading, setAiLoading] =
     useState(false);
 
-  // Matched Users
+  // Matches
   const [matchedUsers, setMatchedUsers] =
     useState([]);
 
@@ -129,7 +127,7 @@ function SkillSwap() {
     },
   ];
 
-  // AI Matching
+  // AI MATCH
   const handleFindMatches =
     async () => {
       const matches =
@@ -170,7 +168,7 @@ function SkillSwap() {
 
         const response =
           await axios.post(
-            "https://build-x-platform.onrender.com",
+            "https://build-x-platform.onrender.com/api/ai",
             {
               message: `
 Suggest the best collaboration strategy.
@@ -200,7 +198,7 @@ Provide:
       }
     };
 
-  // Send Request
+  // Request
   const handleSendRequest = (
     userName
   ) => {
@@ -231,10 +229,10 @@ Provide:
   return (
     <div
       style={{
-        background:
-          "linear-gradient(to bottom right, #12071F, #1E0B36, #0F172A)",
-
         minHeight: "100vh",
+
+        background:
+          "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
 
         color: "white",
 
@@ -243,7 +241,7 @@ Provide:
         position: "relative",
       }}
     >
-      {/* Glow Effects */}
+      {/* Glow */}
       <div
         style={{
           position: "absolute",
@@ -253,15 +251,15 @@ Provide:
           height: "500px",
 
           background:
-            "rgba(168,85,247,0.12)",
+            "rgba(59,130,246,0.10)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(140px)",
 
-          top: "-120px",
+          top: "-180px",
 
-          right: "-100px",
+          left: "-120px",
         }}
       />
 
@@ -274,15 +272,15 @@ Provide:
           height: "450px",
 
           background:
-            "rgba(236,72,153,0.12)",
+            "rgba(124,58,237,0.12)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(130px)",
 
-          bottom: "-100px",
+          bottom: "-150px",
 
-          left: "-100px",
+          right: "-100px",
         }}
       />
 
@@ -301,62 +299,92 @@ Provide:
         {/* Sidebar */}
         <Sidebar />
 
-        {/* Main */}
+        {/* MAIN */}
         <div
           style={{
             flex: 1,
 
-            padding: "40px",
+            padding: "42px",
           }}
         >
-          {/* Header */}
+          {/* HERO */}
           <div
+            className="glass-card"
             style={{
-              marginBottom: "40px",
+              padding: "48px",
+
+              marginBottom: "38px",
+
+              position: "relative",
+
+              overflow: "hidden",
             }}
           >
-            <h1
+            {/* Glow */}
+            <div
               style={{
-                fontSize: "72px",
+                position: "absolute",
 
-                fontFamily:
-                  "'Dancing Script', cursive",
+                width: "260px",
 
-                marginBottom: "14px",
+                height: "260px",
 
                 background:
-                  "linear-gradient(to right, #C084FC, #F472B6)",
+                  "rgba(91,95,255,0.10)",
 
-                WebkitBackgroundClip:
-                  "text",
+                borderRadius: "50%",
 
-                WebkitTextFillColor:
-                  "transparent",
+                filter: "blur(90px)",
+
+                top: "-70px",
+
+                right: "-50px",
               }}
-            >
-              Skill Swap ✨
-            </h1>
+            />
 
-            <p
+            <div
               style={{
-                color: "#E9D5FF",
+                position: "relative",
 
-                fontSize: "19px",
-
-                lineHeight: "1.8",
-
-                maxWidth: "850px",
+                zIndex: 2,
               }}
             >
-              Connect with creators,
-              developers, designers,
-              and AI innovators
-              through BuildX luxury
-              collaboration matching.
-            </p>
+              <h1
+                className="welcome-title"
+                style={{
+                  fontSize: "54px",
+
+                  marginBottom: "22px",
+
+                  lineHeight: "1.3",
+                }}
+              >
+                AI SKILL SWAP
+              </h1>
+
+              <p
+                style={{
+                  color: "#CBD5E1",
+
+                  fontSize: "18px",
+
+                  lineHeight: "2",
+
+                  maxWidth: "850px",
+                }}
+              >
+                Discover AI-powered
+                collaboration matches,
+                connect with creators,
+                developers, designers,
+                and innovators inside
+                the futuristic BuildX
+                ecosystem.
+              </p>
+            </div>
           </div>
 
-          {/* Action Button */}
+          {/* ACTION */}
           <button
             onClick={() =>
               setShowForm(true)
@@ -379,59 +407,34 @@ Provide:
               marginBottom: "38px",
 
               background:
-                "linear-gradient(to right, #9333EA, #EC4899)",
+                "linear-gradient(135deg, #2563EB, #7C3AED)",
 
               boxShadow:
-                "0 10px 35px rgba(236,72,153,0.30)",
+                "0 0 28px rgba(124,58,237,0.24)",
             }}
           >
             +
           </button>
 
-          {/* Form */}
+          {/* FORM */}
           {showForm && (
             <div
+              className="glass-card"
               style={{
-                background:
-                  "rgba(255,255,255,0.05)",
-
                 padding: "36px",
 
-                borderRadius: "30px",
-
                 marginBottom: "38px",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                backdropFilter:
-                  "blur(16px)",
-
-                boxShadow:
-                  "0 10px 40px rgba(168,85,247,0.10)",
               }}
             >
               <h2
+                className="section-title"
                 style={{
                   marginBottom: "28px",
 
-                  fontSize: "48px",
-
-                  fontFamily:
-                    "'Dancing Script', cursive",
-
-                  background:
-                    "linear-gradient(to right, #F5D0FE, #F9A8D4)",
-
-                  WebkitBackgroundClip:
-                    "text",
-
-                  WebkitTextFillColor:
-                    "transparent",
+                  fontSize: "42px",
                 }}
               >
-                🤖 AI Collaboration
-                Request
+                AI Collaboration Match
               </h2>
 
               <input
@@ -451,28 +454,16 @@ Provide:
                   marginBottom: "22px",
 
                   borderRadius:
-                    "18px",
+                    "16px",
 
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  background:
-                    "rgba(255,255,255,0.05)",
-
-                  color: "white",
-
-                  outline: "none",
-
-                  fontSize: "16px",
-
-                  backdropFilter:
-                    "blur(10px)",
+                  fontSize:
+                    "15px",
                 }}
               />
 
               <input
                 type="text"
-                placeholder="Skill you want to learn"
+                placeholder="Skills you want to learn"
                 value={skillsWant}
                 onChange={(e) =>
                   setSkillsWant(
@@ -487,22 +478,10 @@ Provide:
                   marginBottom: "28px",
 
                   borderRadius:
-                    "18px",
+                    "16px",
 
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  background:
-                    "rgba(255,255,255,0.05)",
-
-                  color: "white",
-
-                  outline: "none",
-
-                  fontSize: "16px",
-
-                  backdropFilter:
-                    "blur(10px)",
+                  fontSize:
+                    "15px",
                 }}
               />
 
@@ -514,101 +493,71 @@ Provide:
                   padding:
                     "16px 30px",
 
-                  border: "none",
-
                   borderRadius:
                     "18px",
 
-                  cursor:
-                    "pointer",
-
                   background:
-                    "linear-gradient(to right, #9333EA, #EC4899)",
+                    "linear-gradient(135deg, #2563EB, #7C3AED)",
 
                   color:
                     "white",
 
                   fontWeight:
-                    "bold",
+                    "600",
 
                   fontSize:
-                    "17px",
+                    "15px",
 
                   boxShadow:
-                    "0 10px 30px rgba(236,72,153,0.25)",
+                    "0 0 24px rgba(124,58,237,0.22)",
                 }}
               >
-                🚀 Find AI Matches
+                Find AI Matches
               </button>
             </div>
           )}
 
-          {/* AI Suggestion */}
+          {/* AI INSIGHTS */}
           {aiSuggestion && (
             <div
+              className="glass-card"
               style={{
-                background:
-                  "rgba(255,255,255,0.05)",
-
                 padding: "36px",
 
-                borderRadius: "30px",
-
                 marginBottom: "40px",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
 
                 whiteSpace:
                   "pre-wrap",
 
                 lineHeight: "2",
-
-                backdropFilter:
-                  "blur(16px)",
-
-                boxShadow:
-                  "0 10px 40px rgba(168,85,247,0.10)",
               }}
             >
               <h2
+                className="section-title"
                 style={{
-                  marginBottom: "22px",
+                  marginBottom: "24px",
 
-                  fontSize: "48px",
-
-                  fontFamily:
-                    "'Dancing Script', cursive",
-
-                  background:
-                    "linear-gradient(to right, #C084FC, #F472B6)",
-
-                  WebkitBackgroundClip:
-                    "text",
-
-                  WebkitTextFillColor:
-                    "transparent",
+                  fontSize: "42px",
                 }}
               >
-                🤖 AI Collaboration
-                Insights
+                AI Collaboration Insights
               </h2>
 
               <div
                 style={{
-                  color: "#E9D5FF",
+                  color: "#CBD5E1",
 
-                  fontSize: "17px",
+                  fontSize: "16px",
                 }}
               >
                 {aiLoading
-                  ? "JARVIS is analyzing futuristic collaboration opportunities..."
+                  ? "Analyzing futuristic collaboration opportunities..."
                   : aiSuggestion}
               </div>
             </div>
           )}
 
-          {/* Matches */}
+          {/* MATCHES */}
           <div
             style={{
               display: "grid",
@@ -623,37 +572,23 @@ Provide:
               (user, index) => (
                 <div
                   key={index}
+                  className="glass-card"
                   style={{
-                    background:
-                      "rgba(255,255,255,0.05)",
-
-                    border:
-                      "1px solid rgba(255,255,255,0.08)",
-
-                    borderRadius:
-                      "30px",
-
                     padding: "30px",
-
-                    backdropFilter:
-                      "blur(16px)",
-
-                    boxShadow:
-                      "0 10px 35px rgba(168,85,247,0.08)",
                   }}
                 >
                   {/* Avatar */}
                   <div
                     style={{
-                      width: "85px",
+                      width: "88px",
 
-                      height: "85px",
+                      height: "88px",
 
                       borderRadius:
                         "50%",
 
                       background:
-                        "linear-gradient(to right, #9333EA, #EC4899)",
+                        "linear-gradient(135deg, #2563EB, #7C3AED)",
 
                       display: "flex",
 
@@ -663,34 +598,25 @@ Provide:
                       alignItems:
                         "center",
 
-                      fontSize: "30px",
+                      fontSize: "32px",
 
-                      marginBottom: "22px",
+                      marginBottom: "24px",
 
                       boxShadow:
-                        "0 10px 25px rgba(236,72,153,0.25)",
+                        "0 0 24px rgba(124,58,237,0.22)",
                     }}
                   >
                     {user.name.charAt(0)}
                   </div>
 
+                  {/* NAME */}
                   <h2
+                    className="card-title"
                     style={{
                       fontSize: "34px",
 
-                      marginBottom: "10px",
-
-                      fontFamily:
-                        "'Dancing Script', cursive",
-
-                      background:
-                        "linear-gradient(to right, #F5D0FE, #F9A8D4)",
-
-                      WebkitBackgroundClip:
-                        "text",
-
-                      WebkitTextFillColor:
-                        "transparent",
+                      marginBottom:
+                        "10px",
                     }}
                   >
                     {user.name}
@@ -700,7 +626,8 @@ Provide:
                     style={{
                       color: "#CBD5E1",
 
-                      marginBottom: "24px",
+                      marginBottom:
+                        "24px",
 
                       fontSize: "16px",
                     }}
@@ -708,16 +635,18 @@ Provide:
                     {user.role}
                   </p>
 
-                  {/* Skills */}
+                  {/* SKILLS */}
                   <div
                     style={{
                       display: "flex",
 
-                      flexWrap: "wrap",
+                      flexWrap:
+                        "wrap",
 
                       gap: "12px",
 
-                      marginBottom: "28px",
+                      marginBottom:
+                        "28px",
                     }}
                   >
                     {user.skillsHave.map(
@@ -729,19 +658,19 @@ Provide:
                               "10px 16px",
 
                             borderRadius:
-                              "30px",
+                              "24px",
 
                             background:
-                              "rgba(147,51,234,0.18)",
-
-                            color:
-                              "#F5D0FE",
+                              "rgba(79,70,229,0.16)",
 
                             border:
-                              "1px solid rgba(255,255,255,0.08)",
+                              "1px solid rgba(255,255,255,0.06)",
 
-                            fontWeight:
-                              "bold",
+                            color:
+                              "white",
+
+                            fontSize:
+                              "14px",
                           }}
                         >
                           ✨ {skill}
@@ -750,7 +679,7 @@ Provide:
                     )}
                   </div>
 
-                  {/* Buttons */}
+                  {/* BUTTONS */}
                   {!requestStatus[
                     user.name
                   ] && (
@@ -765,31 +694,26 @@ Provide:
 
                         padding: "15px",
 
-                        border: "none",
-
                         borderRadius:
                           "18px",
 
-                        cursor:
-                          "pointer",
-
                         background:
-                          "linear-gradient(to right, #9333EA, #EC4899)",
+                          "linear-gradient(135deg, #2563EB, #7C3AED)",
 
                         color:
                           "white",
 
                         fontWeight:
-                          "bold",
+                          "600",
 
                         fontSize:
-                          "16px",
+                          "15px",
 
                         boxShadow:
-                          "0 10px 30px rgba(236,72,153,0.22)",
+                          "0 0 22px rgba(124,58,237,0.22)",
                       }}
                     >
-                      🚀 Send Request
+                      Send Request
                     </button>
                   )}
 
@@ -803,8 +727,6 @@ Provide:
 
                         padding: "15px",
 
-                        border: "none",
-
                         borderRadius:
                           "18px",
 
@@ -815,13 +737,13 @@ Provide:
                           "white",
 
                         fontWeight:
-                          "bold",
+                          "600",
 
                         fontSize:
-                          "16px",
+                          "15px",
                       }}
                     >
-                      ⏳ Request Pending...
+                      Request Pending...
                     </button>
                   )}
 
@@ -840,13 +762,8 @@ Provide:
 
                         padding: "15px",
 
-                        border: "none",
-
                         borderRadius:
                           "18px",
-
-                        cursor:
-                          "pointer",
 
                         background:
                           "#10B981",
@@ -855,17 +772,16 @@ Provide:
                           "white",
 
                         fontWeight:
-                          "bold",
+                          "600",
 
                         fontSize:
-                          "16px",
+                          "15px",
 
                         boxShadow:
-                          "0 10px 25px rgba(16,185,129,0.25)",
+                          "0 0 20px rgba(16,185,129,0.24)",
                       }}
                     >
-                      🤝 Start
-                      Collaboration
+                      Start Collaboration
                     </button>
                   )}
                 </div>

@@ -5,8 +5,6 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-import "@fontsource/dancing-script";
-
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
@@ -111,10 +109,10 @@ function Chat() {
   return (
     <div
       style={{
-        background:
-          "linear-gradient(to bottom right, #12071F, #1E0B36, #0F172A)",
-
         minHeight: "100vh",
+
+        background:
+          "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
 
         color: "white",
 
@@ -133,15 +131,15 @@ function Chat() {
           height: "500px",
 
           background:
-            "rgba(168,85,247,0.12)",
+            "rgba(59,130,246,0.10)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(140px)",
 
-          top: "-120px",
+          top: "-180px",
 
-          right: "-100px",
+          left: "-120px",
         }}
       />
 
@@ -154,15 +152,15 @@ function Chat() {
           height: "450px",
 
           background:
-            "rgba(236,72,153,0.12)",
+            "rgba(124,58,237,0.12)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(130px)",
 
-          bottom: "-100px",
+          bottom: "-150px",
 
-          left: "-100px",
+          right: "-100px",
         }}
       />
 
@@ -181,63 +179,39 @@ function Chat() {
         {/* Sidebar */}
         <Sidebar />
 
-        {/* Main */}
+        {/* MAIN */}
         <div
           style={{
             flex: 1,
 
             display: "flex",
 
-            padding: "30px",
+            padding: "32px",
 
             gap: "26px",
           }}
         >
           {/* Collaborators */}
           <div
+            className="glass-card"
             style={{
               width: "340px",
 
-              background:
-                "rgba(255,255,255,0.05)",
-
-              border:
-                "1px solid rgba(255,255,255,0.08)",
-
-              borderRadius: "30px",
-
               padding: "28px",
-
-              backdropFilter:
-                "blur(16px)",
-
-              boxShadow:
-                "0 10px 40px rgba(168,85,247,0.10)",
             }}
           >
             <h2
+              className="section-title"
               style={{
-                marginBottom: "28px",
+                marginBottom: "30px",
 
-                fontSize: "50px",
-
-                fontFamily:
-                  "'Dancing Script', cursive",
-
-                background:
-                  "linear-gradient(to right, #C084FC, #F472B6)",
-
-                WebkitBackgroundClip:
-                  "text",
-
-                WebkitTextFillColor:
-                  "transparent",
+                fontSize: "38px",
               }}
             >
-              Collaborators ✨
+              Collaborators
             </h2>
 
-            {/* Users */}
+            {/* USERS */}
             <div
               style={{
                 display: "flex",
@@ -263,13 +237,14 @@ function Chat() {
 
                       cursor: "pointer",
 
-                      transition: "0.3s ease",
+                      transition:
+                        "0.3s ease",
 
                       background:
                         selectedUser.name ===
                         user.name
-                          ? "linear-gradient(to right, #9333EA, #EC4899)"
-                          : "rgba(255,255,255,0.05)",
+                          ? "linear-gradient(135deg, #2563EB, #7C3AED)"
+                          : "rgba(255,255,255,0.04)",
 
                       border:
                         "1px solid rgba(255,255,255,0.08)",
@@ -277,15 +252,19 @@ function Chat() {
                       boxShadow:
                         selectedUser.name ===
                         user.name
-                          ? "0 8px 30px rgba(236,72,153,0.20)"
+                          ? "0 0 24px rgba(124,58,237,0.24)"
                           : "none",
                     }}
                   >
                     <h3
+                      className="card-title"
                       style={{
-                        marginBottom: "6px",
+                        marginBottom:
+                          "6px",
 
-                        fontSize: "20px",
+                        fontSize: "24px",
+
+                        color: "white",
                       }}
                     >
                       {user.name}
@@ -294,9 +273,10 @@ function Chat() {
                     <p
                       style={{
                         color:
-                          "#E9D5FF",
+                          "#CBD5E1",
 
-                        fontSize: "14px",
+                        fontSize:
+                          "14px",
                       }}
                     >
                       {user.role}
@@ -304,7 +284,8 @@ function Chat() {
 
                     <div
                       style={{
-                        marginTop: "12px",
+                        marginTop:
+                          "12px",
 
                         display: "flex",
 
@@ -355,34 +336,24 @@ function Chat() {
             </div>
           </div>
 
-          {/* Chat Area */}
+          {/* CHAT AREA */}
           <div
+            className="glass-card"
             style={{
               flex: 1,
 
-              background:
-                "rgba(255,255,255,0.05)",
-
-              border:
-                "1px solid rgba(255,255,255,0.08)",
-
-              borderRadius: "30px",
-
               display: "flex",
 
-              flexDirection: "column",
+              flexDirection:
+                "column",
 
-              backdropFilter:
-                "blur(16px)",
-
-              boxShadow:
-                "0 10px 40px rgba(168,85,247,0.10)",
+              overflow: "hidden",
             }}
           >
-            {/* Header */}
+            {/* HEADER */}
             <div
               style={{
-                padding: "26px",
+                padding: "28px",
 
                 borderBottom:
                   "1px solid rgba(255,255,255,0.08)",
@@ -392,27 +363,18 @@ function Chat() {
                 justifyContent:
                   "space-between",
 
-                alignItems: "center",
+                alignItems:
+                  "center",
               }}
             >
               <div>
                 <h2
+                  className="section-title"
                   style={{
-                    fontSize: "42px",
+                    fontSize: "38px",
 
-                    fontFamily:
-                      "'Dancing Script', cursive",
-
-                    marginBottom: "6px",
-
-                    background:
-                      "linear-gradient(to right, #C084FC, #F472B6)",
-
-                    WebkitBackgroundClip:
-                      "text",
-
-                    WebkitTextFillColor:
-                      "transparent",
+                    marginBottom:
+                      "6px",
                   }}
                 >
                   {selectedUser.name}
@@ -420,7 +382,7 @@ function Chat() {
 
                 <p
                   style={{
-                    color: "#E9D5FF",
+                    color: "#CBD5E1",
 
                     fontSize: "15px",
                   }}
@@ -429,38 +391,36 @@ function Chat() {
                 </p>
               </div>
 
-              {/* Meeting */}
+              {/* MEETING */}
               <button
                 onClick={
                   handleStartMeeting
                 }
                 style={{
                   padding:
-                    "14px 22px",
-
-                  border: "none",
+                    "14px 24px",
 
                   borderRadius:
-                    "18px",
-
-                  cursor: "pointer",
+                    "16px",
 
                   background:
-                    "linear-gradient(to right, #9333EA, #EC4899)",
+                    "linear-gradient(135deg, #2563EB, #7C3AED)",
 
-                  color: "white",
+                  color:
+                    "white",
 
-                  fontWeight: "bold",
+                  fontWeight:
+                    "600",
 
                   boxShadow:
-                    "0 8px 25px rgba(236,72,153,0.25)",
+                    "0 0 22px rgba(124,58,237,0.24)",
                 }}
               >
-                🎥 Start Meeting
+                Start Meeting
               </button>
             </div>
 
-            {/* Messages */}
+            {/* MESSAGES */}
             <div
               style={{
                 flex: 1,
@@ -496,8 +456,8 @@ function Chat() {
                         background:
                           message.sender ===
                           "You"
-                            ? "linear-gradient(to right, #9333EA, #EC4899)"
-                            : "rgba(255,255,255,0.08)",
+                            ? "linear-gradient(135deg, #2563EB, #7C3AED)"
+                            : "rgba(255,255,255,0.06)",
 
                         padding:
                           "16px 20px",
@@ -511,7 +471,7 @@ function Chat() {
                         boxShadow:
                           message.sender ===
                           "You"
-                            ? "0 8px 25px rgba(236,72,153,0.18)"
+                            ? "0 0 18px rgba(124,58,237,0.18)"
                             : "none",
                       }}
                     >
@@ -526,10 +486,11 @@ function Chat() {
 
                       <p
                         style={{
-                          marginTop: "8px",
+                          marginTop:
+                            "8px",
 
                           lineHeight:
-                            "1.7",
+                            "1.8",
 
                           fontSize:
                             "16px",
@@ -543,7 +504,7 @@ function Chat() {
               )}
             </div>
 
-            {/* Input */}
+            {/* INPUT */}
             <div
               style={{
                 padding: "24px",
@@ -558,7 +519,7 @@ function Chat() {
             >
               <input
                 type="text"
-                placeholder="Type your futuristic message..."
+                placeholder="Type your message..."
                 value={input}
                 onChange={(e) =>
                   setInput(
@@ -570,19 +531,20 @@ function Chat() {
 
                   padding: "18px",
 
-                  borderRadius: "18px",
+                  borderRadius:
+                    "18px",
 
                   border:
                     "1px solid rgba(255,255,255,0.08)",
 
                   background:
-                    "rgba(255,255,255,0.05)",
+                    "rgba(255,255,255,0.04)",
 
                   color: "white",
 
                   outline: "none",
 
-                  fontSize: "16px",
+                  fontSize: "15px",
 
                   backdropFilter:
                     "blur(10px)",
@@ -597,27 +559,26 @@ function Chat() {
                   padding:
                     "18px 28px",
 
-                  border: "none",
-
                   borderRadius:
                     "18px",
 
-                  cursor: "pointer",
-
                   background:
-                    "linear-gradient(to right, #9333EA, #EC4899)",
+                    "linear-gradient(135deg, #2563EB, #7C3AED)",
 
-                  color: "white",
+                  color:
+                    "white",
 
-                  fontWeight: "bold",
+                  fontWeight:
+                    "600",
 
-                  fontSize: "16px",
+                  fontSize:
+                    "15px",
 
                   boxShadow:
-                    "0 8px 25px rgba(236,72,153,0.25)",
+                    "0 0 22px rgba(124,58,237,0.24)",
                 }}
               >
-                🚀 Send
+                Send
               </button>
             </div>
           </div>

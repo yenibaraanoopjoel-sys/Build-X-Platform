@@ -1,7 +1,5 @@
 import { useState } from "react";
 
-import "@fontsource/dancing-script";
-
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
@@ -34,10 +32,10 @@ function Settings() {
   return (
     <div
       style={{
-        background:
-          "linear-gradient(to bottom right, #12071F, #1E0B36, #0F172A)",
-
         minHeight: "100vh",
+
+        background:
+          "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
 
         color: "white",
 
@@ -46,7 +44,7 @@ function Settings() {
         position: "relative",
       }}
     >
-      {/* Glow Effects */}
+      {/* Glow */}
       <div
         style={{
           position: "absolute",
@@ -56,15 +54,15 @@ function Settings() {
           height: "500px",
 
           background:
-            "rgba(168,85,247,0.12)",
+            "rgba(59,130,246,0.10)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(140px)",
 
-          top: "-120px",
+          top: "-180px",
 
-          right: "-100px",
+          left: "-120px",
         }}
       />
 
@@ -77,15 +75,15 @@ function Settings() {
           height: "450px",
 
           background:
-            "rgba(236,72,153,0.12)",
+            "rgba(124,58,237,0.12)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(130px)",
 
-          bottom: "-100px",
+          bottom: "-150px",
 
-          left: "-100px",
+          right: "-100px",
         }}
       />
 
@@ -104,63 +102,91 @@ function Settings() {
         {/* Sidebar */}
         <Sidebar />
 
-        {/* Main */}
+        {/* MAIN */}
         <div
           style={{
             flex: 1,
 
-            padding: "40px",
+            padding: "42px",
           }}
         >
-          {/* Header */}
+          {/* HERO */}
           <div
+            className="glass-card"
             style={{
-              marginBottom: "42px",
+              padding: "48px",
+
+              marginBottom: "38px",
+
+              position: "relative",
+
+              overflow: "hidden",
             }}
           >
-            <h1
+            {/* Glow */}
+            <div
               style={{
-                fontSize: "72px",
+                position: "absolute",
 
-                fontFamily:
-                  "'Dancing Script', cursive",
+                width: "260px",
 
-                marginBottom: "14px",
+                height: "260px",
 
                 background:
-                  "linear-gradient(to right, #C084FC, #F472B6)",
+                  "rgba(91,95,255,0.10)",
 
-                WebkitBackgroundClip:
-                  "text",
+                borderRadius: "50%",
 
-                WebkitTextFillColor:
-                  "transparent",
+                filter: "blur(90px)",
+
+                top: "-70px",
+
+                right: "-50px",
               }}
-            >
-              Settings Center ⚙️
-            </h1>
+            />
 
-            <p
+            <div
               style={{
-                color: "#E9D5FF",
+                position: "relative",
 
-                fontSize: "19px",
-
-                lineHeight: "1.8",
-
-                maxWidth: "850px",
+                zIndex: 2,
               }}
             >
-              Customize your futuristic
-              BuildX AI workspace,
-              creator identity,
-              notifications, privacy,
-              and collaboration
-              experience.
-            </p>
+              <h1
+                className="welcome-title"
+                style={{
+                  fontSize: "54px",
+
+                  marginBottom: "22px",
+
+                  lineHeight: "1.3",
+                }}
+              >
+                SETTINGS CENTER
+              </h1>
+
+              <p
+                style={{
+                  color: "#CBD5E1",
+
+                  fontSize: "18px",
+
+                  lineHeight: "2",
+
+                  maxWidth: "850px",
+                }}
+              >
+                Customize your BuildX
+                AI workspace, privacy,
+                notifications,
+                collaboration systems,
+                and futuristic
+                productivity ecosystem.
+              </p>
+            </div>
           </div>
 
-          {/* Main Grid */}
+          {/* GRID */}
           <div
             style={{
               display: "grid",
@@ -170,52 +196,28 @@ function Settings() {
 
               gap: "28px",
 
-              marginBottom: "35px",
+              marginBottom: "32px",
             }}
           >
-            {/* Account */}
+            {/* ACCOUNT */}
             <div
+              className="glass-card"
               style={{
-                background:
-                  "rgba(255,255,255,0.05)",
-
-                padding: "32px",
-
-                borderRadius: "30px",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                backdropFilter:
-                  "blur(16px)",
-
-                boxShadow:
-                  "0 10px 40px rgba(168,85,247,0.10)",
+                padding: "34px",
               }}
             >
               <h2
+                className="section-title"
                 style={{
                   marginBottom: "28px",
 
-                  fontSize: "48px",
-
-                  fontFamily:
-                    "'Dancing Script', cursive",
-
-                  background:
-                    "linear-gradient(to right, #F5D0FE, #F9A8D4)",
-
-                  WebkitBackgroundClip:
-                    "text",
-
-                  WebkitTextFillColor:
-                    "transparent",
+                  fontSize: "40px",
                 }}
               >
-                Account ✨
+                Account
               </h2>
 
-              {/* Name */}
+              {/* NAME */}
               <div
                 style={{
                   marginBottom: "22px",
@@ -224,9 +226,9 @@ function Settings() {
                 <label
                   style={{
                     color:
-                      "#F5D0FE",
+                      "#E2E8F0",
 
-                    fontSize: "17px",
+                    fontSize: "15px",
 
                     fontWeight:
                       "600",
@@ -246,29 +248,15 @@ function Settings() {
                     padding: "16px",
 
                     borderRadius:
-                      "18px",
-
-                    border:
-                      "1px solid rgba(255,255,255,0.08)",
-
-                    outline: "none",
-
-                    background:
-                      "rgba(255,255,255,0.05)",
-
-                    color:
-                      "white",
-
-                    fontSize:
                       "16px",
 
-                    backdropFilter:
-                      "blur(10px)",
+                    fontSize:
+                      "15px",
                   }}
                 />
               </div>
 
-              {/* Email */}
+              {/* EMAIL */}
               <div
                 style={{
                   marginBottom: "22px",
@@ -277,9 +265,9 @@ function Settings() {
                 <label
                   style={{
                     color:
-                      "#F5D0FE",
+                      "#E2E8F0",
 
-                    fontSize: "17px",
+                    fontSize: "15px",
 
                     fontWeight:
                       "600",
@@ -299,29 +287,15 @@ function Settings() {
                     padding: "16px",
 
                     borderRadius:
-                      "18px",
-
-                    border:
-                      "1px solid rgba(255,255,255,0.08)",
-
-                    outline: "none",
-
-                    background:
-                      "rgba(255,255,255,0.05)",
-
-                    color:
-                      "white",
-
-                    fontSize:
                       "16px",
 
-                    backdropFilter:
-                      "blur(10px)",
+                    fontSize:
+                      "15px",
                   }}
                 />
               </div>
 
-              {/* Password */}
+              {/* PASSWORD */}
               <div
                 style={{
                   marginBottom: "28px",
@@ -330,9 +304,9 @@ function Settings() {
                 <label
                   style={{
                     color:
-                      "#F5D0FE",
+                      "#E2E8F0",
 
-                    fontSize: "17px",
+                    fontSize: "15px",
 
                     fontWeight:
                       "600",
@@ -352,103 +326,60 @@ function Settings() {
                     padding: "16px",
 
                     borderRadius:
-                      "18px",
-
-                    border:
-                      "1px solid rgba(255,255,255,0.08)",
-
-                    outline: "none",
-
-                    background:
-                      "rgba(255,255,255,0.05)",
-
-                    color:
-                      "white",
-
-                    fontSize:
                       "16px",
 
-                    backdropFilter:
-                      "blur(10px)",
+                    fontSize:
+                      "15px",
                   }}
                 />
               </div>
 
-              {/* Button */}
+              {/* BUTTON */}
               <button
                 style={{
                   width: "100%",
 
                   padding: "16px",
 
-                  border: "none",
-
                   borderRadius:
                     "18px",
 
-                  cursor:
-                    "pointer",
-
                   background:
-                    "linear-gradient(to right, #9333EA, #EC4899)",
+                    "linear-gradient(135deg, #2563EB, #7C3AED)",
 
                   color:
                     "white",
 
                   fontWeight:
-                    "bold",
+                    "600",
 
                   fontSize:
-                    "16px",
+                    "15px",
 
                   boxShadow:
-                    "0 10px 30px rgba(236,72,153,0.25)",
+                    "0 0 24px rgba(124,58,237,0.22)",
                 }}
               >
-                🚀 Save Changes
+                Save Changes
               </button>
             </div>
 
-            {/* Preferences */}
+            {/* PREFERENCES */}
             <div
+              className="glass-card"
               style={{
-                background:
-                  "rgba(255,255,255,0.05)",
-
-                padding: "32px",
-
-                borderRadius: "30px",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                backdropFilter:
-                  "blur(16px)",
-
-                boxShadow:
-                  "0 10px 40px rgba(168,85,247,0.10)",
+                padding: "34px",
               }}
             >
               <h2
+                className="section-title"
                 style={{
                   marginBottom: "28px",
 
-                  fontSize: "48px",
-
-                  fontFamily:
-                    "'Dancing Script', cursive",
-
-                  background:
-                    "linear-gradient(to right, #F5D0FE, #F9A8D4)",
-
-                  WebkitBackgroundClip:
-                    "text",
-
-                  WebkitTextFillColor:
-                    "transparent",
+                  fontSize: "40px",
                 }}
               >
-                Preferences ⚡
+                Preferences
               </h2>
 
               {[
@@ -525,15 +456,16 @@ function Settings() {
                   <span
                     style={{
                       fontSize:
-                        "17px",
+                        "16px",
 
                       color:
-                        "#E9D5FF",
+                        "#CBD5E1",
                     }}
                   >
                     {item.label}
                   </span>
 
+                  {/* TOGGLE */}
                   <button
                     onClick={() =>
                       toggleSetting(
@@ -560,7 +492,7 @@ function Settings() {
                         settings[
                           item.key
                         ]
-                          ? "linear-gradient(to right, #9333EA, #EC4899)"
+                          ? "linear-gradient(135deg, #2563EB, #7C3AED)"
                           : "#374151",
 
                       position:
@@ -606,46 +538,22 @@ function Settings() {
             </div>
           </div>
 
-          {/* Security */}
+          {/* SECURITY */}
           <div
+            className="glass-card"
             style={{
-              background:
-                "rgba(255,255,255,0.05)",
-
               padding: "34px",
-
-              borderRadius: "30px",
-
-              border:
-                "1px solid rgba(255,255,255,0.08)",
-
-              backdropFilter:
-                "blur(16px)",
-
-              boxShadow:
-                "0 10px 40px rgba(168,85,247,0.10)",
             }}
           >
             <h2
+              className="section-title"
               style={{
                 marginBottom: "28px",
 
-                fontSize: "52px",
-
-                fontFamily:
-                  "'Dancing Script', cursive",
-
-                background:
-                  "linear-gradient(to right, #C084FC, #F472B6)",
-
-                WebkitBackgroundClip:
-                  "text",
-
-                WebkitTextFillColor:
-                  "transparent",
+                fontSize: "42px",
               }}
             >
-              Security & Privacy 🔒
+              Security & Privacy
             </h2>
 
             <div
@@ -695,10 +603,10 @@ function Settings() {
                   key={index}
                   style={{
                     padding:
-                      "24px",
+                      "26px",
 
                     borderRadius:
-                      "24px",
+                      "22px",
 
                     background:
                       "rgba(255,255,255,0.04)",
@@ -726,15 +634,13 @@ function Settings() {
                   </div>
 
                   <h3
+                    className="card-title"
                     style={{
                       fontSize:
-                        "18px",
-
-                      color:
-                        "#F5D0FE",
+                        "22px",
 
                       lineHeight:
-                        "1.6",
+                        "1.7",
                     }}
                   >
                     {item.title}
@@ -744,22 +650,22 @@ function Settings() {
             </div>
           </div>
 
-          {/* Footer */}
+          {/* FOOTER */}
           <div
             style={{
-              marginTop: "35px",
+              marginTop: "34px",
 
               textAlign: "center",
 
-              color: "#D8B4FE",
+              color: "#CBD5E1",
 
-              fontSize: "16px",
+              fontSize: "15px",
 
               lineHeight: "1.8",
             }}
           >
-            ✨ Your BuildX AI workspace
-            is fully optimized for a
+            Your BuildX AI workspace
+            is optimized for a
             futuristic collaboration
             experience.
           </div>

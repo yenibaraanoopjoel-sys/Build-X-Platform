@@ -52,7 +52,7 @@ function PostIdea() {
 
         const response =
           await axios.post(
-            "https://build-x-platform.onrender.com",
+            "https://build-x-platform.onrender.com/api/ai",
             {
               message: `
 Enhance this startup/project idea professionally.
@@ -144,31 +144,82 @@ Provide:
   return (
     <div
       style={{
-        background:
-          "linear-gradient(to bottom right, #020617, #0F172A)",
-
         minHeight: "100vh",
 
+        background:
+          "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
+
         color: "white",
+
+        overflow: "hidden",
+
+        position: "relative",
       }}
     >
+      {/* Glow Effects */}
+      <div
+        style={{
+          position: "absolute",
+
+          width: "500px",
+
+          height: "500px",
+
+          background:
+            "rgba(59,130,246,0.10)",
+
+          borderRadius: "50%",
+
+          filter: "blur(140px)",
+
+          top: "-180px",
+
+          left: "-120px",
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+
+          width: "450px",
+
+          height: "450px",
+
+          background:
+            "rgba(124,58,237,0.12)",
+
+          borderRadius: "50%",
+
+          filter: "blur(130px)",
+
+          bottom: "-150px",
+
+          right: "-100px",
+        }}
+      />
+
       {/* Navbar */}
       <Navbar />
 
       <div
         style={{
           display: "flex",
+
+          position: "relative",
+
+          zIndex: 2,
         }}
       >
         {/* Sidebar */}
         <Sidebar />
 
-        {/* Main Content */}
+        {/* MAIN */}
         <div
           style={{
             flex: 1,
 
-            padding: "40px",
+            padding: "42px",
 
             display: "flex",
 
@@ -177,73 +228,116 @@ Provide:
           }}
         >
           <div
+            className="glass-card"
             style={{
               width: "100%",
 
-              maxWidth: "750px",
+              maxWidth: "850px",
 
-              background:
-                "rgba(255,255,255,0.05)",
+              padding: "48px",
 
-              padding: "40px",
+              position: "relative",
 
-              borderRadius: "28px",
-
-              backdropFilter:
-                "blur(15px)",
-
-              border:
-                "1px solid rgba(255,255,255,0.08)",
-
-              boxShadow:
-                "0 8px 32px rgba(0,0,0,0.3)",
+              overflow: "hidden",
             }}
           >
-            {/* Header */}
+            {/* Glow */}
             <div
               style={{
-                marginBottom: "30px",
+                position: "absolute",
+
+                width: "260px",
+
+                height: "260px",
+
+                background:
+                  "rgba(91,95,255,0.10)",
+
+                borderRadius: "50%",
+
+                filter: "blur(90px)",
+
+                top: "-70px",
+
+                right: "-40px",
+              }}
+            />
+
+            {/* HEADER */}
+            <div
+              style={{
+                marginBottom: "36px",
+
+                position: "relative",
+
+                zIndex: 2,
               }}
             >
               <h1
+                className="welcome-title"
                 style={{
-                  fontSize: "40px",
+                  fontSize: "48px",
 
                   marginBottom:
-                    "10px",
+                    "18px",
+
+                  lineHeight:
+                    "1.3",
                 }}
               >
-                AI Startup Builder 🚀
+                AI STARTUP BUILDER
               </h1>
 
               <p
                 style={{
                   color: "#CBD5E1",
 
-                  fontSize: "16px",
+                  fontSize: "17px",
+
+                  lineHeight:
+                    "2",
+
+                  maxWidth:
+                    "760px",
                 }}
               >
                 Create, enhance,
-                and share your
-                startup ideas with
-                AI-powered
-                assistance.
+                optimize, and share
+                futuristic startup
+                ideas using BuildX
+                AI-powered innovation
+                systems.
               </p>
             </div>
 
-            {/* Form */}
+            {/* FORM */}
             <form
               onSubmit={
                 submitHandler
               }
+              style={{
+                position: "relative",
+
+                zIndex: 2,
+              }}
             >
-              {/* Title */}
+              {/* TITLE */}
               <div
                 style={{
-                  marginBottom: "22px",
+                  marginBottom: "26px",
                 }}
               >
-                <label>
+                <label
+                  style={{
+                    color:
+                      "#E2E8F0",
+
+                    fontSize: "15px",
+
+                    fontWeight:
+                      "600",
+                  }}
+                >
                   Idea Title
                 </label>
 
@@ -261,33 +355,36 @@ Provide:
                   style={{
                     width: "100%",
 
-                    marginTop: "8px",
+                    marginTop: "10px",
 
-                    padding: "14px",
+                    padding: "16px",
 
                     borderRadius:
-                      "12px",
+                      "16px",
 
-                    border: "none",
-
-                    outline: "none",
-
-                    background:
-                      "#1E293B",
-
-                    color:
-                      "white",
+                    fontSize:
+                      "15px",
                   }}
                 />
               </div>
 
-              {/* Description */}
+              {/* DESCRIPTION */}
               <div
                 style={{
-                  marginBottom: "22px",
+                  marginBottom: "26px",
                 }}
               >
-                <label>
+                <label
+                  style={{
+                    color:
+                      "#E2E8F0",
+
+                    fontSize: "15px",
+
+                    fontWeight:
+                      "600",
+                  }}
+                >
                   Description
                 </label>
 
@@ -305,33 +402,26 @@ Provide:
                   style={{
                     width: "100%",
 
-                    marginTop: "8px",
+                    marginTop: "10px",
 
-                    padding: "16px",
+                    padding: "18px",
 
                     borderRadius:
-                      "12px",
-
-                    border: "none",
-
-                    outline: "none",
-
-                    background:
-                      "#1E293B",
-
-                    color:
-                      "white",
+                      "16px",
 
                     resize:
                       "none",
 
                     lineHeight:
-                      "1.7",
+                      "1.9",
+
+                    fontSize:
+                      "15px",
                   }}
                 />
               </div>
 
-              {/* AI Enhance Button */}
+              {/* AI BUTTON */}
               <button
                 type="button"
                 onClick={
@@ -343,47 +433,52 @@ Provide:
                 style={{
                   width: "100%",
 
-                  padding: "15px",
-
-                  border: "none",
+                  padding: "16px",
 
                   borderRadius:
-                    "14px",
-
-                  cursor:
-                    "pointer",
+                    "18px",
 
                   marginBottom:
-                    "22px",
+                    "26px",
 
                   background:
-                    "linear-gradient(to right, #F59E0B, #EF4444)",
+                    "linear-gradient(135deg, #2563EB, #7C3AED)",
 
                   color:
                     "white",
 
                   fontSize:
-                    "16px",
+                    "15px",
 
                   fontWeight:
-                    "bold",
+                    "600",
 
                   boxShadow:
-                    "0 8px 25px rgba(245,158,11,0.3)",
+                    "0 0 24px rgba(124,58,237,0.24)",
                 }}
               >
                 {aiLoading
-                  ? "JARVIS Enhancing Idea..."
-                  : "✨ Enhance with JARVIS"}
+                  ? "Enhancing Idea..."
+                  : "Enhance with AI"}
               </button>
 
-              {/* Tech Stack */}
+              {/* TECH STACK */}
               <div
                 style={{
-                  marginBottom: "30px",
+                  marginBottom: "32px",
                 }}
               >
-                <label>
+                <label
+                  style={{
+                    color:
+                      "#E2E8F0",
+
+                    fontSize: "15px",
+
+                    fontWeight:
+                      "600",
+                  }}
+                >
                   Tech Stack
                 </label>
 
@@ -401,27 +496,20 @@ Provide:
                   style={{
                     width: "100%",
 
-                    marginTop: "8px",
+                    marginTop: "10px",
 
-                    padding: "14px",
+                    padding: "16px",
 
                     borderRadius:
-                      "12px",
+                      "16px",
 
-                    border: "none",
-
-                    outline: "none",
-
-                    background:
-                      "#1E293B",
-
-                    color:
-                      "white",
+                    fontSize:
+                      "15px",
                   }}
                 />
               </div>
 
-              {/* Submit */}
+              {/* SUBMIT */}
               <button
                 type="submit"
                 disabled={
@@ -430,35 +518,30 @@ Provide:
                 style={{
                   width: "100%",
 
-                  padding: "15px",
-
-                  border: "none",
+                  padding: "16px",
 
                   borderRadius:
-                    "14px",
-
-                  cursor:
-                    "pointer",
+                    "18px",
 
                   background:
-                    "linear-gradient(to right, #2563EB, #7C3AED)",
+                    "linear-gradient(135deg, #2563EB, #7C3AED)",
 
                   color:
                     "white",
 
                   fontSize:
-                    "16px",
+                    "15px",
 
                   fontWeight:
-                    "bold",
+                    "600",
 
                   boxShadow:
-                    "0 8px 25px rgba(37,99,235,0.35)",
+                    "0 0 24px rgba(124,58,237,0.24)",
                 }}
               >
                 {loading
                   ? "Posting Idea..."
-                  : "🚀 Post Idea"}
+                  : "Post Idea"}
               </button>
             </form>
           </div>

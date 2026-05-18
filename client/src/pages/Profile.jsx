@@ -1,7 +1,5 @@
 import { useState } from "react";
 
-import "@fontsource/dancing-script";
-
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
@@ -18,11 +16,11 @@ function Profile() {
     "☁️",
   ];
 
-  // Selected Avatar
+  // Avatar
   const [selectedAvatar, setSelectedAvatar] =
     useState("👨‍💻");
 
-  // User Data
+  // User
   const user = {
     name: "Anoop Joel",
 
@@ -56,7 +54,7 @@ function Profile() {
     tasksCompleted: 46,
   };
 
-  // Professional Badges
+  // Badges
   const creatorBadges = [
     "🚀 Startup Founder",
 
@@ -70,10 +68,10 @@ function Profile() {
   return (
     <div
       style={{
-        background:
-          "linear-gradient(to bottom right, #12071F, #1E0B36, #0F172A)",
-
         minHeight: "100vh",
+
+        background:
+          "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
 
         color: "white",
 
@@ -82,7 +80,7 @@ function Profile() {
         position: "relative",
       }}
     >
-      {/* Glow Effects */}
+      {/* Glow */}
       <div
         style={{
           position: "absolute",
@@ -92,15 +90,15 @@ function Profile() {
           height: "500px",
 
           background:
-            "rgba(168,85,247,0.12)",
+            "rgba(59,130,246,0.10)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(140px)",
 
-          top: "-120px",
+          top: "-180px",
 
-          right: "-100px",
+          left: "-120px",
         }}
       />
 
@@ -113,15 +111,15 @@ function Profile() {
           height: "450px",
 
           background:
-            "rgba(236,72,153,0.12)",
+            "rgba(124,58,237,0.12)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(130px)",
 
-          bottom: "-100px",
+          bottom: "-150px",
 
-          left: "-100px",
+          right: "-100px",
         }}
       />
 
@@ -140,88 +138,104 @@ function Profile() {
         {/* Sidebar */}
         <Sidebar />
 
-        {/* Main */}
+        {/* MAIN */}
         <div
           style={{
             flex: 1,
 
-            padding: "40px",
+            padding: "42px",
           }}
         >
-          {/* Hero */}
+          {/* HERO */}
           <div
+            className="glass-card"
             style={{
-              marginBottom: "40px",
+              padding: "48px",
+
+              marginBottom: "38px",
+
+              position: "relative",
+
+              overflow: "hidden",
             }}
           >
-            <h1
+            {/* Glow */}
+            <div
               style={{
-                fontSize: "72px",
+                position: "absolute",
 
-                fontFamily:
-                  "'Dancing Script', cursive",
+                width: "260px",
 
-                marginBottom: "14px",
+                height: "260px",
 
                 background:
-                  "linear-gradient(to right, #C084FC, #F472B6)",
+                  "rgba(91,95,255,0.10)",
 
-                WebkitBackgroundClip:
-                  "text",
+                borderRadius: "50%",
 
-                WebkitTextFillColor:
-                  "transparent",
+                filter: "blur(90px)",
+
+                top: "-70px",
+
+                right: "-50px",
               }}
-            >
-              Creator Profile ✨
-            </h1>
+            />
 
-            <p
+            <div
               style={{
-                color: "#E9D5FF",
+                position: "relative",
 
-                fontSize: "19px",
-
-                lineHeight: "1.8",
-
-                maxWidth: "850px",
+                zIndex: 2,
               }}
             >
-              Build your futuristic
-              creator identity and
-              showcase your AI-powered
-              collaboration journey
-              inside BuildX.
-            </p>
+              <h1
+                className="welcome-title"
+                style={{
+                  fontSize: "54px",
+
+                  marginBottom: "22px",
+
+                  lineHeight: "1.3",
+                }}
+              >
+                CREATOR PROFILE
+              </h1>
+
+              <p
+                style={{
+                  color: "#CBD5E1",
+
+                  fontSize: "18px",
+
+                  lineHeight: "2",
+
+                  maxWidth: "850px",
+                }}
+              >
+                Build your futuristic
+                AI creator identity,
+                showcase achievements,
+                manage collaboration,
+                and scale innovation
+                inside BuildX.
+              </p>
+            </div>
           </div>
 
-          {/* Main Profile Card */}
+          {/* PROFILE CARD */}
           <div
+            className="glass-card"
             style={{
-              background:
-                "rgba(255,255,255,0.05)",
-
-              border:
-                "1px solid rgba(255,255,255,0.08)",
-
-              borderRadius: "34px",
-
               padding: "40px",
 
-              marginBottom: "35px",
-
-              backdropFilter:
-                "blur(16px)",
-
-              boxShadow:
-                "0 10px 40px rgba(168,85,247,0.10)",
+              marginBottom: "32px",
             }}
           >
             <div
               style={{
                 display: "flex",
 
-                gap: "35px",
+                gap: "34px",
 
                 flexWrap: "wrap",
 
@@ -231,14 +245,14 @@ function Profile() {
               {/* Avatar */}
               <div
                 style={{
-                  width: "150px",
+                  width: "160px",
 
-                  height: "150px",
+                  height: "160px",
 
                   borderRadius: "50%",
 
                   background:
-                    "linear-gradient(to right, #9333EA, #EC4899)",
+                    "linear-gradient(135deg, #2563EB, #7C3AED)",
 
                   display: "flex",
 
@@ -248,10 +262,10 @@ function Profile() {
                   alignItems:
                     "center",
 
-                  fontSize: "64px",
+                  fontSize: "68px",
 
                   boxShadow:
-                    "0 10px 35px rgba(236,72,153,0.25)",
+                    "0 0 28px rgba(124,58,237,0.22)",
 
                   border:
                     "4px solid rgba(255,255,255,0.08)",
@@ -260,25 +274,17 @@ function Profile() {
                 {selectedAvatar}
               </div>
 
-              {/* Info */}
+              {/* INFO */}
               <div>
                 <h1
+                  className="section-title"
                   style={{
-                    fontSize: "58px",
+                    fontSize: "52px",
 
-                    marginBottom: "12px",
+                    marginBottom:
+                      "12px",
 
-                    fontFamily:
-                      "'Dancing Script', cursive",
-
-                    background:
-                      "linear-gradient(to right, #F5D0FE, #F9A8D4)",
-
-                    WebkitBackgroundClip:
-                      "text",
-
-                    WebkitTextFillColor:
-                      "transparent",
+                    color: "white",
                   }}
                 >
                   {user.name}
@@ -286,11 +292,12 @@ function Profile() {
 
                 <p
                   style={{
-                    color: "#E9D5FF",
+                    color: "#CBD5E1",
 
                     fontSize: "20px",
 
-                    marginBottom: "10px",
+                    marginBottom:
+                      "10px",
                   }}
                 >
                   {user.role}
@@ -298,9 +305,10 @@ function Profile() {
 
                 <p
                   style={{
-                    color: "#CBD5E1",
+                    color: "#94A3B8",
 
-                    marginBottom: "22px",
+                    marginBottom:
+                      "24px",
                   }}
                 >
                   {user.email}
@@ -325,22 +333,19 @@ function Profile() {
                         key={index}
                         style={{
                           padding:
-                            "10px 16px",
+                            "11px 18px",
 
                           borderRadius:
-                            "30px",
+                            "24px",
 
                           background:
-                            "rgba(147,51,234,0.18)",
+                            "rgba(79,70,229,0.16)",
 
                           border:
-                            "1px solid rgba(255,255,255,0.08)",
+                            "1px solid rgba(255,255,255,0.06)",
 
                           color:
-                            "#F5D0FE",
-
-                          fontWeight:
-                            "bold",
+                            "white",
 
                           fontSize:
                             "14px",
@@ -355,48 +360,24 @@ function Profile() {
             </div>
           </div>
 
-          {/* Avatar Selector */}
+          {/* AVATAR */}
           <div
+            className="glass-card"
             style={{
-              background:
-                "rgba(255,255,255,0.05)",
-
-              border:
-                "1px solid rgba(255,255,255,0.08)",
-
-              borderRadius: "30px",
-
               padding: "32px",
 
-              marginBottom: "35px",
-
-              backdropFilter:
-                "blur(16px)",
-
-              boxShadow:
-                "0 10px 35px rgba(168,85,247,0.08)",
+              marginBottom: "32px",
             }}
           >
             <h2
+              className="section-title"
               style={{
-                marginBottom: "24px",
+                marginBottom: "26px",
 
-                fontSize: "48px",
-
-                fontFamily:
-                  "'Dancing Script', cursive",
-
-                background:
-                  "linear-gradient(to right, #C084FC, #F472B6)",
-
-                WebkitBackgroundClip:
-                  "text",
-
-                WebkitTextFillColor:
-                  "transparent",
+                fontSize: "38px",
               }}
             >
-              🎭 Choose Your Avatar
+              Avatar Selection
             </h2>
 
             <div
@@ -405,7 +386,7 @@ function Profile() {
 
                 flexWrap: "wrap",
 
-                gap: "20px",
+                gap: "18px",
               }}
             >
               {avatarOptions.map(
@@ -443,16 +424,16 @@ function Profile() {
                       background:
                         selectedAvatar ===
                         avatar
-                          ? "linear-gradient(to right, #9333EA, #EC4899)"
-                          : "rgba(255,255,255,0.05)",
+                          ? "linear-gradient(135deg, #2563EB, #7C3AED)"
+                          : "rgba(255,255,255,0.04)",
 
                       border:
-                        "2px solid rgba(255,255,255,0.08)",
+                        "1px solid rgba(255,255,255,0.08)",
 
                       boxShadow:
                         selectedAvatar ===
                         avatar
-                          ? "0 10px 30px rgba(236,72,153,0.25)"
+                          ? "0 0 24px rgba(124,58,237,0.22)"
                           : "none",
                     }}
                   >
@@ -463,7 +444,7 @@ function Profile() {
             </div>
           </div>
 
-          {/* Stats */}
+          {/* STATS */}
           <div
             style={{
               display: "grid",
@@ -473,7 +454,7 @@ function Profile() {
 
               gap: "24px",
 
-              marginBottom: "35px",
+              marginBottom: "32px",
             }}
           >
             {[
@@ -503,29 +484,16 @@ function Profile() {
 
               {
                 title:
-                  "Contribution Score",
+                  "Contribution",
                 value: `${user.contributionScore}%`,
                 icon: "🚀",
               },
             ].map((item, index) => (
               <div
                 key={index}
+                className="glass-card"
                 style={{
-                  background:
-                    "rgba(255,255,255,0.05)",
-
                   padding: "28px",
-
-                  borderRadius: "28px",
-
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  backdropFilter:
-                    "blur(14px)",
-
-                  boxShadow:
-                    "0 10px 35px rgba(168,85,247,0.08)",
                 }}
               >
                 <div
@@ -543,12 +511,10 @@ function Profile() {
                   }}
                 >
                   <h3
+                    className="card-title"
                     style={{
-                      color:
-                        "#D8B4FE",
-
                       fontSize:
-                        "18px",
+                        "24px",
                     }}
                   >
                     {item.title}
@@ -566,16 +532,9 @@ function Profile() {
 
                 <h1
                   style={{
-                    fontSize: "46px",
+                    fontSize: "48px",
 
-                    background:
-                      "linear-gradient(to right, #C084FC, #F472B6)",
-
-                    WebkitBackgroundClip:
-                      "text",
-
-                    WebkitTextFillColor:
-                      "transparent",
+                    color: "white",
                   }}
                 >
                   {item.value}
@@ -584,7 +543,7 @@ function Profile() {
             ))}
           </div>
 
-          {/* About + Skills */}
+          {/* ABOUT + SKILLS */}
           <div
             style={{
               display: "grid",
@@ -595,98 +554,56 @@ function Profile() {
               gap: "24px",
             }}
           >
-            {/* About */}
+            {/* ABOUT */}
             <div
+              className="glass-card"
               style={{
-                background:
-                  "rgba(255,255,255,0.05)",
-
-                padding: "30px",
-
-                borderRadius: "28px",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                backdropFilter:
-                  "blur(14px)",
+                padding: "32px",
               }}
             >
               <h2
+                className="section-title"
                 style={{
                   marginBottom: "22px",
 
-                  fontSize: "42px",
-
-                  fontFamily:
-                    "'Dancing Script', cursive",
-
-                  background:
-                    "linear-gradient(to right, #F5D0FE, #F9A8D4)",
-
-                  WebkitBackgroundClip:
-                    "text",
-
-                  WebkitTextFillColor:
-                    "transparent",
+                  fontSize: "38px",
                 }}
               >
-                About ✨
+                About
               </h2>
 
               <p
                 style={{
-                  color: "#E9D5FF",
+                  color: "#CBD5E1",
 
                   lineHeight: "2",
 
-                  fontSize: "17px",
+                  fontSize: "16px",
                 }}
               >
                 {user.bio}
               </p>
             </div>
 
-            {/* Skills */}
+            {/* SKILLS */}
             <div
+              className="glass-card"
               style={{
-                background:
-                  "rgba(255,255,255,0.05)",
-
-                padding: "30px",
-
-                borderRadius: "28px",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                backdropFilter:
-                  "blur(14px)",
+                padding: "32px",
               }}
             >
               <h2
+                className="section-title"
                 style={{
                   marginBottom: "22px",
 
-                  fontSize: "42px",
-
-                  fontFamily:
-                    "'Dancing Script', cursive",
-
-                  background:
-                    "linear-gradient(to right, #F5D0FE, #F9A8D4)",
-
-                  WebkitBackgroundClip:
-                    "text",
-
-                  WebkitTextFillColor:
-                    "transparent",
+                  fontSize: "38px",
                 }}
               >
-                Skills ⚡
+                Skills
               </h2>
 
-              {/* Skills Have */}
+              {/* HAVE */}
               <div
                 style={{
                   marginBottom: "24px",
@@ -694,9 +611,11 @@ function Profile() {
               >
                 <h4
                   style={{
-                    marginBottom: "12px",
+                    marginBottom:
+                      "12px",
 
-                    color: "#CBD5E1",
+                    color:
+                      "#CBD5E1",
                   }}
                 >
                   Skills You Have
@@ -706,7 +625,8 @@ function Profile() {
                   style={{
                     display: "flex",
 
-                    flexWrap: "wrap",
+                    flexWrap:
+                      "wrap",
 
                     gap: "12px",
                   }}
@@ -723,22 +643,19 @@ function Profile() {
                             "10px 16px",
 
                           borderRadius:
-                            "30px",
+                            "24px",
 
                           background:
-                            "linear-gradient(to right, #9333EA, #EC4899)",
+                            "linear-gradient(135deg, #2563EB, #7C3AED)",
 
                           color:
                             "white",
-
-                          fontWeight:
-                            "bold",
 
                           fontSize:
                             "14px",
 
                           boxShadow:
-                            "0 8px 25px rgba(236,72,153,0.18)",
+                            "0 0 18px rgba(124,58,237,0.18)",
                         }}
                       >
                         ✨ {skill}
@@ -748,13 +665,15 @@ function Profile() {
                 </div>
               </div>
 
-              {/* Skills Want */}
+              {/* WANT */}
               <div>
                 <h4
                   style={{
-                    marginBottom: "12px",
+                    marginBottom:
+                      "12px",
 
-                    color: "#CBD5E1",
+                    color:
+                      "#CBD5E1",
                   }}
                 >
                   Skills You Want
@@ -764,7 +683,8 @@ function Profile() {
                   style={{
                     display: "flex",
 
-                    flexWrap: "wrap",
+                    flexWrap:
+                      "wrap",
 
                     gap: "12px",
                   }}
@@ -781,19 +701,16 @@ function Profile() {
                             "10px 16px",
 
                           borderRadius:
-                            "30px",
+                            "24px",
 
                           background:
-                            "rgba(255,255,255,0.08)",
-
-                          color:
-                            "#F5D0FE",
+                            "rgba(255,255,255,0.05)",
 
                           border:
                             "1px solid rgba(255,255,255,0.08)",
 
-                          fontWeight:
-                            "bold",
+                          color:
+                            "#E2E8F0",
 
                           fontSize:
                             "14px",
@@ -808,45 +725,24 @@ function Profile() {
             </div>
           </div>
 
-          {/* Performance */}
+          {/* PERFORMANCE */}
           <div
+            className="glass-card"
             style={{
-              marginTop: "35px",
+              marginTop: "32px",
 
-              background:
-                "rgba(255,255,255,0.05)",
-
-              padding: "30px",
-
-              borderRadius: "28px",
-
-              border:
-                "1px solid rgba(255,255,255,0.08)",
-
-              backdropFilter:
-                "blur(14px)",
+              padding: "32px",
             }}
           >
             <h2
+              className="section-title"
               style={{
                 marginBottom: "24px",
 
-                fontSize: "46px",
-
-                fontFamily:
-                  "'Dancing Script', cursive",
-
-                background:
-                  "linear-gradient(to right, #C084FC, #F472B6)",
-
-                WebkitBackgroundClip:
-                  "text",
-
-                WebkitTextFillColor:
-                  "transparent",
+                fontSize: "42px",
               }}
             >
-              Collaboration Performance 🚀
+              Collaboration Performance
             </h2>
 
             <div
@@ -856,11 +752,14 @@ function Profile() {
                 background:
                   "rgba(255,255,255,0.08)",
 
-                borderRadius: "20px",
+                borderRadius:
+                  "20px",
 
-                overflow: "hidden",
+                overflow:
+                  "hidden",
 
-                marginBottom: "18px",
+                marginBottom:
+                  "18px",
               }}
             >
               <div
@@ -873,26 +772,26 @@ function Profile() {
                     "20px",
 
                   background:
-                    "linear-gradient(to right, #9333EA, #EC4899)",
+                    "linear-gradient(135deg, #2563EB, #7C3AED)",
 
                   boxShadow:
-                    "0 0 20px rgba(236,72,153,0.35)",
+                    "0 0 20px rgba(124,58,237,0.24)",
                 }}
               />
             </div>
 
             <p
               style={{
-                color: "#E9D5FF",
+                color: "#CBD5E1",
 
-                fontSize: "17px",
+                fontSize: "16px",
 
-                lineHeight: "1.8",
+                lineHeight: "1.9",
               }}
             >
-              Your creator collaboration
-              score is performing
-              excellently this month
+              Your collaboration
+              performance is currently
+              performing excellently
               inside the BuildX AI
               ecosystem.
             </p>

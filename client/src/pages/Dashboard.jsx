@@ -1,5 +1,3 @@
-import "@fontsource/dancing-script";
-
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
@@ -33,10 +31,10 @@ function Dashboard() {
   return (
     <div
       style={{
-        background:
-          "linear-gradient(to bottom right, #12071F, #1E0B36, #0F172A)",
-
         minHeight: "100vh",
+
+        background:
+          "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
 
         color: "white",
 
@@ -45,7 +43,7 @@ function Dashboard() {
         position: "relative",
       }}
     >
-      {/* Glow Effects */}
+      {/* Background Glow */}
       <div
         style={{
           position: "absolute",
@@ -55,15 +53,15 @@ function Dashboard() {
           height: "500px",
 
           background:
-            "rgba(168,85,247,0.12)",
+            "rgba(59,130,246,0.12)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(140px)",
 
-          top: "-120px",
+          top: "-180px",
 
-          right: "-100px",
+          left: "-100px",
         }}
       />
 
@@ -76,19 +74,18 @@ function Dashboard() {
           height: "450px",
 
           background:
-            "rgba(236,72,153,0.12)",
+            "rgba(124,58,237,0.14)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(130px)",
 
-          bottom: "-100px",
+          bottom: "-160px",
 
-          left: "-100px",
+          right: "-120px",
         }}
       />
 
-      {/* Navbar */}
       <Navbar />
 
       <div
@@ -100,7 +97,6 @@ function Dashboard() {
           zIndex: 2,
         }}
       >
-        {/* Sidebar */}
         <Sidebar />
 
         {/* Main */}
@@ -108,73 +104,90 @@ function Dashboard() {
           style={{
             flex: 1,
 
-            padding: "40px",
+            padding: "42px",
           }}
         >
-          {/* Hero Section */}
+          {/* HERO */}
           <div
+            className="glass-card"
             style={{
-              background:
-                "linear-gradient(to right, rgba(147,51,234,0.16), rgba(236,72,153,0.16))",
+              padding: "52px",
 
-              border:
-                "1px solid rgba(255,255,255,0.08)",
+              marginBottom: "38px",
 
-              borderRadius: "32px",
+              position: "relative",
 
-              padding: "45px",
-
-              marginBottom: "40px",
-
-              backdropFilter:
-                "blur(18px)",
-
-              boxShadow:
-                "0 10px 40px rgba(168,85,247,0.12)",
+              overflow: "hidden",
             }}
           >
-            <h1
+            {/* Hero Glow */}
+            <div
               style={{
-                fontSize: "72px",
+                position: "absolute",
 
-                fontFamily:
-                  "'Dancing Script', cursive",
+                width: "260px",
 
-                marginBottom: "18px",
+                height: "260px",
 
                 background:
-                  "linear-gradient(to right, #C084FC, #F472B6)",
+                  "rgba(91,95,255,0.12)",
 
-                WebkitBackgroundClip:
-                  "text",
+                borderRadius: "50%",
 
-                WebkitTextFillColor:
-                  "transparent",
+                filter: "blur(90px)",
+
+                top: "-80px",
+
+                right: "-50px",
+              }}
+            />
+
+            <h1
+              className="welcome-title"
+              style={{
+                fontSize: "54px",
+
+                marginBottom: "24px",
+
+                lineHeight: "1.3",
+
+                color: "white",
+
+                position: "relative",
+
+                zIndex: 2,
               }}
             >
-              Welcome to BuildX ✨
+              WELCOME TO BUILDX
             </h1>
 
             <p
               style={{
-                color: "#E9D5FF",
+                color: "#CBD5E1",
 
-                fontSize: "20px",
+                fontSize: "18px",
 
-                lineHeight: "1.9",
+                lineHeight: "2",
 
                 maxWidth: "850px",
+
+                position: "relative",
+
+                zIndex: 2,
               }}
             >
               AI-powered collaboration,
               productivity, innovation,
-              and project management
-              platform designed for
-              next-generation creators.
+              and futuristic project
+              management platform
+              designed for modern
+              creators, developers,
+              startups, and next-gen
+              teams.
             </p>
           </div>
 
-          {/* Stats */}
+          {/* STATS */}
           <div
             style={{
               display: "grid",
@@ -184,30 +197,46 @@ function Dashboard() {
 
               gap: "24px",
 
-              marginBottom: "40px",
+              marginBottom: "38px",
             }}
           >
             {stats.map((item, index) => (
               <div
                 key={index}
+                className="glass-card"
                 style={{
-                  background:
-                    "rgba(255,255,255,0.05)",
-
                   padding: "30px",
 
-                  borderRadius: "28px",
+                  position: "relative",
 
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  backdropFilter:
-                    "blur(16px)",
-
-                  boxShadow:
-                    "0 10px 35px rgba(168,85,247,0.08)",
+                  overflow: "hidden",
                 }}
               >
+                {/* Card Glow */}
+                <div
+                  style={{
+                    position:
+                      "absolute",
+
+                    width: "180px",
+
+                    height: "180px",
+
+                    background:
+                      "rgba(124,58,237,0.08)",
+
+                    borderRadius:
+                      "50%",
+
+                    filter:
+                      "blur(70px)",
+
+                    top: "-60px",
+
+                    right: "-60px",
+                  }}
+                />
+
                 <div
                   style={{
                     display: "flex",
@@ -215,24 +244,33 @@ function Dashboard() {
                     justifyContent:
                       "space-between",
 
-                    alignItems: "center",
+                    alignItems:
+                      "center",
 
-                    marginBottom: "18px",
+                    marginBottom:
+                      "18px",
+
+                    position:
+                      "relative",
+
+                    zIndex: 2,
                   }}
                 >
-                  <h3
+                  <h2
+                    className="card-title"
                     style={{
-                      color: "#D8B4FE",
+                      fontSize: "28px",
 
-                      fontSize: "18px",
+                      color:
+                        "white",
                     }}
                   >
                     {item.title}
-                  </h3>
+                  </h2>
 
                   <span
                     style={{
-                      fontSize: "32px",
+                      fontSize: "30px",
                     }}
                   >
                     {item.icon}
@@ -243,14 +281,12 @@ function Dashboard() {
                   style={{
                     fontSize: "48px",
 
-                    background:
-                      "linear-gradient(to right, #C084FC, #F472B6)",
+                    color: "white",
 
-                    WebkitBackgroundClip:
-                      "text",
+                    position:
+                      "relative",
 
-                    WebkitTextFillColor:
-                      "transparent",
+                    zIndex: 2,
                   }}
                 >
                   {item.value}
@@ -259,7 +295,7 @@ function Dashboard() {
             ))}
           </div>
 
-          {/* Grid */}
+          {/* LOWER GRID */}
           <div
             style={{
               display: "grid",
@@ -272,48 +308,33 @@ function Dashboard() {
           >
             {/* Activity */}
             <div
+              className="glass-card"
               style={{
-                background:
-                  "rgba(255,255,255,0.05)",
-
                 padding: "32px",
-
-                borderRadius: "30px",
-
-                backdropFilter:
-                  "blur(14px)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                boxShadow:
-                  "0 10px 35px rgba(168,85,247,0.08)",
               }}
             >
               <h2
+                className="section-title"
                 style={{
-                  marginBottom: "24px",
+                  fontSize: "34px",
 
-                  color: "#F9A8D4",
-
-                  fontSize: "42px",
-
-                  fontFamily:
-                    "'Dancing Script', cursive",
+                  marginBottom:
+                    "26px",
                 }}
               >
-                🚀 Recent Activity
+                Recent Activity
               </h2>
 
               <ul
                 style={{
-                  color: "#E9D5FF",
+                  color: "#CBD5E1",
 
-                  lineHeight: "2.3",
+                  lineHeight: "2.2",
 
-                  paddingLeft: "20px",
+                  paddingLeft:
+                    "20px",
 
-                  fontSize: "17px",
+                  fontSize: "16px",
                 }}
               >
                 <li>
@@ -322,8 +343,7 @@ function Dashboard() {
                 </li>
 
                 <li>
-                  New startup idea
-                  enhanced
+                  Startup idea enhanced
                 </li>
 
                 <li>
@@ -337,7 +357,7 @@ function Dashboard() {
                 </li>
 
                 <li>
-                  Video collaboration
+                  Team video session
                   started
                 </li>
               </ul>
@@ -345,69 +365,58 @@ function Dashboard() {
 
             {/* Productivity */}
             <div
+              className="glass-card"
               style={{
-                background:
-                  "rgba(255,255,255,0.05)",
-
                 padding: "32px",
-
-                borderRadius: "30px",
-
-                backdropFilter:
-                  "blur(14px)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                boxShadow:
-                  "0 10px 35px rgba(168,85,247,0.08)",
               }}
             >
               <h2
+                className="section-title"
                 style={{
-                  marginBottom: "24px",
+                  fontSize: "34px",
 
-                  color: "#F9A8D4",
-
-                  fontSize: "42px",
-
-                  fontFamily:
-                    "'Dancing Script', cursive",
+                  marginBottom:
+                    "26px",
                 }}
               >
-                📈 Productivity
-                Insights
+                Productivity
               </h2>
 
               <p
                 style={{
-                  color: "#E9D5FF",
+                  color: "#CBD5E1",
 
-                  marginBottom: "22px",
+                  marginBottom:
+                    "22px",
 
                   lineHeight: "1.9",
 
-                  fontSize: "17px",
+                  fontSize: "16px",
                 }}
               >
-                Your BuildX productivity
-                score increased due to
-                successful AI-powered
-                collaboration workflows.
+                Your BuildX AI
+                productivity increased
+                significantly through
+                automation, intelligent
+                workflows, and smart
+                collaboration systems.
               </p>
 
               <div
                 style={{
-                  height: "18px",
+                  height: "16px",
 
                   background:
                     "rgba(255,255,255,0.08)",
 
-                  borderRadius: "20px",
+                  borderRadius:
+                    "20px",
 
-                  overflow: "hidden",
+                  overflow:
+                    "hidden",
 
-                  marginBottom: "14px",
+                  marginBottom:
+                    "14px",
                 }}
               >
                 <div
@@ -420,60 +429,39 @@ function Dashboard() {
                       "20px",
 
                     background:
-                      "linear-gradient(to right, #9333EA, #EC4899)",
-
-                    boxShadow:
-                      "0 0 20px rgba(236,72,153,0.35)",
+                      "linear-gradient(to right, #2563EB, #7C3AED)",
                   }}
                 />
               </div>
 
               <p
                 style={{
-                  color: "#D8B4FE",
+                  color: "white",
 
-                  fontWeight: "bold",
-
-                  fontSize: "17px",
+                  fontSize: "15px",
                 }}
               >
-                92% AI Productivity
+                92% AI Efficiency
               </p>
             </div>
 
             {/* AI Features */}
             <div
+              className="glass-card"
               style={{
-                background:
-                  "rgba(255,255,255,0.05)",
-
                 padding: "32px",
-
-                borderRadius: "30px",
-
-                backdropFilter:
-                  "blur(14px)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                boxShadow:
-                  "0 10px 35px rgba(168,85,247,0.08)",
               }}
             >
               <h2
+                className="section-title"
                 style={{
-                  marginBottom: "24px",
+                  fontSize: "34px",
 
-                  color: "#F9A8D4",
-
-                  fontSize: "42px",
-
-                  fontFamily:
-                    "'Dancing Script', cursive",
+                  marginBottom:
+                    "26px",
                 }}
               >
-                🤖 AI Features
+                AI Features
               </h2>
 
               <div
@@ -497,10 +485,10 @@ function Dashboard() {
                     key={feature}
                     style={{
                       padding:
-                        "15px 18px",
+                        "16px 18px",
 
                       borderRadius:
-                        "18px",
+                        "16px",
 
                       background:
                         "rgba(255,255,255,0.04)",
@@ -509,10 +497,13 @@ function Dashboard() {
                         "1px solid rgba(255,255,255,0.06)",
 
                       color:
-                        "#E9D5FF",
+                        "white",
 
                       fontSize:
-                        "16px",
+                        "15px",
+
+                      backdropFilter:
+                        "blur(10px)",
                     }}
                   >
                     ✨ {feature}

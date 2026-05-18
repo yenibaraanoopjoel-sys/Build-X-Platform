@@ -5,105 +5,320 @@ function NotFound() {
     <div
       style={{
         minHeight: "100vh",
+
         background:
-          "linear-gradient(to right, #020617, #0F172A, #111827)",
+          "linear-gradient(135deg, #050816 0%, #0B1023 45%, #1E1B4B 100%)",
+
         display: "flex",
+
         justifyContent: "center",
+
         alignItems: "center",
+
         padding: "20px",
+
         color: "white",
+
+        overflow: "hidden",
+
+        position: "relative",
       }}
     >
+      {/* Glow 1 */}
       <div
         style={{
+          position: "absolute",
+
+          width: "500px",
+
+          height: "500px",
+
+          background:
+            "rgba(59,130,246,0.10)",
+
+          borderRadius: "50%",
+
+          filter: "blur(140px)",
+
+          top: "-180px",
+
+          left: "-120px",
+        }}
+      />
+
+      {/* Glow 2 */}
+      <div
+        style={{
+          position: "absolute",
+
+          width: "450px",
+
+          height: "450px",
+
+          background:
+            "rgba(124,58,237,0.12)",
+
+          borderRadius: "50%",
+
+          filter: "blur(130px)",
+
+          bottom: "-150px",
+
+          right: "-100px",
+        }}
+      />
+
+      {/* Main Card */}
+      <div
+        className="glass-card"
+        style={{
           textAlign: "center",
-          maxWidth: "600px",
-          background: "rgba(255,255,255,0.05)",
-          padding: "50px",
-          borderRadius: "24px",
-          backdropFilter: "blur(15px)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          boxShadow:
-            "0 8px 32px rgba(0,0,0,0.35)",
+
+          maxWidth: "720px",
+
+          width: "100%",
+
+          padding: "70px 50px",
+
+          position: "relative",
+
+          overflow: "hidden",
+
+          zIndex: 2,
         }}
       >
-        {/* Error Code */}
-        <h1
+        {/* Internal Glow */}
+        <div
           style={{
-            fontSize: "120px",
-            marginBottom: "10px",
+            position: "absolute",
+
+            width: "260px",
+
+            height: "260px",
+
             background:
-              "linear-gradient(to right, #2563EB, #7C3AED)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
+              "rgba(91,95,255,0.10)",
+
+            borderRadius: "50%",
+
+            filter: "blur(90px)",
+
+            top: "-70px",
+
+            right: "-60px",
+          }}
+        />
+
+        {/* LABEL */}
+        <div
+          style={{
+            display: "inline-flex",
+
+            alignItems: "center",
+
+            gap: "10px",
+
+            padding: "12px 22px",
+
+            borderRadius: "40px",
+
+            background:
+              "rgba(255,255,255,0.05)",
+
+            border:
+              "1px solid rgba(255,255,255,0.08)",
+
+            marginBottom: "36px",
+
+            backdropFilter:
+              "blur(14px)",
+
+            color: "#CBD5E1",
+
+            fontSize: "14px",
+
+            letterSpacing: "1px",
+
+            position: "relative",
+
+            zIndex: 2,
+          }}
+        >
+          ⚠ SYSTEM NAVIGATION ERROR
+        </div>
+
+        {/* ERROR CODE */}
+        <h1
+          className="welcome-title"
+          style={{
+            fontSize: "150px",
+
+            marginBottom: "10px",
+
+            lineHeight: "1",
+
+            color: "white",
+
+            letterSpacing: "6px",
+
+            textShadow:
+              "0 0 40px rgba(91,95,255,0.18)",
+
+            position: "relative",
+
+            zIndex: 2,
           }}
         >
           404
         </h1>
 
-        {/* Heading */}
+        {/* HEADING */}
         <h2
+          className="section-title"
           style={{
-            fontSize: "32px",
-            marginBottom: "15px",
+            fontSize: "46px",
+
+            marginBottom: "20px",
+
+            color: "white",
+
+            position: "relative",
+
+            zIndex: 2,
           }}
         >
-          Page Not Found
+          PAGE NOT FOUND
         </h2>
 
-        {/* Description */}
+        {/* DESCRIPTION */}
         <p
           style={{
             color: "#CBD5E1",
-            lineHeight: "1.8",
-            marginBottom: "30px",
-            fontSize: "17px",
+
+            lineHeight: "2",
+
+            marginBottom: "42px",
+
+            fontSize: "18px",
+
+            maxWidth: "560px",
+
+            marginInline: "auto",
+
+            position: "relative",
+
+            zIndex: 2,
           }}
         >
-          The page you are looking for does not
-          exist or may have been moved.
+          The requested BuildX
+          workspace or AI route could
+          not be located. The page may
+          have been moved, deleted, or
+          is temporarily unavailable.
         </p>
 
-        {/* Action Buttons */}
+        {/* BUTTONS */}
         <div
           style={{
             display: "flex",
-            justifyContent: "center",
-            gap: "15px",
+
+            justifyContent:
+              "center",
+
+            gap: "18px",
+
             flexWrap: "wrap",
+
+            position: "relative",
+
+            zIndex: 2,
           }}
         >
-          {/* Dashboard Button */}
+          {/* Dashboard */}
           <Link
             to="/dashboard"
             style={{
-              padding: "14px 28px",
-              borderRadius: "10px",
-              textDecoration: "none",
+              padding:
+                "16px 32px",
+
+              borderRadius:
+                "18px",
+
+              textDecoration:
+                "none",
+
               background:
-                "linear-gradient(to right, #2563EB, #7C3AED)",
+                "linear-gradient(135deg, #2563EB, #7C3AED)",
+
               color: "white",
-              fontWeight: "bold",
+
+              fontWeight:
+                "600",
+
+              fontSize:
+                "15px",
+
+              boxShadow:
+                "0 0 24px rgba(124,58,237,0.24)",
             }}
           >
-            Go to Dashboard
+            Open Dashboard
           </Link>
 
-          {/* Login Button */}
+          {/* Login */}
           <Link
             to="/login"
             style={{
-              padding: "14px 28px",
-              borderRadius: "10px",
-              textDecoration: "none",
+              padding:
+                "16px 32px",
+
+              borderRadius:
+                "18px",
+
+              textDecoration:
+                "none",
+
               border:
-                "1px solid rgba(255,255,255,0.15)",
+                "1px solid rgba(255,255,255,0.10)",
+
+              background:
+                "rgba(255,255,255,0.04)",
+
+              backdropFilter:
+                "blur(14px)",
+
               color: "white",
+
+              fontWeight:
+                "600",
+
+              fontSize:
+                "15px",
             }}
           >
-            Login Again
+            Return to Login
           </Link>
         </div>
+
+        {/* Footer */}
+        <p
+          style={{
+            marginTop: "42px",
+
+            color: "#64748B",
+
+            fontSize: "14px",
+
+            letterSpacing: "1px",
+
+            position: "relative",
+
+            zIndex: 2,
+          }}
+        >
+          BUILDX AI PRODUCTIVITY
+          ECOSYSTEM
+        </p>
       </div>
     </div>
   );

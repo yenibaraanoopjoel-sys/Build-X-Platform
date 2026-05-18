@@ -1,5 +1,3 @@
-import "@fontsource/cinzel";
-
 import { useNavigate } from "react-router-dom";
 
 function Welcome() {
@@ -7,30 +5,46 @@ function Welcome() {
 
   return (
     <div
-      onClick={() =>
-        navigate("/login")
-      }
       style={{
         minHeight: "100vh",
 
+        background:
+          "linear-gradient(135deg, #050816 0%, #0B1023 45%, #1E1B4B 100%)",
+
         display: "flex",
 
-        justifyContent:
-          "center",
+        justifyContent: "center",
 
         alignItems: "center",
-
-        background:
-          "linear-gradient(to bottom right, #12071F, #1E0B36, #0F172A)",
 
         overflow: "hidden",
 
         position: "relative",
-
-        cursor: "pointer",
       }}
     >
-      {/* Glow Effect 1 */}
+      {/* Glow 1 */}
+      <div
+        style={{
+          position: "absolute",
+
+          width: "600px",
+
+          height: "600px",
+
+          background:
+            "rgba(59,130,246,0.14)",
+
+          borderRadius: "50%",
+
+          filter: "blur(150px)",
+
+          top: "-220px",
+
+          left: "-180px",
+        }}
+      />
+
+      {/* Glow 2 */}
       <div
         style={{
           position: "absolute",
@@ -40,144 +54,298 @@ function Welcome() {
           height: "500px",
 
           background:
-            "rgba(168,85,247,0.12)",
+            "rgba(124,58,237,0.14)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(140px)",
 
-          top: "-120px",
+          bottom: "-180px",
 
-          right: "-100px",
+          right: "-150px",
         }}
       />
 
-      {/* Glow Effect 2 */}
+      {/* Grid Overlay */}
       <div
         style={{
           position: "absolute",
 
-          width: "450px",
+          inset: 0,
 
-          height: "450px",
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
 
-          background:
-            "rgba(236,72,153,0.12)",
+          backgroundSize:
+            "80px 80px",
 
-          borderRadius: "50%",
-
-          filter: "blur(120px)",
-
-          bottom: "-100px",
-
-          left: "-100px",
+          maskImage:
+            "radial-gradient(circle at center, black, transparent 85%)",
         }}
       />
 
-      {/* Main Content */}
+      {/* MAIN */}
       <div
         style={{
           textAlign: "center",
 
           zIndex: 2,
 
+          maxWidth: "1100px",
+
+          padding: "40px",
+
           animation:
-            "fadeIn 1.8s ease",
+            "fadeUp 1.5s ease",
         }}
       >
+        {/* SMALL LABEL */}
+        <div
+          style={{
+            display: "inline-flex",
+
+            alignItems: "center",
+
+            gap: "10px",
+
+            padding: "12px 22px",
+
+            borderRadius: "40px",
+
+            background:
+              "rgba(255,255,255,0.05)",
+
+            border:
+              "1px solid rgba(255,255,255,0.08)",
+
+            marginBottom: "42px",
+
+            backdropFilter:
+              "blur(14px)",
+
+            color: "#CBD5E1",
+
+            fontSize: "14px",
+
+            letterSpacing: "1px",
+          }}
+        >
+          ✨ NEXT GENERATION AI
+          COLLABORATION PLATFORM
+        </div>
+
+        {/* TITLE */}
         <h1
+          className="welcome-title"
           style={{
-            fontFamily:
-              "'Cinzel', serif",
+            fontSize: "140px",
 
-            fontSize: "120px",
+            lineHeight: "1",
 
-            fontWeight: "700",
-
-            letterSpacing: "8px",
-
-            marginBottom: "20px",
-
-            background:
-              "linear-gradient(to right, #C084FC, #F472B6)",
-
-            WebkitBackgroundClip:
-              "text",
-
-            WebkitTextFillColor:
-              "transparent",
-
-            textShadow:
-              "0 0 40px rgba(244,114,182,0.35)",
-          }}
-        >
-          BuildX
-        </h1>
-
-        <p
-          style={{
-            color: "#E9D5FF",
-
-            fontSize: "22px",
-
-            letterSpacing: "3px",
-
-            fontFamily:
-              "'Cinzel', serif",
-
-            marginBottom: "40px",
-          }}
-        >
-          FUTURISTIC AI PRODUCTIVITY
-          PLATFORM
-        </p>
-
-        <button
-          style={{
-            padding:
-              "18px 40px",
-
-            border: "none",
-
-            borderRadius:
-              "20px",
-
-            background:
-              "linear-gradient(to right, #9333EA, #EC4899)",
+            marginBottom: "28px",
 
             color: "white",
 
-            fontSize: "16px",
+            letterSpacing: "10px",
 
-            fontWeight: "700",
-
-            fontFamily:
-              "'Cinzel', serif",
-
-            letterSpacing: "2px",
-
-            cursor: "pointer",
-
-            boxShadow:
-              "0 10px 35px rgba(236,72,153,0.30)",
+            textShadow:
+              "0 0 40px rgba(91,95,255,0.18)",
           }}
         >
-          ENTER BUILDX ✨
-        </button>
+          BUILDX
+        </h1>
+
+        {/* SUBTITLE */}
+        <h2
+          className="section-title"
+          style={{
+            fontSize: "42px",
+
+            marginBottom: "28px",
+
+            color: "#E2E8F0",
+
+            letterSpacing: "1px",
+          }}
+        >
+          AI POWERED PRODUCTIVITY
+          ECOSYSTEM
+        </h2>
+
+        {/* DESCRIPTION */}
+        <p
+          style={{
+            color: "#CBD5E1",
+
+            fontSize: "20px",
+
+            lineHeight: "2",
+
+            maxWidth: "900px",
+
+            margin:
+              "0 auto 52px auto",
+          }}
+        >
+          Build futuristic startups,
+          collaborate with creators,
+          generate AI workflows,
+          manage intelligent
+          productivity systems, and
+          scale innovative ideas
+          inside a premium next-gen
+          AI workspace.
+        </p>
+
+        {/* BUTTONS */}
+        <div
+          style={{
+            display: "flex",
+
+            justifyContent:
+              "center",
+
+            gap: "22px",
+
+            flexWrap: "wrap",
+          }}
+        >
+          {/* ENTER */}
+          <button
+            onClick={() =>
+              navigate("/login")
+            }
+            style={{
+              padding:
+                "18px 42px",
+
+              borderRadius:
+                "20px",
+
+              border: "none",
+
+              background:
+                "linear-gradient(135deg, #2563EB, #7C3AED)",
+
+              color: "white",
+
+              fontSize: "15px",
+
+              fontWeight: "700",
+
+              letterSpacing:
+                "1px",
+
+              cursor: "pointer",
+
+              boxShadow:
+                "0 0 28px rgba(124,58,237,0.24)",
+            }}
+          >
+            ENTER BUILDX
+          </button>
+
+          {/* REGISTER */}
+          <button
+            onClick={() =>
+              navigate("/register")
+            }
+            style={{
+              padding:
+                "18px 42px",
+
+              borderRadius:
+                "20px",
+
+              border:
+                "1px solid rgba(255,255,255,0.10)",
+
+              background:
+                "rgba(255,255,255,0.04)",
+
+              backdropFilter:
+                "blur(14px)",
+
+              color: "white",
+
+              fontSize: "15px",
+
+              fontWeight: "700",
+
+              letterSpacing:
+                "1px",
+
+              cursor: "pointer",
+            }}
+          >
+            CREATE ACCOUNT
+          </button>
+        </div>
+
+        {/* FEATURES */}
+        <div
+          style={{
+            marginTop: "80px",
+
+            display: "flex",
+
+            justifyContent:
+              "center",
+
+            flexWrap: "wrap",
+
+            gap: "18px",
+          }}
+        >
+          {[
+            "AI Assistant",
+            "AI Meetings",
+            "AI Tasks",
+            "Startup Builder",
+            "Video Collaboration",
+            "Productivity Workspace",
+          ].map((item) => (
+            <div
+              key={item}
+              style={{
+                padding:
+                  "14px 20px",
+
+                borderRadius:
+                  "18px",
+
+                background:
+                  "rgba(255,255,255,0.04)",
+
+                border:
+                  "1px solid rgba(255,255,255,0.08)",
+
+                color: "#E2E8F0",
+
+                fontSize: "14px",
+
+                backdropFilter:
+                  "blur(12px)",
+              }}
+            >
+              ✨ {item}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Animation */}
       <style>
         {`
-          @keyframes fadeIn {
+          @keyframes fadeUp {
             from {
               opacity: 0;
-              transform: scale(0.95);
+              transform: translateY(40px);
             }
 
             to {
               opacity: 1;
-              transform: scale(1);
+              transform: translateY(0);
             }
           }
         `}

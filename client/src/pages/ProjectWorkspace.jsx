@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 
 import axios from "axios";
 
-import "@fontsource/dancing-script";
-
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import Loader from "../components/Loader";
@@ -72,7 +70,7 @@ function ProjectWorkspace() {
 
         const response =
           await axios.post(
-            "https://build-x-platform.onrender.com",
+            "https://build-x-platform.onrender.com/api/ai",
             {
               message: `
 Create a professional meeting summary from these notes.
@@ -111,10 +109,10 @@ Provide:
   return (
     <div
       style={{
-        background:
-          "linear-gradient(to bottom right, #12071F, #1E0B36, #0F172A)",
-
         minHeight: "100vh",
+
+        background:
+          "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
 
         color: "white",
 
@@ -133,15 +131,15 @@ Provide:
           height: "500px",
 
           background:
-            "rgba(168,85,247,0.12)",
+            "rgba(59,130,246,0.10)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(140px)",
 
-          top: "-120px",
+          top: "-180px",
 
-          right: "-100px",
+          left: "-120px",
         }}
       />
 
@@ -154,15 +152,15 @@ Provide:
           height: "450px",
 
           background:
-            "rgba(236,72,153,0.12)",
+            "rgba(124,58,237,0.12)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(130px)",
 
-          bottom: "-100px",
+          bottom: "-150px",
 
-          left: "-100px",
+          right: "-100px",
         }}
       />
 
@@ -181,104 +179,108 @@ Provide:
         {/* Sidebar */}
         <Sidebar />
 
-        {/* Main */}
+        {/* MAIN */}
         <div
           style={{
             flex: 1,
 
-            padding: "40px",
+            padding: "42px",
           }}
         >
-          {/* Header */}
+          {/* HERO */}
           <div
+            className="glass-card"
             style={{
+              padding: "48px",
+
               marginBottom: "42px",
+
+              position: "relative",
+
+              overflow: "hidden",
             }}
           >
-            <h1
+            {/* Glow */}
+            <div
               style={{
-                fontSize: "72px",
+                position: "absolute",
 
-                fontFamily:
-                  "'Dancing Script', cursive",
+                width: "260px",
 
-                marginBottom: "14px",
+                height: "260px",
 
                 background:
-                  "linear-gradient(to right, #C084FC, #F472B6)",
+                  "rgba(91,95,255,0.10)",
 
-                WebkitBackgroundClip:
-                  "text",
+                borderRadius: "50%",
 
-                WebkitTextFillColor:
-                  "transparent",
+                filter: "blur(90px)",
+
+                top: "-70px",
+
+                right: "-50px",
               }}
-            >
-              Project Workspace ✨
-            </h1>
+            />
 
-            <p
+            <div
               style={{
-                color: "#E9D5FF",
+                position: "relative",
 
-                fontSize: "19px",
-
-                lineHeight: "1.8",
-
-                maxWidth: "850px",
+                zIndex: 2,
               }}
             >
-              Manage projects,
-              AI meetings,
-              collaboration workflows,
-              and futuristic team
-              productivity inside
-              BuildX.
-            </p>
+              <h1
+                className="welcome-title"
+                style={{
+                  fontSize: "52px",
+
+                  marginBottom: "22px",
+
+                  lineHeight: "1.3",
+                }}
+              >
+                PROJECT WORKSPACE
+              </h1>
+
+              <p
+                style={{
+                  color: "#CBD5E1",
+
+                  fontSize: "18px",
+
+                  lineHeight: "2",
+
+                  maxWidth: "820px",
+                }}
+              >
+                Manage projects,
+                AI-powered meetings,
+                collaboration systems,
+                productivity workflows,
+                and futuristic teamwork
+                inside BuildX.
+              </p>
+            </div>
           </div>
 
-          {/* AI Meeting Summary */}
+          {/* AI SUMMARY */}
           <div
+            className="glass-card"
             style={{
-              background:
-                "rgba(255,255,255,0.05)",
-
-              border:
-                "1px solid rgba(255,255,255,0.08)",
-
-              borderRadius: "30px",
-
-              padding: "34px",
+              padding: "36px",
 
               marginBottom: "42px",
-
-              backdropFilter:
-                "blur(16px)",
-
-              boxShadow:
-                "0 10px 40px rgba(168,85,247,0.10)",
             }}
           >
             <h2
+              className="section-title"
               style={{
-                marginBottom: "22px",
+                fontSize: "42px",
 
-                fontSize: "50px",
-
-                fontFamily:
-                  "'Dancing Script', cursive",
-
-                background:
-                  "linear-gradient(to right, #F5D0FE, #F9A8D4)",
-
-                WebkitBackgroundClip:
-                  "text",
-
-                WebkitTextFillColor:
-                  "transparent",
+                marginBottom: "26px",
               }}
             >
-              🤖 AI Meeting Summary
+              AI Meeting Summary
             </h2>
 
             <textarea
@@ -293,28 +295,26 @@ Provide:
               style={{
                 width: "100%",
 
-                padding: "20px",
+                padding: "22px",
 
                 borderRadius:
-                  "20px",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                outline: "none",
+                  "18px",
 
                 resize: "none",
 
                 background:
-                  "rgba(255,255,255,0.05)",
+                  "rgba(255,255,255,0.04)",
+
+                border:
+                  "1px solid rgba(255,255,255,0.08)",
 
                 color: "white",
 
-                lineHeight: "1.8",
+                lineHeight: "1.9",
 
                 marginBottom: "24px",
 
-                fontSize: "16px",
+                fontSize: "15px",
 
                 backdropFilter:
                   "blur(10px)",
@@ -330,39 +330,34 @@ Provide:
                 padding:
                   "16px 30px",
 
-                border: "none",
-
                 borderRadius:
-                  "18px",
-
-                cursor:
-                  "pointer",
+                  "16px",
 
                 background:
-                  "linear-gradient(to right, #9333EA, #EC4899)",
+                  "linear-gradient(135deg, #2563EB, #7C3AED)",
 
                 color:
                   "white",
 
                 fontWeight:
-                  "bold",
+                  "600",
 
                 fontSize:
-                  "17px",
+                  "15px",
 
                 marginBottom:
                   "24px",
 
                 boxShadow:
-                  "0 10px 30px rgba(236,72,153,0.25)",
+                  "0 0 24px rgba(124,58,237,0.24)",
               }}
             >
               {aiLoading
-                ? "🤖 JARVIS Generating..."
-                : "🚀 Generate Summary"}
+                ? "Generating..."
+                : "Generate Summary"}
             </button>
 
-            {/* Output */}
+            {/* OUTPUT */}
             {summary && (
               <div
                 style={{
@@ -373,29 +368,30 @@ Provide:
                     "1px solid rgba(255,255,255,0.08)",
 
                   borderRadius:
-                    "24px",
+                    "22px",
 
-                  padding: "26px",
+                  padding: "28px",
 
-                  lineHeight: "1.9",
+                  lineHeight: "2",
 
                   whiteSpace:
                     "pre-wrap",
 
-                  color: "#E9D5FF",
+                  color: "#CBD5E1",
                 }}
               >
                 <h3
+                  className="card-title"
                   style={{
                     marginBottom:
-                      "16px",
+                      "18px",
 
-                    color: "#F472B6",
+                    fontSize: "30px",
 
-                    fontSize: "24px",
+                    color: "white",
                   }}
                 >
-                  ✨ AI Meeting Report
+                  AI Meeting Report
                 </h3>
 
                 {summary}
@@ -403,7 +399,7 @@ Provide:
             )}
           </div>
 
-          {/* Stats */}
+          {/* STATS */}
           <div
             style={{
               display: "grid",
@@ -417,7 +413,7 @@ Provide:
             {[
               {
                 title:
-                  "Active Projects",
+                  "Projects",
                 value:
                   projects.length,
                 icon: "🛠️",
@@ -432,39 +428,57 @@ Provide:
 
               {
                 title:
-                  "Pending Tasks",
+                  "Tasks",
                 value: 18,
                 icon: "📌",
               },
 
               {
                 title:
-                  "Meetings Today",
+                  "Meetings",
                 value: 6,
                 icon: "🎥",
               },
             ].map((item, index) => (
               <div
                 key={index}
+                className="glass-card"
                 style={{
-                  background:
-                    "rgba(255,255,255,0.05)",
-
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  borderRadius:
-                    "28px",
-
                   padding: "30px",
 
-                  backdropFilter:
-                    "blur(16px)",
+                  position:
+                    "relative",
 
-                  boxShadow:
-                    "0 10px 35px rgba(168,85,247,0.08)",
+                  overflow:
+                    "hidden",
                 }}
               >
+                {/* Card Glow */}
+                <div
+                  style={{
+                    position:
+                      "absolute",
+
+                    width: "180px",
+
+                    height:
+                      "180px",
+
+                    background:
+                      "rgba(124,58,237,0.08)",
+
+                    borderRadius:
+                      "50%",
+
+                    filter:
+                      "blur(70px)",
+
+                    top: "-60px",
+
+                    right: "-60px",
+                  }}
+                />
+
                 <div
                   style={{
                     display: "flex",
@@ -477,19 +491,24 @@ Provide:
 
                     marginBottom:
                       "16px",
+
+                    position:
+                      "relative",
+
+                    zIndex: 2,
                   }}
                 >
-                  <h3
+                  <h2
+                    className="card-title"
                     style={{
-                      color:
-                        "#D8B4FE",
+                      fontSize: "28px",
 
-                      fontSize:
-                        "18px",
+                      color:
+                        "white",
                     }}
                   >
                     {item.title}
-                  </h3>
+                  </h2>
 
                   <span
                     style={{
@@ -505,14 +524,12 @@ Provide:
                   style={{
                     fontSize: "48px",
 
-                    background:
-                      "linear-gradient(to right, #C084FC, #F472B6)",
+                    color: "white",
 
-                    WebkitBackgroundClip:
-                      "text",
+                    position:
+                      "relative",
 
-                    WebkitTextFillColor:
-                      "transparent",
+                    zIndex: 2,
                   }}
                 >
                   {item.value}

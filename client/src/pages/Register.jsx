@@ -5,8 +5,6 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-import "@fontsource/dancing-script";
-
 import API from "../services/api";
 
 function Register() {
@@ -77,10 +75,10 @@ function Register() {
         position: "relative",
 
         background:
-          "linear-gradient(to bottom right, #12071F, #1E0B36, #0F172A)",
+          "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
       }}
     >
-      {/* Glow Effects */}
+      {/* Glow */}
       <div
         style={{
           position: "absolute",
@@ -90,11 +88,11 @@ function Register() {
           height: "500px",
 
           background:
-            "rgba(168,85,247,0.18)",
+            "rgba(91,95,255,0.12)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(130px)",
 
           top: "-120px",
 
@@ -111,7 +109,7 @@ function Register() {
           height: "450px",
 
           background:
-            "rgba(236,72,153,0.18)",
+            "rgba(124,58,237,0.10)",
 
           borderRadius: "50%",
 
@@ -123,8 +121,9 @@ function Register() {
         }}
       />
 
-      {/* Main Container */}
+      {/* MAIN */}
       <div
+        className="glass-card"
         style={{
           width: "95%",
 
@@ -135,26 +134,14 @@ function Register() {
           gridTemplateColumns:
             "1fr 1fr",
 
-          background:
-            "rgba(255,255,255,0.05)",
-
-          backdropFilter:
-            "blur(20px)",
-
-          border:
-            "1px solid rgba(255,255,255,0.08)",
-
-          borderRadius: "34px",
-
           overflow: "hidden",
 
-          boxShadow:
-            "0 20px 60px rgba(168,85,247,0.18)",
+          position: "relative",
 
           zIndex: 2,
         }}
       >
-        {/* Left Side */}
+        {/* LEFT */}
         <div
           style={{
             padding: "70px",
@@ -170,35 +157,10 @@ function Register() {
               "center",
 
             background:
-              "linear-gradient(to bottom right, rgba(147,51,234,0.15), rgba(236,72,153,0.12))",
+              "linear-gradient(135deg, rgba(79,70,229,0.08), rgba(124,58,237,0.06))",
           }}
         >
-          {/* AI Image */}
-          <img
-            src="https://i.pinimg.com/736x/01/20/fc/0120fc063ac388e21329941114d7d01e.jpg"
-            alt="AI Assistant"
-            style={{
-              width: "100%",
-
-              maxWidth: "300px",
-
-              borderRadius: "24px",
-
-              marginBottom: "35px",
-
-              alignSelf: "center",
-
-              boxShadow:
-                "0 20px 50px rgba(236,72,153,0.22)",
-
-              border:
-                "1px solid rgba(255,255,255,0.08)",
-
-              zIndex: 2,
-            }}
-          />
-
-          {/* Floating Circle */}
+          {/* Glow */}
           <div
             style={{
               position: "absolute",
@@ -210,68 +172,86 @@ function Register() {
               borderRadius: "50%",
 
               background:
-                "linear-gradient(to right, rgba(192,132,252,0.28), rgba(244,114,182,0.25))",
+                "rgba(91,95,255,0.14)",
 
-              filter: "blur(20px)",
+              filter: "blur(60px)",
 
-              top: "60px",
+              top: "70px",
 
-              right: "60px",
+              right: "70px",
             }}
           />
 
-          <h1
+          {/* IMAGE */}
+          <img
+            src="https://i.pinimg.com/736x/01/20/fc/0120fc063ac388e21329941114d7d01e.jpg"
+            alt="AI Assistant"
             style={{
-              fontSize: "78px",
+              width: "100%",
 
-              fontFamily:
-                "'Dancing Script', cursive",
+              maxWidth: "300px",
+
+              borderRadius: "24px",
+
+              marginBottom: "40px",
+
+              alignSelf: "center",
+
+              boxShadow:
+                "0 16px 40px rgba(91,95,255,0.18)",
+
+              border:
+                "1px solid rgba(255,255,255,0.06)",
+
+              zIndex: 2,
+            }}
+          />
+
+          {/* TITLE */}
+          <h1
+            className="welcome-title"
+            style={{
+              fontSize: "70px",
 
               lineHeight: "1.1",
 
-              marginBottom: "25px",
+              marginBottom: "24px",
 
-              background:
-                "linear-gradient(to right, #C084FC, #F472B6)",
-
-              WebkitBackgroundClip:
-                "text",
-
-              WebkitTextFillColor:
-                "transparent",
+              color: "white",
 
               zIndex: 2,
             }}
           >
-            Join
+            JOIN
             <br />
-            BuildX ✨
+            BUILDX
           </h1>
 
+          {/* DESC */}
           <p
             style={{
-              color: "#E9D5FF",
+              color: "#CBD5E1",
 
-              fontSize: "20px",
+              fontSize: "18px",
 
-              lineHeight: "1.9",
+              lineHeight: "2",
 
-              maxWidth: "520px",
+              maxWidth: "540px",
 
               zIndex: 2,
             }}
           >
-            Create your AI-powered
-            productivity workspace
-            and collaborate with
-            creators, innovators,
-            and startup teams.
+            Create your futuristic
+            AI-powered workspace and
+            collaborate with creators,
+            innovators, developers,
+            and modern startup teams.
           </p>
 
-          {/* Feature Cards */}
+          {/* FEATURES */}
           <div
             style={{
-              marginTop: "40px",
+              marginTop: "42px",
 
               display: "flex",
 
@@ -299,13 +279,16 @@ function Register() {
                     "16px",
 
                   background:
-                    "rgba(255,255,255,0.06)",
+                    "rgba(255,255,255,0.05)",
 
                   border:
-                    "1px solid rgba(255,255,255,0.08)",
+                    "1px solid rgba(255,255,255,0.06)",
 
                   color:
-                    "#F5D0FE",
+                    "#E2E8F0",
+
+                  fontSize:
+                    "14px",
 
                   backdropFilter:
                     "blur(10px)",
@@ -317,7 +300,7 @@ function Register() {
           </div>
         </div>
 
-        {/* Right Side */}
+        {/* RIGHT */}
         <div
           style={{
             padding: "70px",
@@ -331,54 +314,47 @@ function Register() {
               "center",
           }}
         >
-          {/* Header */}
+          {/* HEADER */}
           <div
             style={{
-              marginBottom: "35px",
+              marginBottom: "38px",
             }}
           >
             <h1
+              className="section-title"
               style={{
                 fontSize: "52px",
 
-                fontFamily:
-                  "'Dancing Script', cursive",
-
                 marginBottom: "14px",
 
-                background:
-                  "linear-gradient(to right, #C084FC, #F472B6)",
-
-                WebkitBackgroundClip:
-                  "text",
-
-                WebkitTextFillColor:
-                  "transparent",
+                color: "white",
               }}
             >
-              Create Account ✨
+              Create Account
             </h1>
 
             <p
               style={{
-                color: "#D8B4FE",
+                color: "#CBD5E1",
 
-                fontSize: "17px",
+                fontSize: "16px",
+
+                lineHeight: "1.8",
               }}
             >
-              Start your luxury
-              AI-powered BuildX
+              Start your AI-powered
+              BuildX productivity
               journey today.
             </p>
           </div>
 
-          {/* Form */}
+          {/* FORM */}
           <form
             onSubmit={
               submitHandler
             }
           >
-            {/* Name */}
+            {/* NAME */}
             <div
               style={{
                 marginBottom: "24px",
@@ -387,11 +363,12 @@ function Register() {
               <label
                 style={{
                   color:
-                    "#F5D0FE",
+                    "#E2E8F0",
 
-                  fontSize: "18px",
+                  fontSize: "15px",
 
-                  fontWeight: "600",
+                  fontWeight:
+                    "600",
                 }}
               >
                 Name
@@ -418,27 +395,13 @@ function Register() {
                   borderRadius:
                     "16px",
 
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  outline: "none",
-
-                  background:
-                    "rgba(255,255,255,0.05)",
-
-                  color:
-                    "white",
-
-                  backdropFilter:
-                    "blur(10px)",
-
                   fontSize:
-                    "17px",
+                    "15px",
                 }}
               />
             </div>
 
-            {/* Email */}
+            {/* EMAIL */}
             <div
               style={{
                 marginBottom: "24px",
@@ -447,11 +410,12 @@ function Register() {
               <label
                 style={{
                   color:
-                    "#F5D0FE",
+                    "#E2E8F0",
 
-                  fontSize: "18px",
+                  fontSize: "15px",
 
-                  fontWeight: "600",
+                  fontWeight:
+                    "600",
                 }}
               >
                 Email
@@ -478,27 +442,13 @@ function Register() {
                   borderRadius:
                     "16px",
 
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  outline: "none",
-
-                  background:
-                    "rgba(255,255,255,0.05)",
-
-                  color:
-                    "white",
-
-                  backdropFilter:
-                    "blur(10px)",
-
                   fontSize:
-                    "17px",
+                    "15px",
                 }}
               />
             </div>
 
-            {/* Password */}
+            {/* PASSWORD */}
             <div
               style={{
                 marginBottom: "30px",
@@ -507,11 +457,12 @@ function Register() {
               <label
                 style={{
                   color:
-                    "#F5D0FE",
+                    "#E2E8F0",
 
-                  fontSize: "18px",
+                  fontSize: "15px",
 
-                  fontWeight: "600",
+                  fontWeight:
+                    "600",
                 }}
               >
                 Password
@@ -538,27 +489,13 @@ function Register() {
                   borderRadius:
                     "16px",
 
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  outline: "none",
-
-                  background:
-                    "rgba(255,255,255,0.05)",
-
-                  color:
-                    "white",
-
-                  backdropFilter:
-                    "blur(10px)",
-
                   fontSize:
-                    "17px",
+                    "15px",
                 }}
               />
             </div>
 
-            {/* Button */}
+            {/* BUTTON */}
             <button
               type="submit"
               disabled={loading}
@@ -570,54 +507,49 @@ function Register() {
                 borderRadius:
                   "18px",
 
-                border: "none",
-
-                cursor:
-                  "pointer",
-
                 background:
-                  "linear-gradient(to right, #9333EA, #EC4899)",
+                  "linear-gradient(135deg, #2563EB, #7C3AED)",
 
                 color:
                   "white",
 
                 fontSize:
-                  "17px",
+                  "15px",
 
                 fontWeight:
-                  "bold",
+                  "600",
 
                 boxShadow:
-                  "0 10px 30px rgba(236,72,153,0.25)",
+                  "0 0 24px rgba(124,58,237,0.22)",
               }}
             >
               {loading
-                ? "Creating BuildX Account..."
-                : "🚀 Create Account"}
+                ? "Creating Account..."
+                : "Create Account"}
             </button>
           </form>
 
-          {/* Footer */}
+          {/* FOOTER */}
           <p
             style={{
               textAlign: "center",
 
               marginTop: "28px",
 
-              color: "#D8B4FE",
+              color: "#CBD5E1",
             }}
           >
             Already have an account?{" "}
             <Link
               to="/login"
               style={{
-                color: "#F472B6",
+                color: "#C4B5FD",
 
                 textDecoration:
                   "none",
 
                 fontWeight:
-                  "bold",
+                  "600",
               }}
             >
               Login

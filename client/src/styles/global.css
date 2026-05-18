@@ -1,33 +1,120 @@
-/* Google Font Import */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap");
+@font-face {
+  font-family: "Akira Expanded";
 
-/* Reset */
+  src: url("./fonts/AkiraExpanded.otf")
+    format("opentype");
+}
+
+@font-face {
+  font-family: "Safira March";
+
+  src: url("./fonts/SafiraMarch.otf")
+    format("opentype");
+}
+
+/* Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&display=swap");
+
+/* RESET */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Root Theme */
+/* ROOT THEME */
 :root {
-  --primary-color: #2563eb;
-  --secondary-color: #7c3aed;
+  /* Main Theme */
+  --primary-color: #5b5fff;
+  --secondary-color: #8b5cff;
 
-  --background-dark: #0f172a;
-  --background-card: rgba(255, 255, 255, 0.05);
+  /* Accent */
+  --accent-blue: #3b82f6;
+  --accent-purple: #7c3aed;
 
+  /* Backgrounds */
+  --background-dark: #050816;
+  --background-secondary: #0b1023;
+
+  --background-card: rgba(
+    15,
+    20,
+    40,
+    0.92
+  );
+
+  /* Text */
   --text-primary: #ffffff;
-  --text-secondary: #cbd5e1;
 
-  --border-color: rgba(255, 255, 255, 0.08);
+  --text-secondary: #b8c0d9;
 
-  --shadow-main: 0 8px 32px rgba(0, 0, 0, 0.3);
+  /* Borders */
+  --border-color: rgba(
+    255,
+    255,
+    255,
+    0.08
+  );
+
+  /* Glow */
+  --glow-primary:
+    0 0 25px
+    rgba(91, 95, 255, 0.35);
+
+  /* Shadows */
+  --shadow-main:
+    0 10px 40px
+    rgba(0, 0, 0, 0.45);
+
+  /* Premium Gradient */
+  --gradient-main: linear-gradient(
+    135deg,
+    #0f172a 0%,
+    #111827 25%,
+    #1e1b4b 55%,
+    #312e81 100%
+  );
+
+  --gradient-card: linear-gradient(
+    145deg,
+    rgba(17, 24, 45, 0.98),
+    rgba(8, 12, 24, 0.95)
+  );
+
+  --gradient-button: linear-gradient(
+    135deg,
+    #4f46e5,
+    #7c3aed,
+    #2563eb
+  );
 }
 
-/* Body */
+/* BODY */
 body {
-  font-family: "Inter", sans-serif;
-  background-color: var(--background-dark);
+  font-family:
+    "Source Serif 4",
+    serif;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(59, 130, 246, 0.18),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at top right,
+      rgba(124, 58, 237, 0.18),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at bottom,
+      rgba(91, 95, 255, 0.12),
+      transparent 40%
+    ),
+    var(--background-dark);
+
+  background-attachment: fixed;
+
   color: var(--text-primary);
 
   min-height: 100vh;
@@ -35,49 +122,142 @@ body {
   overflow-x: hidden;
 
   -webkit-font-smoothing: antialiased;
+
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Headings */
+/* MAIN TITLES */
 h1,
+.hero-title,
+.main-title,
+.welcome-title {
+  font-family:
+    "Akira Expanded",
+    sans-serif;
+
+  letter-spacing: 1.5px;
+
+  color: white;
+
+  text-transform: uppercase;
+}
+
+/* SECTION TITLES */
 h2,
 h3,
-h4,
-h5,
-h6 {
-  font-family: "Poppins", sans-serif;
+.card-title,
+.section-title,
+.dashboard-title,
+.feature-title {
+  font-family:
+    "Safira March",
+    serif;
+
+  font-weight: 500;
+
+  letter-spacing: 0.8px;
+
+  color: white;
 }
 
-/* Links */
+/* PARAGRAPHS */
+p,
+span,
+li,
+input,
+textarea,
+button,
+label {
+  font-family:
+    "Source Serif 4",
+    serif;
+}
+
+/* LINKS */
 a {
   text-decoration: none;
+
   color: inherit;
+
+  transition: all 0.3s ease;
 }
 
-/* Buttons */
+a:hover {
+  color: #d8dfff;
+}
+
+/* BUTTONS */
 button {
   font-family: inherit;
+
   transition: all 0.3s ease;
+
+  cursor: pointer;
+
+  border: none;
+
+  color: white;
+
+  background: var(
+    --gradient-button
+  );
+
+  box-shadow:
+    0 0 20px
+    rgba(79, 70, 229, 0.25);
 }
 
 button:hover {
   transform: translateY(-2px);
-  opacity: 0.95;
+
+  box-shadow:
+    0 0 30px
+      rgba(124, 58, 237, 0.35),
+    0 10px 25px
+      rgba(37, 99, 235, 0.25);
 }
 
-/* Inputs */
+/* INPUTS */
 input,
 textarea {
   font-family: inherit;
+
+  background: rgba(
+    255,
+    255,
+    255,
+    0.04
+  );
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.08);
+
+  color: white;
+
+  outline: none;
+
+  border-radius: 14px;
+
+  transition: all 0.3s ease;
 }
 
-/* Scrollbar */
+input:focus,
+textarea:focus {
+  border: 1px solid
+    rgba(124, 58, 237, 0.7);
+
+  box-shadow:
+    0 0 18px
+    rgba(124, 58, 237, 0.2);
+}
+
+/* SCROLLBAR */
 ::-webkit-scrollbar {
   width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #111827;
+  background: #0b1023;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -90,44 +270,88 @@ textarea {
   border-radius: 20px;
 }
 
-/* Text Selection */
+/* TEXT SELECTION */
 ::selection {
   background: #7c3aed;
+
   color: white;
 }
 
-/* Images */
+/* IMAGES */
 img {
   max-width: 100%;
+
   display: block;
 }
 
-/* Utility Classes */
+/* CONTAINER */
 .container {
   width: 100%;
-  max-width: 1300px;
+
+  max-width: 1400px;
+
   margin: auto;
-  padding: 0 20px;
+
+  padding: 0 24px;
 }
 
+/* GLASS CARD */
 .glass-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(
+    --gradient-card
+  );
 
-  backdrop-filter: blur(15px);
+  backdrop-filter: blur(20px);
 
   border: 1px solid
     rgba(255, 255, 255, 0.08);
 
-  box-shadow: var(--shadow-main);
+  box-shadow: var(
+    --shadow-main
+  );
 
-  border-radius: 20px;
+  border-radius: 24px;
+
+  transition: all 0.35s ease;
+
+  position: relative;
+
+  overflow: hidden;
 }
 
+.glass-card::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.04),
+    transparent
+  );
+
+  pointer-events: none;
+}
+
+.glass-card:hover {
+  transform: translateY(-4px);
+
+  box-shadow:
+    0 0 30px
+      rgba(91, 95, 255, 0.18),
+    0 10px 40px
+      rgba(0, 0, 0, 0.45);
+}
+
+/* GRADIENT TEXT */
 .gradient-text {
   background: linear-gradient(
     to right,
-    #2563eb,
-    #7c3aed
+    #ffffff,
+    #d1d5ff,
+    #93c5fd
   );
 
   background-clip: text;
@@ -139,7 +363,31 @@ img {
   -webkit-text-fill-color: transparent;
 }
 
-/* Smooth Scroll */
+/* GLOW EFFECT */
+.glow-border {
+  border: 1px solid
+    rgba(91, 95, 255, 0.3);
+
+  box-shadow:
+    0 0 20px
+    rgba(91, 95, 255, 0.15);
+}
+
+/* PREMIUM SECTION BACKGROUND */
+.section-background {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.95),
+    rgba(30, 27, 75, 0.92)
+  );
+
+  border-radius: 24px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.06);
+}
+
+/* SMOOTH SCROLL */
 html {
   scroll-behavior: smooth;
 }

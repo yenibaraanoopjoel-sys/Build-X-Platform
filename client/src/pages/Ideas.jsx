@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 
 import { Link } from "react-router-dom";
 
-import "@fontsource/dancing-script";
-
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import Loader from "../components/Loader";
@@ -35,7 +33,6 @@ function Ideas() {
     fetchIdeas();
   }, []);
 
-  // Loading
   if (loading) {
     return <Loader />;
   }
@@ -43,10 +40,10 @@ function Ideas() {
   return (
     <div
       style={{
-        background:
-          "linear-gradient(to bottom right, #12071F, #1E0B36, #0F172A)",
-
         minHeight: "100vh",
+
+        background:
+          "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
 
         color: "white",
 
@@ -55,7 +52,7 @@ function Ideas() {
         position: "relative",
       }}
     >
-      {/* Background Glow */}
+      {/* Glow Effects */}
       <div
         style={{
           position: "absolute",
@@ -65,15 +62,15 @@ function Ideas() {
           height: "500px",
 
           background:
-            "rgba(168,85,247,0.12)",
+            "rgba(59,130,246,0.10)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(140px)",
 
-          top: "-120px",
+          top: "-180px",
 
-          right: "-100px",
+          left: "-120px",
         }}
       />
 
@@ -86,19 +83,18 @@ function Ideas() {
           height: "450px",
 
           background:
-            "rgba(236,72,153,0.12)",
+            "rgba(124,58,237,0.12)",
 
           borderRadius: "50%",
 
-          filter: "blur(120px)",
+          filter: "blur(130px)",
 
-          bottom: "-100px",
+          bottom: "-150px",
 
-          left: "-100px",
+          right: "-100px",
         }}
       />
 
-      {/* Navbar */}
       <Navbar />
 
       <div
@@ -110,168 +106,178 @@ function Ideas() {
           zIndex: 2,
         }}
       >
-        {/* Sidebar */}
         <Sidebar />
 
-        {/* Main */}
+        {/* MAIN */}
         <div
           style={{
             flex: 1,
 
-            padding: "40px",
+            padding: "42px",
           }}
         >
-          {/* Header */}
+          {/* HERO */}
           <div
+            className="glass-card"
             style={{
-              display: "flex",
+              padding: "48px",
 
-              justifyContent:
-                "space-between",
+              marginBottom: "42px",
 
-              alignItems: "center",
+              position: "relative",
 
-              flexWrap: "wrap",
-
-              gap: "20px",
-
-              marginBottom: "45px",
+              overflow: "hidden",
             }}
           >
-            <div>
-              <h1
-                style={{
-                  fontSize: "72px",
-
-                  fontFamily:
-                    "'Dancing Script', cursive",
-
-                  marginBottom: "12px",
-
-                  background:
-                    "linear-gradient(to right, #C084FC, #F472B6)",
-
-                  WebkitBackgroundClip:
-                    "text",
-
-                  WebkitTextFillColor:
-                    "transparent",
-                }}
-              >
-                Explore Ideas ✨
-              </h1>
-
-              <p
-                style={{
-                  color: "#E9D5FF",
-
-                  fontSize: "19px",
-
-                  lineHeight: "1.8",
-
-                  maxWidth: "700px",
-                }}
-              >
-                Discover innovative
-                startup concepts,
-                AI-powered creations,
-                futuristic workflows,
-                and visionary ideas
-                from creators around
-                the world.
-              </p>
-            </div>
-
-            {/* Post Button */}
-            <Link
-              to="/post-idea"
-              style={{
-                padding:
-                  "16px 28px",
-
-                borderRadius:
-                  "18px",
-
-                background:
-                  "linear-gradient(to right, #9333EA, #EC4899)",
-
-                color: "white",
-
-                textDecoration:
-                  "none",
-
-                fontWeight:
-                  "bold",
-
-                fontSize: "17px",
-
-                boxShadow:
-                  "0 10px 35px rgba(236,72,153,0.25)",
-
-                transition:
-                  "0.3s ease",
-              }}
-            >
-              🚀 Post New Idea
-            </Link>
-          </div>
-
-          {/* Empty State */}
-          {ideas.length === 0 ? (
+            {/* Glow */}
             <div
               style={{
+                position: "absolute",
+
+                width: "240px",
+
+                height: "240px",
+
                 background:
-                  "rgba(255,255,255,0.05)",
+                  "rgba(91,95,255,0.10)",
 
-                padding: "60px",
+                borderRadius: "50%",
 
-                borderRadius: "32px",
+                filter: "blur(90px)",
+
+                top: "-70px",
+
+                right: "-40px",
+              }}
+            />
+
+            <div
+              style={{
+                display: "flex",
+
+                justifyContent:
+                  "space-between",
+
+                alignItems: "center",
+
+                flexWrap: "wrap",
+
+                gap: "24px",
+
+                position: "relative",
+
+                zIndex: 2,
+              }}
+            >
+              <div>
+                <h1
+                  className="welcome-title"
+                  style={{
+                    fontSize: "50px",
+
+                    marginBottom:
+                      "20px",
+
+                    lineHeight:
+                      "1.3",
+
+                    color: "white",
+                  }}
+                >
+                  EXPLORE IDEAS
+                </h1>
+
+                <p
+                  style={{
+                    color: "#CBD5E1",
+
+                    fontSize: "18px",
+
+                    lineHeight:
+                      "2",
+
+                    maxWidth:
+                      "760px",
+                  }}
+                >
+                  Discover innovative
+                  startup concepts,
+                  AI-powered workflows,
+                  futuristic solutions,
+                  and next-generation
+                  collaboration ideas
+                  from creators and
+                  modern teams.
+                </p>
+              </div>
+
+              {/* BUTTON */}
+              <Link
+                to="/post-idea"
+                style={{
+                  padding:
+                    "16px 28px",
+
+                  borderRadius:
+                    "18px",
+
+                  background:
+                    "linear-gradient(135deg, #2563EB, #7C3AED)",
+
+                  color: "white",
+
+                  fontSize: "15px",
+
+                  fontWeight:
+                    "600",
+
+                  boxShadow:
+                    "0 0 24px rgba(124,58,237,0.28)",
+
+                  whiteSpace:
+                    "nowrap",
+                }}
+              >
+                Post New Idea
+              </Link>
+            </div>
+          </div>
+
+          {/* EMPTY */}
+          {ideas.length === 0 ? (
+            <div
+              className="glass-card"
+              style={{
+                padding: "70px",
 
                 textAlign: "center",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                backdropFilter:
-                  "blur(16px)",
-
-                boxShadow:
-                  "0 10px 40px rgba(168,85,247,0.12)",
               }}
             >
               <h2
+                className="section-title"
                 style={{
                   fontSize: "42px",
 
-                  marginBottom: "18px",
-
-                  fontFamily:
-                    "'Dancing Script', cursive",
-
-                  background:
-                    "linear-gradient(to right, #C084FC, #F472B6)",
-
-                  WebkitBackgroundClip:
-                    "text",
-
-                  WebkitTextFillColor:
-                    "transparent",
+                  marginBottom:
+                    "22px",
                 }}
               >
-                No Ideas Yet 💡
+                No Ideas Yet
               </h2>
 
               <p
                 style={{
-                  color: "#D8B4FE",
+                  color: "#CBD5E1",
 
-                  fontSize: "18px",
+                  fontSize: "17px",
+
+                  lineHeight:
+                    "1.9",
                 }}
               >
                 Be the first creator
                 to share an innovative
-                AI-powered idea on
-                BuildX.
+                idea inside BuildX.
               </p>
             </div>
           ) : (
@@ -288,76 +294,102 @@ function Ideas() {
               {ideas.map((idea) => (
                 <div
                   key={idea._id}
+                  className="glass-card"
                   style={{
-                    background:
-                      "rgba(255,255,255,0.05)",
-
-                    border:
-                      "1px solid rgba(255,255,255,0.08)",
-
-                    borderRadius:
-                      "30px",
-
                     padding: "34px",
 
-                    backdropFilter:
-                      "blur(16px)",
+                    position:
+                      "relative",
 
-                    boxShadow:
-                      "0 10px 40px rgba(168,85,247,0.10)",
-
-                    transition:
-                      "0.3s ease",
+                    overflow:
+                      "hidden",
                   }}
                 >
-                  {/* Title */}
-                  <h2
+                  {/* Card Glow */}
+                  <div
                     style={{
-                      fontSize: "40px",
+                      position:
+                        "absolute",
 
-                      marginBottom: "18px",
+                      width: "220px",
 
-                      fontFamily:
-                        "'Dancing Script', cursive",
+                      height:
+                        "220px",
 
                       background:
-                        "linear-gradient(to right, #F5D0FE, #F9A8D4)",
+                        "rgba(124,58,237,0.08)",
 
-                      WebkitBackgroundClip:
-                        "text",
+                      borderRadius:
+                        "50%",
 
-                      WebkitTextFillColor:
-                        "transparent",
+                      filter:
+                        "blur(80px)",
+
+                      top: "-80px",
+
+                      right: "-60px",
+                    }}
+                  />
+
+                  {/* TITLE */}
+                  <h2
+                    className="card-title"
+                    style={{
+                      fontSize: "38px",
+
+                      marginBottom:
+                        "22px",
+
+                      color: "white",
+
+                      position:
+                        "relative",
+
+                      zIndex: 2,
                     }}
                   >
                     {idea.title}
                   </h2>
 
-                  {/* Description */}
+                  {/* DESCRIPTION */}
                   <p
                     style={{
-                      color: "#E2E8F0",
+                      color: "#CBD5E1",
 
-                      fontSize: "18px",
+                      fontSize: "17px",
 
-                      lineHeight: "1.9",
+                      lineHeight:
+                        "2",
 
-                      marginBottom: "28px",
+                      marginBottom:
+                        "30px",
+
+                      position:
+                        "relative",
+
+                      zIndex: 2,
                     }}
                   >
                     {idea.description}
                   </p>
 
-                  {/* Tags */}
+                  {/* TAGS */}
                   <div
                     style={{
                       display: "flex",
 
-                      flexWrap: "wrap",
+                      flexWrap:
+                        "wrap",
 
-                      gap: "14px",
+                      gap: "12px",
 
-                      marginBottom: "26px",
+                      marginBottom:
+                        "28px",
+
+                      position:
+                        "relative",
+
+                      zIndex: 2,
                     }}
                   >
                     {idea.tags &&
@@ -373,31 +405,28 @@ function Ideas() {
                                 "10px 16px",
 
                               borderRadius:
-                                "30px",
+                                "24px",
 
                               background:
-                                "rgba(147,51,234,0.18)",
-
-                              color:
-                                "#F5D0FE",
-
-                              fontSize:
-                                "14px",
-
-                              fontWeight:
-                                "bold",
+                                "rgba(79,70,229,0.16)",
 
                               border:
-                                "1px solid rgba(255,255,255,0.08)",
+                                "1px solid rgba(255,255,255,0.06)",
+
+                              color:
+                                "white",
+
+                              fontSize:
+                                "13px",
                             }}
                           >
-                            ✨ {tag}
+                            {tag}
                           </span>
                         )
                       )}
                   </div>
 
-                  {/* Footer */}
+                  {/* FOOTER */}
                   <div
                     style={{
                       display: "flex",
@@ -408,9 +437,15 @@ function Ideas() {
                       alignItems:
                         "center",
 
-                      flexWrap: "wrap",
+                      flexWrap:
+                        "wrap",
 
-                      gap: "16px",
+                      gap: "18px",
+
+                      position:
+                        "relative",
+
+                      zIndex: 2,
                     }}
                   >
                     <p
@@ -422,14 +457,14 @@ function Ideas() {
                           "15px",
                       }}
                     >
-                      Posted by:{" "}
+                      Posted by{" "}
                       <span
                         style={{
                           color:
-                            "#F472B6",
+                            "white",
 
                           fontWeight:
-                            "bold",
+                            "600",
                         }}
                       >
                         {idea.createdBy
@@ -441,31 +476,28 @@ function Ideas() {
                     <button
                       style={{
                         padding:
-                          "12px 20px",
+                          "13px 22px",
 
                         borderRadius:
                           "16px",
 
-                        border:
-                          "none",
-
-                        cursor:
-                          "pointer",
-
                         background:
-                          "linear-gradient(to right, #9333EA, #EC4899)",
+                          "linear-gradient(135deg, #2563EB, #7C3AED)",
 
                         color:
                           "white",
 
+                        fontSize:
+                          "14px",
+
                         fontWeight:
-                          "bold",
+                          "600",
 
                         boxShadow:
-                          "0 8px 25px rgba(236,72,153,0.22)",
+                          "0 0 22px rgba(124,58,237,0.24)",
                       }}
                     >
-                      🚀 Collaborate
+                      Collaborate
                     </button>
                   </div>
                 </div>
