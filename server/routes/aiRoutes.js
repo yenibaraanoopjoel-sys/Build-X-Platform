@@ -8,19 +8,25 @@ router.post("/", async (req, res) => {
   try {
     const { message } = req.body;
 
+    if (!message) {
+      return res.status(400).json({
+        reply: "Message is required",
+      });
+    }
+
     const response =
       await axios.post(
         "https://openrouter.ai/api/v1/chat/completions",
         {
           model:
-            "openai/gpt-3.5-turbo",
+            "openai/gpt-4o-mini",
 
           messages: [
             {
               role: "system",
 
               content:
-                "You are JARVIS AI inside BuildX. You help users with coding, productivity, collaboration, and learning.",
+                "You are JARVIS AI inside BuildX. You help users with coding, productivity, startups, collaboration, business ideas, learning, AI tools, and project management. Be futuristic, intelligent, helpful, and concise.",
             },
 
             {
@@ -36,6 +42,12 @@ router.post("/", async (req, res) => {
 
             "Content-Type":
               "application/json",
+
+            "HTTP-Referer":
+              "https://build-x-platform.vercel.app",
+
+            "X-Title":
+              "BuildX AI Platform",
           },
         }
       );
@@ -44,7 +56,7 @@ router.post("/", async (req, res) => {
       response.data.choices[0]
         .message.content;
 
-    res.json({
+    res.status(200).json({
       reply,
     });
   } catch (error) {
@@ -56,7 +68,7 @@ router.post("/", async (req, res) => {
 
     res.status(500).json({
       reply:
-        "AI service temporarily unavailable",
+        "Sorry sir, AI service is temporarily unavailable.",
     });
   }
 });
