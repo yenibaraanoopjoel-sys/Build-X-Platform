@@ -1,5 +1,4 @@
 const express = require("express");
-
 const axios = require("axios");
 
 const router = express.Router();
@@ -8,105 +7,60 @@ router.post("/", async (req, res) => {
   try {
     const { message } = req.body;
 
-    // Validate input
     if (!message) {
       return res.status(400).json({
         reply: "Message is required",
       });
     }
 
-    console.log(
-      "Incoming Message:",
-      message
-    );
+    console.log("API KEY CHECK:");
+    console.log(process.env.OPENROUTER_API_KEY);
 
-    // OpenRouter API Request
-    const response =
-      await axios.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-          model:
-            "openai/gpt-4o-mini",
+    const response = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: "openai/gpt-3.5-turbo",
 
-          messages: [
-            {
-              role: "system",
-
-              content:
-                "You are JARVIS AI inside BuildX. You help users with coding, productivity, startups, collaboration, AI tools, learning, project management, and futuristic innovation. Be intelligent, concise, modern, and helpful.",
-            },
-
-            {
-              role: "user",
-
-              content: message,
-            },
-          ],
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-
-            "Content-Type":
-              "application/json",
-
-            "HTTP-Referer":
-              "https://build-x-platform.vercel.app",
-
-            "X-Title":
-              "BuildX AI Platform",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are JARVIS AI inside BuildX.",
           },
 
-          timeout: 30000,
-        }
-      );
-
-    console.log(
-      "OpenRouter Response Success"
+          {
+            role: "user",
+            content: message,
+          },
+        ],
+      },
+      {
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
     );
 
-    // Extract AI Reply
     const reply =
-      response.data.choices?.[0]
-        ?.message?.content ||
-      "No response generated.";
+      response.data.choices[0].message.content;
 
-    // Send Reply
     res.status(200).json({
       reply,
     });
   } catch (error) {
     console.log(
-      "=============================="
-    );
-
-    console.log(
       "FULL OPENROUTER ERROR:"
     );
 
-    console.log(error);
-
     console.log(
-      "Error Response Data:"
-    );
-
-    console.log(
-      error.response?.data
-    );
-
-    console.log(
-      "Error Message:"
-    );
-
-    console.log(error.message);
-
-    console.log(
-      "=============================="
+      error.response?.data ||
+      error.message
     );
 
     res.status(500).json({
       reply:
-        "Sorry boss, AI service is temporarily unavailable.",
+        "AI service temporarily unavailable",
     });
   }
 });
