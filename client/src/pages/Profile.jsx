@@ -1,34 +1,100 @@
-import { useState } from "react";
+import {
+  useState,
+  useEffect,
+} from "react";
 
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
+import API from "../services/api";
+
 function Profile() {
-  // Avatar Options
-  const avatarOptions = [
-    "👨‍💻",
-    "👩‍💻",
-    "🤖",
-    "🚀",
-    "🧠",
-    "🎨",
-    "⚡",
-    "☁️",
-  ];
+  // User State
+  const [user, setUser] =
+    useState(null);
 
   // Avatar
-  const [selectedAvatar, setSelectedAvatar] =
+  const [selectedAvatar] =
     useState("👨‍💻");
 
-  // User
-  const user = {
-    name: "Anoop Joel",
+  // Fetch Profile
+  useEffect(() => {
+    const fetchProfile =
+      async () => {
+        try {
+          const token =
+            localStorage.getItem(
+              "token"
+            );
 
-    role: "Full Stack Developer",
+          const response =
+            await API.get(
+              "/user/profile",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
 
-    email: "anoop@example.com",
+          setUser(
+            response.data
+          );
+        } catch (error) {
+          console.log(
+            "PROFILE ERROR:",
+            error.response?.data ||
+              error.message
+          );
+        }
+      };
 
-    bio: "Passionate developer focused on building scalable startup products, collaborative platforms, and futuristic AI-powered systems.",
+    fetchProfile();
+  }, []);
+
+  // Loading
+  if (!user) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+
+          background:
+            "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
+
+          display: "flex",
+
+          justifyContent:
+            "center",
+
+          alignItems:
+            "center",
+
+          color: "white",
+
+          fontSize: "28px",
+        }}
+      >
+        Loading Profile...
+      </div>
+    );
+  }
+
+  // Dynamic User Data
+  const dynamicUser = {
+    name:
+      user.name ||
+      "BuildX User",
+
+    role:
+      "Full Stack Developer",
+
+    email:
+      user.email ||
+      "No Email",
+
+    bio:
+      "Passionate developer focused on building scalable startup products, collaborative platforms, and futuristic AI-powered systems.",
 
     skillsHave: [
       "React",
@@ -159,7 +225,6 @@ function Profile() {
               overflow: "hidden",
             }}
           >
-            {/* Glow */}
             <div
               style={{
                 position: "absolute",
@@ -287,7 +352,9 @@ function Profile() {
                     color: "white",
                   }}
                 >
-                  {user.name}
+                  {
+                    dynamicUser.name
+                  }
                 </h1>
 
                 <p
@@ -300,7 +367,9 @@ function Profile() {
                       "10px",
                   }}
                 >
-                  {user.role}
+                  {
+                    dynamicUser.role
+                  }
                 </p>
 
                 <p
@@ -311,7 +380,9 @@ function Profile() {
                       "24px",
                   }}
                 >
-                  {user.email}
+                  {
+                    dynamicUser.email
+                  }
                 </p>
 
                 {/* Badges */}
@@ -360,90 +431,6 @@ function Profile() {
             </div>
           </div>
 
-          {/* AVATAR */}
-          <div
-            className="glass-card"
-            style={{
-              padding: "32px",
-
-              marginBottom: "32px",
-            }}
-          >
-            <h2
-              className="section-title"
-              style={{
-                marginBottom: "26px",
-
-                fontSize: "38px",
-              }}
-            >
-              Avatar Selection
-            </h2>
-
-            <div
-              style={{
-                display: "flex",
-
-                flexWrap: "wrap",
-
-                gap: "18px",
-              }}
-            >
-              {avatarOptions.map(
-                (avatar, index) => (
-                  <div
-                    key={index}
-                    onClick={() =>
-                      setSelectedAvatar(
-                        avatar
-                      )
-                    }
-                    style={{
-                      width: "90px",
-
-                      height: "90px",
-
-                      borderRadius:
-                        "50%",
-
-                      cursor: "pointer",
-
-                      display: "flex",
-
-                      justifyContent:
-                        "center",
-
-                      alignItems:
-                        "center",
-
-                      fontSize: "38px",
-
-                      transition:
-                        "0.3s ease",
-
-                      background:
-                        selectedAvatar ===
-                        avatar
-                          ? "linear-gradient(135deg, #2563EB, #7C3AED)"
-                          : "rgba(255,255,255,0.04)",
-
-                      border:
-                        "1px solid rgba(255,255,255,0.08)",
-
-                      boxShadow:
-                        selectedAvatar ===
-                        avatar
-                          ? "0 0 24px rgba(124,58,237,0.22)"
-                          : "none",
-                    }}
-                  >
-                    {avatar}
-                  </div>
-                )
-              )}
-            </div>
-          </div>
-
           {/* STATS */}
           <div
             style={{
@@ -462,7 +449,7 @@ function Profile() {
                 title:
                   "Projects",
                 value:
-                  user.projects,
+                  dynamicUser.projects,
                 icon: "🛠️",
               },
 
@@ -470,7 +457,7 @@ function Profile() {
                 title:
                   "Ideas",
                 value:
-                  user.ideas,
+                  dynamicUser.ideas,
                 icon: "💡",
               },
 
@@ -478,14 +465,14 @@ function Profile() {
                 title:
                   "Tasks Completed",
                 value:
-                  user.tasksCompleted,
+                  dynamicUser.tasksCompleted,
                 icon: "✅",
               },
 
               {
                 title:
                   "Contribution",
-                value: `${user.contributionScore}%`,
+                value: `${dynamicUser.contributionScore}%`,
                 icon: "🚀",
               },
             ].map((item, index) => (
@@ -581,7 +568,9 @@ function Profile() {
                   fontSize: "16px",
                 }}
               >
-                {user.bio}
+                {
+                  dynamicUser.bio
+                }
               </p>
             </div>
 
@@ -631,7 +620,7 @@ function Profile() {
                     gap: "12px",
                   }}
                 >
-                  {user.skillsHave.map(
+                  {dynamicUser.skillsHave.map(
                     (
                       skill,
                       index
@@ -689,7 +678,7 @@ function Profile() {
                     gap: "12px",
                   }}
                 >
-                  {user.skillsWant.map(
+                  {dynamicUser.skillsWant.map(
                     (
                       skill,
                       index
@@ -764,7 +753,7 @@ function Profile() {
             >
               <div
                 style={{
-                  width: `${user.contributionScore}%`,
+                  width: `${dynamicUser.contributionScore}%`,
 
                   height: "100%",
 
