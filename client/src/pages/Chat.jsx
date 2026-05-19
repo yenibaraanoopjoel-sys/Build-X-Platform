@@ -1,110 +1,204 @@
-import { useState } from "react";
+import {
+  useState,
+  useEffect,
+} from "react";
 
 import {
-  useLocation,
   useNavigate,
 } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
-function Chat() {
-  // Location
-  const location = useLocation();
+import API from "../services/api";
 
+function Chat() {
   // Navigate
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
+
+  // Current User
+  const currentUser =
+    JSON.parse(
+      localStorage.getItem(
+        "user"
+      )
+    ) || {};
 
   // Collaborators
-  const collaborators = [
-    {
-      id: 1,
-      name: "Rahul Sharma",
-      role: "AI Engineer",
-      online: true,
-    },
-
-    {
-      id: 2,
-      name: "Priya Verma",
-      role: "UI UX Designer",
-      online: true,
-    },
-
-    {
-      id: 3,
-      name: "Arjun Patel",
-      role: "Full Stack Developer",
-      online: false,
-    },
-
-    {
-      id: 4,
-      name: "BuildX Team",
-      role: "Group Chat",
-      online: true,
-    },
-  ];
+  const [
+    collaborators,
+    setCollaborators,
+  ] = useState([]);
 
   // Selected User
-  const [selectedUser, setSelectedUser] =
-    useState(
-      location.state?.collaborator ||
-        collaborators[0]
-    );
+  const [
+    selectedUser,
+    setSelectedUser,
+  ] = useState(null);
 
   // Messages
   const [messages, setMessages] =
-    useState([
-      {
-        sender:
-          selectedUser.name,
-
-        text:
-          "Hey! Ready for today's collaboration session?",
-      },
-
-      {
-        sender: "You",
-
-        text:
-          "Yes 🚀 Let's continue building BuildX.",
-      },
-    ]);
+    useState([]);
 
   // Input
   const [input, setInput] =
     useState("");
 
-  // Send
-  const handleSendMessage = () => {
-    if (!input.trim()) return;
+  // Fetch Users
+  useEffect(() => {
+    const fetchUsers =
+      async () => {
+        try {
+          const token =
+            localStorage.getItem(
+              "token"
+            );
 
-    const newMessage = {
-      sender: "You",
-      text: input,
+          const response =
+            await API.get(
+              "/user/all-users",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+          const filteredUsers =
+            response.data.filter(
+              (user) =>
+                user._id !==
+                currentUser.userId
+            );
+
+          setCollaborators(
+            filteredUsers
+          );
+
+          if (
+            filteredUsers.length >
+            0
+          ) {
+            setSelectedUser(
+              filteredUsers[0]
+            );
+          }
+        } catch (error) {
+          console.log(
+            "USER FETCH ERROR:",
+            error.response
+              ?.data ||
+              error.message
+          );
+        }
+      };
+
+    fetchUsers();
+  }, [currentUser.userId]);
+
+  // Fetch Messages
+  useEffect(() => {
+    const fetchMessages =
+      async () => {
+        if (!selectedUser)
+          return;
+
+        try {
+          const token =
+            localStorage.getItem(
+              "token"
+            );
+
+          const response =
+            await API.get(
+              `/messages/${selectedUser._id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+          setMessages(
+            response.data
+          );
+        } catch (error) {
+          console.log(
+            "MESSAGE FETCH ERROR:",
+            error.response
+              ?.data ||
+              error.message
+          );
+        }
+      };
+
+    fetchMessages();
+  }, [
+    selectedUser,
+    currentUser.userId,
+  ]);
+
+  // Send Message
+  const handleSendMessage =
+    async () => {
+      if (!input.trim())
+        return;
+
+      try {
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        const response =
+          await API.post(
+            "/messages",
+            {
+              receiverId:
+                selectedUser._id,
+
+              text: input,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+        setMessages([
+          ...messages,
+          response.data,
+        ]);
+
+        setInput("");
+      } catch (error) {
+        console.log(
+          "SEND ERROR:",
+          error.response
+            ?.data ||
+            error.message
+        );
+      }
     };
 
-    setMessages([
-      ...messages,
-      newMessage,
-    ]);
+  // Start Meeting
+  const handleStartMeeting =
+    () => {
+      if (!selectedUser)
+        return;
 
-    setInput("");
-  };
+      const roomId =
+        selectedUser.name.replace(
+          /\s+/g,
+          "-"
+        ) + "-BuildX";
 
-  // Meeting
-  const handleStartMeeting = () => {
-    const roomId =
-      selectedUser.name.replace(
-        /\s+/g,
-        "-"
-      ) + "-BuildX";
-
-    navigate(
-      `/meeting/${roomId}`
-    );
-  };
+      navigate(
+        `/meeting/${roomId}`
+      );
+    };
 
   return (
     <div
@@ -121,7 +215,7 @@ function Chat() {
         position: "relative",
       }}
     >
-      {/* Glow Effects */}
+      {/* Glow */}
       <div
         style={{
           position: "absolute",
@@ -179,7 +273,7 @@ function Chat() {
         {/* Sidebar */}
         <Sidebar />
 
-        {/* MAIN */}
+        {/* Main */}
         <div
           style={{
             flex: 1,
@@ -191,7 +285,7 @@ function Chat() {
             gap: "26px",
           }}
         >
-          {/* Collaborators */}
+          {/* Users */}
           <div
             className="glass-card"
             style={{
@@ -211,7 +305,6 @@ function Chat() {
               Collaborators
             </h2>
 
-            {/* USERS */}
             <div
               style={{
                 display: "flex",
@@ -225,9 +318,11 @@ function Chat() {
               {collaborators.map(
                 (user) => (
                   <div
-                    key={user.id}
+                    key={user._id}
                     onClick={() =>
-                      setSelectedUser(user)
+                      setSelectedUser(
+                        user
+                      )
                     }
                     style={{
                       padding: "18px",
@@ -241,23 +336,16 @@ function Chat() {
                         "0.3s ease",
 
                       background:
-                        selectedUser.name ===
-                        user.name
+                        selectedUser?._id ===
+                        user._id
                           ? "linear-gradient(135deg, #2563EB, #7C3AED)"
                           : "rgba(255,255,255,0.04)",
 
                       border:
                         "1px solid rgba(255,255,255,0.08)",
-
-                      boxShadow:
-                        selectedUser.name ===
-                        user.name
-                          ? "0 0 24px rgba(124,58,237,0.24)"
-                          : "none",
                     }}
                   >
                     <h3
-                      className="card-title"
                       style={{
                         marginBottom:
                           "6px",
@@ -279,64 +367,15 @@ function Chat() {
                           "14px",
                       }}
                     >
-                      {user.role}
+                      {user.email}
                     </p>
-
-                    <div
-                      style={{
-                        marginTop:
-                          "12px",
-
-                        display: "flex",
-
-                        alignItems:
-                          "center",
-
-                        gap: "8px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: "10px",
-
-                          height: "10px",
-
-                          borderRadius:
-                            "50%",
-
-                          background:
-                            user.online
-                              ? "#10B981"
-                              : "#EF4444",
-
-                          boxShadow:
-                            user.online
-                              ? "0 0 10px #10B981"
-                              : "0 0 10px #EF4444",
-                        }}
-                      />
-
-                      <span
-                        style={{
-                          fontSize:
-                            "13px",
-
-                          color:
-                            "#CBD5E1",
-                        }}
-                      >
-                        {user.online
-                          ? "Online"
-                          : "Offline"}
-                      </span>
-                    </div>
                   </div>
                 )
               )}
             </div>
           </div>
 
-          {/* CHAT AREA */}
+          {/* Chat Area */}
           <div
             className="glass-card"
             style={{
@@ -350,7 +389,7 @@ function Chat() {
               overflow: "hidden",
             }}
           >
-            {/* HEADER */}
+            {/* Header */}
             <div
               style={{
                 padding: "28px",
@@ -369,7 +408,6 @@ function Chat() {
             >
               <div>
                 <h2
-                  className="section-title"
                   style={{
                     fontSize: "38px",
 
@@ -377,7 +415,7 @@ function Chat() {
                       "6px",
                   }}
                 >
-                  {selectedUser.name}
+                  {selectedUser?.name}
                 </h2>
 
                 <p
@@ -387,11 +425,10 @@ function Chat() {
                     fontSize: "15px",
                   }}
                 >
-                  {selectedUser.role}
+                  {selectedUser?.email}
                 </p>
               </div>
 
-              {/* MEETING */}
               <button
                 onClick={
                   handleStartMeeting
@@ -403,6 +440,8 @@ function Chat() {
                   borderRadius:
                     "16px",
 
+                  border: "none",
+
                   background:
                     "linear-gradient(135deg, #2563EB, #7C3AED)",
 
@@ -412,6 +451,9 @@ function Chat() {
                   fontWeight:
                     "600",
 
+                  cursor:
+                    "pointer",
+
                   boxShadow:
                     "0 0 22px rgba(124,58,237,0.24)",
                 }}
@@ -420,7 +462,7 @@ function Chat() {
               </button>
             </div>
 
-            {/* MESSAGES */}
+            {/* Messages */}
             <div
               style={{
                 flex: 1,
@@ -438,13 +480,16 @@ function Chat() {
               }}
             >
               {messages.map(
-                (message, index) => (
+                (
+                  message,
+                  index
+                ) => (
                   <div
                     key={index}
                     style={{
                       alignSelf:
                         message.sender ===
-                        "You"
+                        currentUser.userId
                           ? "flex-end"
                           : "flex-start",
 
@@ -455,7 +500,7 @@ function Chat() {
                       style={{
                         background:
                           message.sender ===
-                          "You"
+                          currentUser.userId
                             ? "linear-gradient(135deg, #2563EB, #7C3AED)"
                             : "rgba(255,255,255,0.06)",
 
@@ -467,28 +512,10 @@ function Chat() {
 
                         border:
                           "1px solid rgba(255,255,255,0.08)",
-
-                        boxShadow:
-                          message.sender ===
-                          "You"
-                            ? "0 0 18px rgba(124,58,237,0.18)"
-                            : "none",
                       }}
                     >
-                      <strong
-                        style={{
-                          fontSize:
-                            "15px",
-                        }}
-                      >
-                        {message.sender}
-                      </strong>
-
                       <p
                         style={{
-                          marginTop:
-                            "8px",
-
                           lineHeight:
                             "1.8",
 
@@ -496,7 +523,9 @@ function Chat() {
                             "16px",
                         }}
                       >
-                        {message.text}
+                        {
+                          message.text
+                        }
                       </p>
                     </div>
                   </div>
@@ -504,7 +533,7 @@ function Chat() {
               )}
             </div>
 
-            {/* INPUT */}
+            {/* Input */}
             <div
               style={{
                 padding: "24px",
@@ -545,9 +574,6 @@ function Chat() {
                   outline: "none",
 
                   fontSize: "15px",
-
-                  backdropFilter:
-                    "blur(10px)",
                 }}
               />
 
@@ -562,6 +588,8 @@ function Chat() {
                   borderRadius:
                     "18px",
 
+                  border: "none",
+
                   background:
                     "linear-gradient(135deg, #2563EB, #7C3AED)",
 
@@ -574,8 +602,8 @@ function Chat() {
                   fontSize:
                     "15px",
 
-                  boxShadow:
-                    "0 0 22px rgba(124,58,237,0.24)",
+                  cursor:
+                    "pointer",
                 }}
               >
                 Send

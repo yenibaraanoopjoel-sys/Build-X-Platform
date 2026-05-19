@@ -13,6 +13,16 @@ function Profile() {
   const [user, setUser] =
     useState(null);
 
+  // Editable Fields
+  const [bio, setBio] =
+    useState("");
+
+  const [skillsHave, setSkillsHave] =
+    useState("");
+
+  const [skillsWant, setSkillsWant] =
+    useState("");
+
   // Avatar
   const [selectedAvatar] =
     useState("👨‍💻");
@@ -40,6 +50,24 @@ function Profile() {
           setUser(
             response.data
           );
+
+          setBio(
+            response.data.bio ||
+              ""
+          );
+
+          setSkillsHave(
+            response.data.skills
+              ?.join(", ") ||
+              ""
+          );
+
+          setSkillsWant(
+            response.data
+              .skillsToLearn
+              ?.join(", ") ||
+              ""
+          );
         } catch (error) {
           console.log(
             "PROFILE ERROR:",
@@ -51,6 +79,62 @@ function Profile() {
 
     fetchProfile();
   }, []);
+
+  // Save Profile
+  const saveProfile =
+    async () => {
+      try {
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        const response =
+          await API.put(
+            "/user/update-profile",
+            {
+              bio,
+
+              skills:
+                skillsHave
+                  .split(",")
+                  .map((s) =>
+                    s.trim()
+                  ),
+
+              skillsToLearn:
+                skillsWant
+                  .split(",")
+                  .map((s) =>
+                    s.trim()
+                  ),
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+        alert(
+          "Profile Updated Successfully"
+        );
+
+        setUser(
+          response.data
+        );
+      } catch (error) {
+        console.log(
+          "UPDATE ERROR:",
+          error.response?.data ||
+            error.message
+        );
+
+        alert(
+          "Failed to Update Profile"
+        );
+      }
+    };
 
   // Loading
   if (!user) {
@@ -94,22 +178,24 @@ function Profile() {
       "No Email",
 
     bio:
-      "Passionate developer focused on building scalable startup products, collaborative platforms, and futuristic AI-powered systems.",
+      bio ||
+      "No bio added yet.",
 
-    skillsHave: [
-      "React",
-      "Node.js",
-      "MongoDB",
-      "Express",
-      "Socket.io",
-      "UI/UX",
-    ],
+    skillsHave:
+      skillsHave
+        .split(",")
+        .map((s) =>
+          s.trim()
+        )
+        .filter(Boolean),
 
-    skillsWant: [
-      "AI Engineering",
-      "System Design",
-      "Cloud Computing",
-    ],
+    skillsWant:
+      skillsWant
+        .split(",")
+        .map((s) =>
+          s.trim()
+        )
+        .filter(Boolean),
 
     contributionScore: 92,
 
@@ -431,359 +517,128 @@ function Profile() {
             </div>
           </div>
 
-          {/* STATS */}
-          <div
-            style={{
-              display: "grid",
-
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(240px, 1fr))",
-
-              gap: "24px",
-
-              marginBottom: "32px",
-            }}
-          >
-            {[
-              {
-                title:
-                  "Projects",
-                value:
-                  dynamicUser.projects,
-                icon: "🛠️",
-              },
-
-              {
-                title:
-                  "Ideas",
-                value:
-                  dynamicUser.ideas,
-                icon: "💡",
-              },
-
-              {
-                title:
-                  "Tasks Completed",
-                value:
-                  dynamicUser.tasksCompleted,
-                icon: "✅",
-              },
-
-              {
-                title:
-                  "Contribution",
-                value: `${dynamicUser.contributionScore}%`,
-                icon: "🚀",
-              },
-            ].map((item, index) => (
-              <div
-                key={index}
-                className="glass-card"
-                style={{
-                  padding: "28px",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-
-                    justifyContent:
-                      "space-between",
-
-                    alignItems:
-                      "center",
-
-                    marginBottom:
-                      "16px",
-                  }}
-                >
-                  <h3
-                    className="card-title"
-                    style={{
-                      fontSize:
-                        "24px",
-                    }}
-                  >
-                    {item.title}
-                  </h3>
-
-                  <span
-                    style={{
-                      fontSize:
-                        "30px",
-                    }}
-                  >
-                    {item.icon}
-                  </span>
-                </div>
-
-                <h1
-                  style={{
-                    fontSize: "48px",
-
-                    color: "white",
-                  }}
-                >
-                  {item.value}
-                </h1>
-              </div>
-            ))}
-          </div>
-
-          {/* ABOUT + SKILLS */}
-          <div
-            style={{
-              display: "grid",
-
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(320px, 1fr))",
-
-              gap: "24px",
-            }}
-          >
-            {/* ABOUT */}
-            <div
-              className="glass-card"
-              style={{
-                padding: "32px",
-              }}
-            >
-              <h2
-                className="section-title"
-                style={{
-                  marginBottom: "22px",
-
-                  fontSize: "38px",
-                }}
-              >
-                About
-              </h2>
-
-              <p
-                style={{
-                  color: "#CBD5E1",
-
-                  lineHeight: "2",
-
-                  fontSize: "16px",
-                }}
-              >
-                {
-                  dynamicUser.bio
-                }
-              </p>
-            </div>
-
-            {/* SKILLS */}
-            <div
-              className="glass-card"
-              style={{
-                padding: "32px",
-              }}
-            >
-              <h2
-                className="section-title"
-                style={{
-                  marginBottom: "22px",
-
-                  fontSize: "38px",
-                }}
-              >
-                Skills
-              </h2>
-
-              {/* HAVE */}
-              <div
-                style={{
-                  marginBottom: "24px",
-                }}
-              >
-                <h4
-                  style={{
-                    marginBottom:
-                      "12px",
-
-                    color:
-                      "#CBD5E1",
-                  }}
-                >
-                  Skills You Have
-                </h4>
-
-                <div
-                  style={{
-                    display: "flex",
-
-                    flexWrap:
-                      "wrap",
-
-                    gap: "12px",
-                  }}
-                >
-                  {dynamicUser.skillsHave.map(
-                    (
-                      skill,
-                      index
-                    ) => (
-                      <span
-                        key={index}
-                        style={{
-                          padding:
-                            "10px 16px",
-
-                          borderRadius:
-                            "24px",
-
-                          background:
-                            "linear-gradient(135deg, #2563EB, #7C3AED)",
-
-                          color:
-                            "white",
-
-                          fontSize:
-                            "14px",
-
-                          boxShadow:
-                            "0 0 18px rgba(124,58,237,0.18)",
-                        }}
-                      >
-                        ✨ {skill}
-                      </span>
-                    )
-                  )}
-                </div>
-              </div>
-
-              {/* WANT */}
-              <div>
-                <h4
-                  style={{
-                    marginBottom:
-                      "12px",
-
-                    color:
-                      "#CBD5E1",
-                  }}
-                >
-                  Skills You Want
-                </h4>
-
-                <div
-                  style={{
-                    display: "flex",
-
-                    flexWrap:
-                      "wrap",
-
-                    gap: "12px",
-                  }}
-                >
-                  {dynamicUser.skillsWant.map(
-                    (
-                      skill,
-                      index
-                    ) => (
-                      <span
-                        key={index}
-                        style={{
-                          padding:
-                            "10px 16px",
-
-                          borderRadius:
-                            "24px",
-
-                          background:
-                            "rgba(255,255,255,0.05)",
-
-                          border:
-                            "1px solid rgba(255,255,255,0.08)",
-
-                          color:
-                            "#E2E8F0",
-
-                          fontSize:
-                            "14px",
-                        }}
-                      >
-                        🚀 {skill}
-                      </span>
-                    )
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* PERFORMANCE */}
+          {/* EDIT PROFILE */}
           <div
             className="glass-card"
             style={{
-              marginTop: "32px",
-
               padding: "32px",
+
+              marginBottom: "32px",
             }}
           >
             <h2
               className="section-title"
               style={{
-                marginBottom: "24px",
+                marginBottom: "22px",
 
-                fontSize: "42px",
+                fontSize: "38px",
               }}
             >
-              Collaboration Performance
+              Edit Profile
             </h2>
 
-            <div
+            {/* BIO */}
+            <textarea
+              value={bio}
+              onChange={(e) =>
+                setBio(
+                  e.target.value
+                )
+              }
+              placeholder="Enter your bio..."
               style={{
-                height: "18px",
-
+                width: "100%",
+                minHeight: "120px",
+                padding: "18px",
+                borderRadius: "18px",
                 background:
-                  "rgba(255,255,255,0.08)",
+                  "rgba(255,255,255,0.05)",
+                border:
+                  "1px solid rgba(255,255,255,0.08)",
+                color: "white",
+                marginBottom: "22px",
+                outline: "none",
+              }}
+            />
+
+            {/* SKILLS HAVE */}
+            <input
+              type="text"
+              value={skillsHave}
+              onChange={(e) =>
+                setSkillsHave(
+                  e.target.value
+                )
+              }
+              placeholder="Skills you have (comma separated)"
+              style={{
+                width: "100%",
+                padding: "16px",
+                borderRadius: "16px",
+                background:
+                  "rgba(255,255,255,0.05)",
+                border:
+                  "1px solid rgba(255,255,255,0.08)",
+                color: "white",
+                marginBottom: "18px",
+                outline: "none",
+              }}
+            />
+
+            {/* SKILLS WANT */}
+            <input
+              type="text"
+              value={skillsWant}
+              onChange={(e) =>
+                setSkillsWant(
+                  e.target.value
+                )
+              }
+              placeholder="Skills you want to learn (comma separated)"
+              style={{
+                width: "100%",
+                padding: "16px",
+                borderRadius: "16px",
+                background:
+                  "rgba(255,255,255,0.05)",
+                border:
+                  "1px solid rgba(255,255,255,0.08)",
+                color: "white",
+                marginBottom: "24px",
+                outline: "none",
+              }}
+            />
+
+            {/* SAVE BUTTON */}
+            <button
+              onClick={
+                saveProfile
+              }
+              style={{
+                padding:
+                  "16px 30px",
 
                 borderRadius:
-                  "20px",
-
-                overflow:
-                  "hidden",
-
-                marginBottom:
                   "18px",
+
+                border: "none",
+
+                background:
+                  "linear-gradient(135deg, #2563EB, #7C3AED)",
+
+                color: "white",
+
+                fontWeight:
+                  "600",
+
+                cursor: "pointer",
+
+                boxShadow:
+                  "0 0 20px rgba(124,58,237,0.24)",
               }}
             >
-              <div
-                style={{
-                  width: `${dynamicUser.contributionScore}%`,
-
-                  height: "100%",
-
-                  borderRadius:
-                    "20px",
-
-                  background:
-                    "linear-gradient(135deg, #2563EB, #7C3AED)",
-
-                  boxShadow:
-                    "0 0 20px rgba(124,58,237,0.24)",
-                }}
-              />
-            </div>
-
-            <p
-              style={{
-                color: "#CBD5E1",
-
-                fontSize: "16px",
-
-                lineHeight: "1.9",
-              }}
-            >
-              Your collaboration
-              performance is currently
-              performing excellently
-              inside the BuildX AI
-              ecosystem.
-            </p>
+              Save Profile
+            </button>
           </div>
         </div>
       </div>
