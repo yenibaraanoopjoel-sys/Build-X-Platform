@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import axios from "axios";
 
@@ -9,6 +12,7 @@ import Loader from "../components/Loader";
 import API from "../services/api";
 
 function ProjectWorkspace() {
+  // STATES
   const [projects, setProjects] =
     useState([]);
 
@@ -24,37 +28,46 @@ function ProjectWorkspace() {
   const [aiLoading, setAiLoading] =
     useState(false);
 
-  // Fetch Projects
-  const fetchProjects = async () => {
-    try {
-      const token =
-        localStorage.getItem(
-          "token"
+  // FETCH PROJECTS
+  const fetchProjects =
+    async () => {
+      try {
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        const response =
+          await API.get(
+            "/projects",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+        setProjects(
+          response.data || []
+        );
+      } catch (error) {
+        console.log(
+          "PROJECT ERROR:",
+          error.response?.data ||
+            error.message
         );
 
-      const response =
-        await API.get(
-          "/projects",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-      setProjects(response.data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
   useEffect(() => {
     fetchProjects();
   }, []);
 
-  // AI Summary
+  // AI SUMMARY
   const generateSummary =
     async () => {
       if (!meetingNotes) {
@@ -101,7 +114,7 @@ Provide:
       }
     };
 
-  // Loader
+  // LOADER
   if (loading) {
     return <Loader />;
   }
@@ -164,7 +177,7 @@ Provide:
         }}
       />
 
-      {/* Navbar */}
+      {/* NAVBAR */}
       <Navbar />
 
       <div
@@ -176,7 +189,7 @@ Provide:
           zIndex: 2,
         }}
       >
-        {/* Sidebar */}
+        {/* SIDEBAR */}
         <Sidebar />
 
         {/* MAIN */}
@@ -263,6 +276,195 @@ Provide:
             </div>
           </div>
 
+          {/* PROJECTS SECTION */}
+          <div
+            className="glass-card"
+            style={{
+              padding: "36px",
+
+              marginBottom: "42px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+
+                justifyContent:
+                  "space-between",
+
+                alignItems:
+                  "center",
+
+                marginBottom: "28px",
+              }}
+            >
+              <h2
+                className="section-title"
+                style={{
+                  fontSize: "42px",
+                }}
+              >
+                Your Projects
+              </h2>
+            </div>
+
+            {/* EMPTY STATE */}
+            {projects.length ===
+            0 ? (
+              <div
+                style={{
+                  textAlign:
+                    "center",
+
+                  padding:
+                    "60px 20px",
+
+                  borderRadius:
+                    "22px",
+
+                  background:
+                    "rgba(255,255,255,0.04)",
+
+                  border:
+                    "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize:
+                      "70px",
+
+                    marginBottom:
+                      "20px",
+                  }}
+                >
+                  🚀
+                </div>
+
+                <h2
+                  style={{
+                    fontSize:
+                      "34px",
+
+                    marginBottom:
+                      "14px",
+                  }}
+                >
+                  No Projects Yet
+                </h2>
+
+                <p
+                  style={{
+                    color:
+                      "#CBD5E1",
+
+                    lineHeight:
+                      "1.9",
+
+                    fontSize:
+                      "16px",
+                  }}
+                >
+                  Start building your
+                  first futuristic
+                  project inside
+                  BuildX.
+                </p>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+
+                  gridTemplateColumns:
+                    "repeat(auto-fit, minmax(320px, 1fr))",
+
+                  gap: "24px",
+                }}
+              >
+                {projects.map(
+                  (
+                    project,
+                    index
+                  ) => (
+                    <div
+                      key={index}
+                      className="glass-card"
+                      style={{
+                        padding:
+                          "28px",
+
+                        border:
+                          "1px solid rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <h2
+                        style={{
+                          fontSize:
+                            "28px",
+
+                          marginBottom:
+                            "14px",
+                        }}
+                      >
+                        {
+                          project.title
+                        }
+                      </h2>
+
+                      <p
+                        style={{
+                          color:
+                            "#CBD5E1",
+
+                          lineHeight:
+                            "1.9",
+
+                          marginBottom:
+                            "20px",
+                        }}
+                      >
+                        {project.description ||
+                          "No description"}
+                      </p>
+
+                      <div
+                        style={{
+                          display:
+                            "flex",
+
+                          justifyContent:
+                            "space-between",
+
+                          alignItems:
+                            "center",
+                        }}
+                      >
+                        <span
+                          style={{
+                            color:
+                              "#A5B4FC",
+                          }}
+                        >
+                          📅 Active
+                        </span>
+
+                        <span
+                          style={{
+                            color:
+                              "#34D399",
+                          }}
+                        >
+                          ✅ Real Project
+                        </span>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+          </div>
+
           {/* AI SUMMARY */}
           <div
             className="glass-card"
@@ -333,6 +535,8 @@ Provide:
                 borderRadius:
                   "16px",
 
+                border: "none",
+
                 background:
                   "linear-gradient(135deg, #2563EB, #7C3AED)",
 
@@ -344,6 +548,9 @@ Provide:
 
                 fontSize:
                   "15px",
+
+                cursor:
+                  "pointer",
 
                 marginBottom:
                   "24px",
@@ -381,7 +588,6 @@ Provide:
                 }}
               >
                 <h3
-                  className="card-title"
                   style={{
                     marginBottom:
                       "18px",
@@ -399,7 +605,7 @@ Provide:
             )}
           </div>
 
-          {/* STATS */}
+          {/* REAL STATS */}
           <div
             style={{
               display: "grid",
@@ -422,21 +628,21 @@ Provide:
               {
                 title:
                   "Contributors",
-                value: 24,
+                value: 0,
                 icon: "👥",
               },
 
               {
                 title:
                   "Tasks",
-                value: 18,
+                value: 0,
                 icon: "📌",
               },
 
               {
                 title:
                   "Meetings",
-                value: 6,
+                value: 0,
                 icon: "🎥",
               },
             ].map((item, index) => (
@@ -453,7 +659,7 @@ Provide:
                     "hidden",
                 }}
               >
-                {/* Card Glow */}
+                {/* Glow */}
                 <div
                   style={{
                     position:
@@ -499,7 +705,6 @@ Provide:
                   }}
                 >
                   <h2
-                    className="card-title"
                     style={{
                       fontSize: "28px",
 

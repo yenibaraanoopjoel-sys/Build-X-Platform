@@ -1,9 +1,25 @@
-import { useState } from "react";
+import {
+  useState,
+  useEffect,
+} from "react";
 
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
+import API from "../services/api";
+
 function Settings() {
+  // User State
+  const [user, setUser] =
+    useState({
+      name: "",
+
+      email: "",
+
+      password: "",
+    });
+
+  // Settings State
   const [settings, setSettings] =
     useState({
       darkMode: true,
@@ -19,6 +35,50 @@ function Settings() {
       futuristicMode: true,
     });
 
+  // Fetch Logged In User
+  useEffect(() => {
+    const fetchProfile =
+      async () => {
+        try {
+          const token =
+            localStorage.getItem(
+              "token"
+            );
+
+          const response =
+            await API.get(
+              "/user/profile",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+          setUser({
+            name:
+              response.data.name ||
+              "",
+
+            email:
+              response.data.email ||
+              "",
+
+            password: "",
+          });
+        } catch (error) {
+          console.log(
+            "SETTINGS ERROR:",
+            error.response?.data ||
+              error.message
+          );
+        }
+      };
+
+    fetchProfile();
+  }, []);
+
+  // Toggle Settings
   const toggleSetting = (
     key
   ) => {
@@ -28,6 +88,55 @@ function Settings() {
       [key]: !prev[key],
     }));
   };
+
+  // Input Change
+  const handleChange = (
+    e
+  ) => {
+    setUser({
+      ...user,
+
+      [e.target.name]:
+        e.target.value,
+    });
+  };
+
+  // Save Changes
+  const handleSave =
+    async () => {
+      try {
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        await API.put(
+          "/user/profile",
+          {
+            name: user.name,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        alert(
+          "Profile Updated Successfully"
+        );
+      } catch (error) {
+        console.log(
+          "UPDATE ERROR:",
+          error.response?.data ||
+            error.message
+        );
+
+        alert(
+          "Failed To Update Profile"
+        );
+      }
+    };
 
   return (
     <div
@@ -239,7 +348,15 @@ function Settings() {
 
                 <input
                   type="text"
-                  defaultValue="Anoop Joel"
+
+                  name="name"
+
+                  value={user.name}
+
+                  onChange={
+                    handleChange
+                  }
+
                   style={{
                     width: "100%",
 
@@ -278,7 +395,11 @@ function Settings() {
 
                 <input
                   type="email"
-                  defaultValue="anoop@example.com"
+
+                  value={user.email}
+
+                  disabled
+
                   style={{
                     width: "100%",
 
@@ -291,6 +412,8 @@ function Settings() {
 
                     fontSize:
                       "15px",
+
+                    opacity: 0.7,
                   }}
                 />
               </div>
@@ -317,7 +440,19 @@ function Settings() {
 
                 <input
                   type="password"
+
+                  name="password"
+
+                  value={
+                    user.password
+                  }
+
+                  onChange={
+                    handleChange
+                  }
+
                   placeholder="Enter new password"
+
                   style={{
                     width: "100%",
 
@@ -336,6 +471,9 @@ function Settings() {
 
               {/* BUTTON */}
               <button
+                onClick={
+                  handleSave
+                }
                 style={{
                   width: "100%",
 
@@ -343,6 +481,8 @@ function Settings() {
 
                   borderRadius:
                     "18px",
+
+                  border: "none",
 
                   background:
                     "linear-gradient(135deg, #2563EB, #7C3AED)",
@@ -355,6 +495,9 @@ function Settings() {
 
                   fontSize:
                     "15px",
+
+                  cursor:
+                    "pointer",
 
                   boxShadow:
                     "0 0 24px rgba(124,58,237,0.22)",
@@ -465,7 +608,6 @@ function Settings() {
                     {item.label}
                   </span>
 
-                  {/* TOGGLE */}
                   <button
                     onClick={() =>
                       toggleSetting(
@@ -536,138 +678,6 @@ function Settings() {
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* SECURITY */}
-          <div
-            className="glass-card"
-            style={{
-              padding: "34px",
-            }}
-          >
-            <h2
-              className="section-title"
-              style={{
-                marginBottom: "28px",
-
-                fontSize: "42px",
-              }}
-            >
-              Security & Privacy
-            </h2>
-
-            <div
-              style={{
-                display: "grid",
-
-                gridTemplateColumns:
-                  "repeat(auto-fit, minmax(240px, 1fr))",
-
-                gap: "22px",
-              }}
-            >
-              {[
-                {
-                  title:
-                    "Two-Factor Authentication",
-
-                  icon:
-                    "🛡️",
-                },
-
-                {
-                  title:
-                    "Login Activity",
-
-                  icon:
-                    "📊",
-                },
-
-                {
-                  title:
-                    "Connected Devices",
-
-                  icon:
-                    "💻",
-                },
-
-                {
-                  title:
-                    "Privacy Controls",
-
-                  icon:
-                    "🔐",
-                },
-              ].map((item, index) => (
-                <div
-                  key={index}
-                  style={{
-                    padding:
-                      "26px",
-
-                    borderRadius:
-                      "22px",
-
-                    background:
-                      "rgba(255,255,255,0.04)",
-
-                    border:
-                      "1px solid rgba(255,255,255,0.08)",
-
-                    backdropFilter:
-                      "blur(10px)",
-
-                    transition:
-                      "0.3s ease",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize:
-                        "38px",
-
-                      marginBottom:
-                        "18px",
-                    }}
-                  >
-                    {item.icon}
-                  </div>
-
-                  <h3
-                    className="card-title"
-                    style={{
-                      fontSize:
-                        "22px",
-
-                      lineHeight:
-                        "1.7",
-                    }}
-                  >
-                    {item.title}
-                  </h3>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* FOOTER */}
-          <div
-            style={{
-              marginTop: "34px",
-
-              textAlign: "center",
-
-              color: "#CBD5E1",
-
-              fontSize: "15px",
-
-              lineHeight: "1.8",
-            }}
-          >
-            Your BuildX AI workspace
-            is optimized for a
-            futuristic collaboration
-            experience.
           </div>
         </div>
       </div>
