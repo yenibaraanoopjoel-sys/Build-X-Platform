@@ -16,6 +16,9 @@ function ProjectWorkspace() {
   const [projects, setProjects] =
     useState([]);
 
+  const [tasks, setTasks] =
+    useState([]);
+
   const [loading, setLoading] =
     useState(true);
 
@@ -32,6 +35,8 @@ function ProjectWorkspace() {
   const fetchProjects =
     async () => {
       try {
+        setLoading(true);
+
         const token =
           localStorage.getItem(
             "token"
@@ -47,9 +52,15 @@ function ProjectWorkspace() {
             }
           );
 
-        setProjects(
-          response.data || []
-        );
+        if (
+          response.data.success
+        ) {
+          setProjects(
+            response.data.projects
+          );
+        } else {
+          setProjects([]);
+        }
       } catch (error) {
         console.log(
           "PROJECT ERROR:",
@@ -63,8 +74,46 @@ function ProjectWorkspace() {
       }
     };
 
+  // FETCH TASKS
+  const fetchTasks =
+    async () => {
+      try {
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        const response =
+          await API.get(
+            "/tasks",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+        if (
+          response.data.success
+        ) {
+          setTasks(
+            response.data.tasks
+          );
+        }
+      } catch (error) {
+        console.log(
+          "TASK ERROR:",
+          error.response?.data ||
+            error.message
+        );
+
+        setTasks([]);
+      }
+    };
+
   useEffect(() => {
     fetchProjects();
+    fetchTasks();
   }, []);
 
   // AI SUMMARY
@@ -113,6 +162,31 @@ Provide:
         setAiLoading(false);
       }
     };
+
+  // CALCULATIONS
+  const totalProjects =
+    projects.length;
+
+  const totalTasks =
+    tasks.length;
+
+  const completedProjects =
+    projects.filter(
+      (project) =>
+        project.status ===
+        "Completed"
+    ).length;
+
+  const contributors =
+    new Set(
+      projects.flatMap(
+        (project) =>
+          project.members?.map(
+            (member) =>
+              member._id
+          ) || []
+      )
+    ).size;
 
   // LOADER
   if (loading) {
@@ -428,6 +502,7 @@ Provide:
                           "No description"}
                       </p>
 
+                      {/* STATUS */}
                       <div
                         style={{
                           display:
@@ -438,6 +513,9 @@ Provide:
 
                           alignItems:
                             "center",
+
+                          marginBottom:
+                            "18px",
                         }}
                       >
                         <span
@@ -446,7 +524,10 @@ Provide:
                               "#A5B4FC",
                           }}
                         >
-                          📅 Active
+                          📅{" "}
+                          {
+                            project.status
+                          }
                         </span>
 
                         <span
@@ -455,8 +536,77 @@ Provide:
                               "#34D399",
                           }}
                         >
-                          ✅ Real Project
+                          {
+                            project
+                              .completionPercentage
+                          }
+                          % Complete
                         </span>
+                      </div>
+
+                      {/* PROGRESS BAR */}
+                      <div
+                        style={{
+                          width: "100%",
+
+                          height: "10px",
+
+                          background:
+                            "rgba(255,255,255,0.08)",
+
+                          borderRadius:
+                            "20px",
+
+                          overflow:
+                            "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${project.completionPercentage}%`,
+
+                            height:
+                              "100%",
+
+                            background:
+                              "linear-gradient(135deg, #2563EB, #7C3AED)",
+
+                            borderRadius:
+                              "20px",
+                          }}
+                        />
+                      </div>
+
+                      {/* TASK INFO */}
+                      <div
+                        style={{
+                          marginTop:
+                            "18px",
+
+                          color:
+                            "#CBD5E1",
+
+                          fontSize:
+                            "14px",
+
+                          lineHeight:
+                            "1.8",
+                        }}
+                      >
+                        <div>
+                          Total Tasks:{" "}
+                          {
+                            project.totalTasks
+                          }
+                        </div>
+
+                        <div>
+                          Completed
+                          Tasks:{" "}
+                          {
+                            project.completedTasks
+                          }
+                        </div>
                       </div>
                     </div>
                   )
@@ -621,29 +771,32 @@ Provide:
                 title:
                   "Projects",
                 value:
-                  projects.length,
+                  totalProjects,
                 icon: "🛠️",
               },
 
               {
                 title:
                   "Contributors",
-                value: 0,
+                value:
+                  contributors,
                 icon: "👥",
               },
 
               {
                 title:
                   "Tasks",
-                value: 0,
+                value:
+                  totalTasks,
                 icon: "📌",
               },
 
               {
                 title:
-                  "Meetings",
-                value: 0,
-                icon: "🎥",
+                  "Completed",
+                value:
+                  completedProjects,
+                icon: "✅",
               },
             ].map((item, index) => (
               <div

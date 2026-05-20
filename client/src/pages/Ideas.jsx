@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 
-import { Link } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+} from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
@@ -9,30 +12,157 @@ import Loader from "../components/Loader";
 import API from "../services/api";
 
 function Ideas() {
+  const navigate = useNavigate();
+
   const [ideas, setIdeas] =
     useState([]);
 
   const [loading, setLoading] =
     useState(true);
 
-  // Fetch Ideas
+  const [requestLoading, setRequestLoading] =
+    useState("");
+
+  const [sentRequests, setSentRequests] =
+    useState([]);
+
+  //
+  // FETCH IDEAS
+  //
   const fetchIdeas = async () => {
     try {
+      setLoading(true);
+
       const response =
         await API.get("/ideas");
 
-      setIdeas(response.data);
+      if (
+        response.data.success
+      ) {
+        setIdeas(
+          response.data.ideas
+        );
+      }
     } catch (error) {
-      console.log(error);
+      console.log(
+        "Error fetching ideas:",
+        error
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  //
+  // FETCH SENT REQUESTS
+  //
+  const fetchSentRequests =
+    async () => {
+      try {
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        const response =
+          await API.get(
+            "/collaborations/sent",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+        if (
+          response.data.success
+        ) {
+          setSentRequests(
+            response.data.requests
+          );
+        }
+      } catch (error) {
+        console.log(
+          "Request Fetch Error:",
+          error
+        );
+      }
+    };
+
   useEffect(() => {
     fetchIdeas();
+    fetchSentRequests();
   }, []);
 
+  //
+  // SEND REQUEST
+  //
+  const sendRequest =
+    async (idea) => {
+      try {
+        setRequestLoading(
+          idea._id
+        );
+
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        await API.post(
+          "/collaborations/send",
+          {
+            receiver:
+              idea.createdBy._id,
+
+            ideaId:
+              idea._id,
+
+            message:
+              "I'd like to collaborate on this project.",
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        fetchSentRequests();
+
+        alert(
+          "Collaboration request sent successfully 🚀"
+        );
+      } catch (error) {
+        console.log(error);
+
+        alert(
+          error.response?.data
+            ?.message ||
+            "Failed to send request"
+        );
+      } finally {
+        setRequestLoading("");
+      }
+    };
+
+  //
+  // CHECK REQUEST STATUS
+  //
+  const hasRequested =
+    (ideaId) => {
+      return sentRequests.some(
+        (request) =>
+          request.idea?._id ===
+            ideaId &&
+          request.status ===
+            "Pending"
+      );
+    };
+
+  //
+  // LOADING
+  //
   if (loading) {
     return <Loader />;
   }
@@ -129,7 +259,6 @@ function Ideas() {
               overflow: "hidden",
             }}
           >
-            {/* Glow */}
             <div
               style={{
                 position: "absolute",
@@ -211,7 +340,6 @@ function Ideas() {
                 </p>
               </div>
 
-              {/* BUTTON */}
               <Link
                 to="/post-idea"
                 style={{
@@ -305,7 +433,7 @@ function Ideas() {
                       "hidden",
                   }}
                 >
-                  {/* Card Glow */}
+                  {/* Glow */}
                   <div
                     style={{
                       position:
@@ -373,7 +501,7 @@ function Ideas() {
                     {idea.description}
                   </p>
 
-                  {/* TAGS */}
+                  {/* TECH STACK */}
                   <div
                     style={{
                       display: "flex",
@@ -392,10 +520,10 @@ function Ideas() {
                       zIndex: 2,
                     }}
                   >
-                    {idea.tags &&
-                      idea.tags.map(
+                    {idea.techStack &&
+                      idea.techStack.map(
                         (
-                          tag,
+                          tech,
                           index
                         ) => (
                           <span
@@ -420,7 +548,7 @@ function Ideas() {
                                 "13px",
                             }}
                           >
-                            {tag}
+                            {tech}
                           </span>
                         )
                       )}
@@ -448,57 +576,175 @@ function Ideas() {
                       zIndex: 2,
                     }}
                   >
-                    <p
-                      style={{
-                        color:
-                          "#CBD5E1",
+                    <div>
+                      <p
+                        style={{
+                          color:
+                            "#CBD5E1",
 
-                        fontSize:
-                          "15px",
+                          fontSize:
+                            "15px",
+
+                          marginBottom:
+                            "8px",
+                        }}
+                      >
+                        Posted by{" "}
+                        <span
+                          style={{
+                            color:
+                              "white",
+
+                            fontWeight:
+                              "600",
+                          }}
+                        >
+                          {idea
+                            .createdBy
+                            ?.name ||
+                            "Anonymous"}
+                        </span>
+                      </p>
+
+                      <p
+                        style={{
+                          color:
+                            "#94A3B8",
+
+                          fontSize:
+                            "13px",
+                        }}
+                      >
+                        Status:{" "}
+                        {
+                          idea.status
+                        }
+                      </p>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+
+                        gap: "14px",
+
+                        flexWrap:
+                          "wrap",
                       }}
                     >
-                      Posted by{" "}
-                      <span
+                      {/* OPEN WORKSPACE */}
+                      <button
+                        onClick={() =>
+                          navigate(
+                            `/projects/${idea.linkedProject}`
+                          )
+                        }
                         style={{
+                          padding:
+                            "13px 22px",
+
+                          borderRadius:
+                            "16px",
+
+                          background:
+                            "linear-gradient(135deg, #2563EB, #7C3AED)",
+
                           color:
                             "white",
 
+                          fontSize:
+                            "14px",
+
                           fontWeight:
                             "600",
+
+                          boxShadow:
+                            "0 0 22px rgba(124,58,237,0.24)",
+
+                          border:
+                            "none",
+
+                          cursor:
+                            "pointer",
                         }}
                       >
-                        {idea.createdBy
-                          ?.name ||
-                          "Anonymous"}
-                      </span>
-                    </p>
+                        Open Workspace
+                      </button>
 
-                    <button
-                      style={{
-                        padding:
-                          "13px 22px",
+                      {/* COLLABORATE */}
+                      {hasRequested(
+                        idea._id
+                      ) ? (
+                        <button
+                          style={{
+                            padding:
+                              "13px 22px",
 
-                        borderRadius:
-                          "16px",
+                            borderRadius:
+                              "16px",
 
-                        background:
-                          "linear-gradient(135deg, #2563EB, #7C3AED)",
+                            background:
+                              "rgba(255,255,255,0.08)",
 
-                        color:
-                          "white",
+                            color:
+                              "#CBD5E1",
 
-                        fontSize:
-                          "14px",
+                            fontSize:
+                              "14px",
 
-                        fontWeight:
-                          "600",
+                            border:
+                              "1px solid rgba(255,255,255,0.08)",
+                          }}
+                        >
+                          Request Sent
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() =>
+                            sendRequest(
+                              idea
+                            )
+                          }
+                          disabled={
+                            requestLoading ===
+                            idea._id
+                          }
+                          style={{
+                            padding:
+                              "13px 22px",
 
-                        boxShadow:
-                          "0 0 22px rgba(124,58,237,0.24)",
-                      }}
-                    >
-                      Collaborate
-                    </button>
+                            borderRadius:
+                              "16px",
+
+                            background:
+                              "linear-gradient(135deg, #06B6D4, #3B82F6)",
+
+                            color:
+                              "white",
+
+                            fontSize:
+                              "14px",
+
+                            fontWeight:
+                              "600",
+
+                            border:
+                              "none",
+
+                            cursor:
+                              "pointer",
+
+                            boxShadow:
+                              "0 0 20px rgba(59,130,246,0.24)",
+                          }}
+                        >
+                          {requestLoading ===
+                          idea._id
+                            ? "Sending..."
+                            : "Collaborate"}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

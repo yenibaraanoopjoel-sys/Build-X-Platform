@@ -9,18 +9,40 @@ const {
   getIdeas,
   getIdeaById,
   deleteIdea,
+  likeIdea,
 } = require("../controllers/ideaController");
 
-// Create Idea
-router.post("/", protect, createIdea);
+// CREATE IDEA
+router.post(
+  "/",
+  protect,
+  createIdea
+);
 
-// Get All Ideas
-router.get("/", getIdeas);
+// GET ALL IDEAS
+router.get(
+  "/",
+  getIdeas
+);
 
-// Get Single Idea
-router.get("/:id", getIdeaById);
+// GET SINGLE IDEA
+router.get(
+  "/:id",
+  getIdeaById
+);
 
-// Delete Idea
-router.delete("/:id", protect, deleteIdea);
+// LIKE / UNLIKE IDEA
+router.put(
+  "/like/:id",
+  protect,
+  likeIdea
+);
+
+// DELETE IDEA
+router.delete(
+  "/:id",
+  protect,
+  deleteIdea
+);
 
 module.exports = router;

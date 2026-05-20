@@ -8,19 +8,51 @@ const {
   createProject,
   getProjects,
   getProjectById,
+  updateProjectStatus,
+  addMember,
   deleteProject,
 } = require("../controllers/projectController");
 
-// Create Project
-router.post("/", protect, createProject);
+// CREATE PROJECT
+router.post(
+  "/",
+  protect,
+  createProject
+);
 
-// Get All Projects
-router.get("/", protect, getProjects);
+// GET ALL PROJECTS
+router.get(
+  "/",
+  protect,
+  getProjects
+);
 
-// Get Single Project
-router.get("/:id", protect, getProjectById);
+// GET SINGLE PROJECT
+router.get(
+  "/:id",
+  protect,
+  getProjectById
+);
 
-// Delete Project
-router.delete("/:id", protect, deleteProject);
+// UPDATE PROJECT STATUS
+router.put(
+  "/status/:id",
+  protect,
+  updateProjectStatus
+);
+
+// ADD MEMBER TO PROJECT
+router.put(
+  "/add-member/:id",
+  protect,
+  addMember
+);
+
+// DELETE PROJECT
+router.delete(
+  "/:id",
+  protect,
+  deleteProject
+);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 import {
   useState,
   useEffect,
+  useRef,
 } from "react";
 
 import {
@@ -12,40 +13,94 @@ import Sidebar from "../components/Sidebar";
 
 import API from "../services/api";
 
+import socket from "../socket";
+
 function Chat() {
-  // Navigate
+  // NAVIGATE
   const navigate =
     useNavigate();
 
-  // Current User
-  const currentUser =
-    JSON.parse(
-      localStorage.getItem(
-        "user"
-      )
-    ) || {};
+  // SCROLL REF
+  const messagesEndRef =
+    useRef(null);
 
-  // Collaborators
+  // SAFE USER PARSE
+  const storedUser =
+    localStorage.getItem(
+      "user"
+    );
+
+  const currentUser =
+    storedUser
+      ? JSON.parse(
+          storedUser
+        )
+      : {};
+
+  // COLLABORATORS
   const [
     collaborators,
     setCollaborators,
   ] = useState([]);
 
-  // Selected User
+  // SELECTED USER
   const [
     selectedUser,
     setSelectedUser,
   ] = useState(null);
 
-  // Messages
+  // MESSAGES
   const [messages, setMessages] =
     useState([]);
 
-  // Input
+  // INPUT
   const [input, setInput] =
     useState("");
 
-  // Fetch Users
+  // TYPING
+  const [typing, setTyping] =
+    useState(false);
+
+  // ONLINE USERS
+  const [
+    onlineUsers,
+    setOnlineUsers,
+  ] = useState([]);
+
+  //
+  // AUTO SCROLL
+  //
+  const scrollToBottom =
+    () => {
+      messagesEndRef.current?.scrollIntoView(
+        {
+          behavior:
+            "smooth",
+        }
+      );
+    };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  //
+  // SOCKET JOIN
+  //
+  useEffect(() => {
+    if (
+      currentUser?.userId
+    ) {
+      socket.emit(
+        "join_user",
+        currentUser.userId
+      );
+    }
+  }, [currentUser.userId]);
+
+  //
+  // FETCH USERS
+  //
   useEffect(() => {
     const fetchUsers =
       async () => {
@@ -97,7 +152,9 @@ function Chat() {
     fetchUsers();
   }, [currentUser.userId]);
 
-  // Fetch Messages
+  //
+  // FETCH MESSAGES
+  //
   useEffect(() => {
     const fetchMessages =
       async () => {
@@ -139,10 +196,85 @@ function Chat() {
     currentUser.userId,
   ]);
 
-  // Send Message
+  //
+  // REALTIME SOCKET EVENTS
+  //
+  useEffect(() => {
+    //
+    // RECEIVE MESSAGE
+    //
+    socket.on(
+      "receive_message",
+      (messageData) => {
+        if (
+          messageData.sender ===
+            selectedUser?._id ||
+          messageData.receiverId ===
+            selectedUser?._id
+        ) {
+          setMessages(
+            (prev) => [
+              ...prev,
+              messageData,
+            ]
+          );
+        }
+      }
+    );
+
+    //
+    // USER TYPING
+    //
+    socket.on(
+      "user_typing",
+      () => {
+        setTyping(true);
+
+        setTimeout(() => {
+          setTyping(false);
+        }, 2000);
+      }
+    );
+
+    //
+    // ONLINE USERS
+    //
+    socket.on(
+      "online_users",
+      (users) => {
+        setOnlineUsers(
+          users
+        );
+      }
+    );
+
+    //
+    // CLEANUP
+    //
+    return () => {
+      socket.off(
+        "receive_message"
+      );
+
+      socket.off(
+        "user_typing"
+      );
+
+      socket.off(
+        "online_users"
+      );
+    };
+  }, [selectedUser]);
+
+  //
+  // SEND MESSAGE
+  //
   const handleSendMessage =
     async () => {
-      if (!input.trim())
+      if (
+        !input.trim() ||
+        !selectedUser
+      )
         return;
 
       try {
@@ -167,10 +299,24 @@ function Chat() {
             }
           );
 
-        setMessages([
-          ...messages,
-          response.data,
-        ]);
+        // UPDATE UI
+        setMessages(
+          (prev) => [
+            ...prev,
+            response.data,
+          ]
+        );
+
+        // REALTIME EMIT
+        socket.emit(
+          "send_message",
+          {
+            ...response.data,
+
+            receiverId:
+              selectedUser._id,
+          }
+        );
 
         setInput("");
       } catch (error) {
@@ -183,7 +329,30 @@ function Chat() {
       }
     };
 
-  // Start Meeting
+  //
+  // TYPING EVENT
+  //
+  const handleTyping =
+    (e) => {
+      setInput(
+        e.target.value
+      );
+
+      socket.emit(
+        "typing",
+        {
+          sender:
+            currentUser.userId,
+
+          receiver:
+            selectedUser?._id,
+        }
+      );
+    };
+
+  //
+  // START MEETING
+  //
   const handleStartMeeting =
     () => {
       if (!selectedUser)
@@ -215,7 +384,7 @@ function Chat() {
         position: "relative",
       }}
     >
-      {/* Glow */}
+      {/* GLOW */}
       <div
         style={{
           position: "absolute",
@@ -258,7 +427,7 @@ function Chat() {
         }}
       />
 
-      {/* Navbar */}
+      {/* NAVBAR */}
       <Navbar />
 
       <div
@@ -270,10 +439,10 @@ function Chat() {
           zIndex: 2,
         }}
       >
-        {/* Sidebar */}
+        {/* SIDEBAR */}
         <Sidebar />
 
-        {/* Main */}
+        {/* MAIN */}
         <div
           style={{
             flex: 1,
@@ -285,19 +454,23 @@ function Chat() {
             gap: "26px",
           }}
         >
-          {/* Users */}
+          {/* USERS */}
           <div
             className="glass-card"
             style={{
               width: "340px",
 
               padding: "28px",
+
+              overflowY:
+                "auto",
             }}
           >
             <h2
               className="section-title"
               style={{
-                marginBottom: "30px",
+                marginBottom:
+                  "30px",
 
                 fontSize: "38px",
               }}
@@ -316,66 +489,131 @@ function Chat() {
               }}
             >
               {collaborators.map(
-                (user) => (
-                  <div
-                    key={user._id}
-                    onClick={() =>
-                      setSelectedUser(
-                        user
-                      )
-                    }
-                    style={{
-                      padding: "18px",
+                (user) => {
+                  const isOnline =
+                    onlineUsers.includes(
+                      user._id
+                    );
 
-                      borderRadius:
-                        "22px",
-
-                      cursor: "pointer",
-
-                      transition:
-                        "0.3s ease",
-
-                      background:
-                        selectedUser?._id ===
-                        user._id
-                          ? "linear-gradient(135deg, #2563EB, #7C3AED)"
-                          : "rgba(255,255,255,0.04)",
-
-                      border:
-                        "1px solid rgba(255,255,255,0.08)",
-                    }}
-                  >
-                    <h3
+                  return (
+                    <div
+                      key={user._id}
+                      onClick={() =>
+                        setSelectedUser(
+                          user
+                        )
+                      }
                       style={{
-                        marginBottom:
-                          "6px",
+                        padding:
+                          "18px",
 
-                        fontSize: "24px",
+                        borderRadius:
+                          "22px",
 
-                        color: "white",
+                        cursor:
+                          "pointer",
+
+                        transition:
+                          "0.3s ease",
+
+                        background:
+                          selectedUser?._id ===
+                          user._id
+                            ? "linear-gradient(135deg, #2563EB, #7C3AED)"
+                            : "rgba(255,255,255,0.04)",
+
+                        border:
+                          "1px solid rgba(255,255,255,0.08)",
+
+                        position:
+                          "relative",
                       }}
                     >
-                      {user.name}
-                    </h3>
+                      {/* ONLINE STATUS */}
+                      <div
+                        style={{
+                          position:
+                            "absolute",
 
-                    <p
-                      style={{
-                        color:
-                          "#CBD5E1",
+                          top: "18px",
 
-                        fontSize:
-                          "14px",
-                      }}
-                    >
-                      {user.email}
-                    </p>
-                  </div>
-                )
+                          right:
+                            "18px",
+
+                          width:
+                            "12px",
+
+                          height:
+                            "12px",
+
+                          borderRadius:
+                            "50%",
+
+                          background:
+                            isOnline
+                              ? "#10B981"
+                              : "#6B7280",
+
+                          boxShadow:
+                            isOnline
+                              ? "0 0 12px #10B981"
+                              : "none",
+                        }}
+                      />
+
+                      <h3
+                        style={{
+                          marginBottom:
+                            "6px",
+
+                          fontSize:
+                            "24px",
+
+                          color:
+                            "white",
+                        }}
+                      >
+                        {user.name}
+                      </h3>
+
+                      <p
+                        style={{
+                          color:
+                            "#CBD5E1",
+
+                          fontSize:
+                            "14px",
+
+                          marginBottom:
+                            "8px",
+                        }}
+                      >
+                        {user.email}
+                      </p>
+
+                      <p
+                        style={{
+                          color:
+                            isOnline
+                              ? "#10B981"
+                              : "#9CA3AF",
+
+                          fontSize:
+                            "12px",
+                        }}
+                      >
+                        {isOnline
+                          ? "● Online"
+                          : "● Offline"}
+                      </p>
+                    </div>
+                  );
+                }
               )}
             </div>
           </div>
 
-          {/* Chat Area */}
+          {/* CHAT */}
           <div
             className="glass-card"
             style={{
@@ -386,10 +624,11 @@ function Chat() {
               flexDirection:
                 "column",
 
-              overflow: "hidden",
+              overflow:
+                "hidden",
             }}
           >
-            {/* Header */}
+            {/* HEADER */}
             <div
               style={{
                 padding: "28px",
@@ -409,24 +648,48 @@ function Chat() {
               <div>
                 <h2
                   style={{
-                    fontSize: "38px",
+                    fontSize:
+                      "38px",
 
                     marginBottom:
                       "6px",
                   }}
                 >
-                  {selectedUser?.name}
+                  {
+                    selectedUser?.name
+                  }
                 </h2>
 
                 <p
                   style={{
-                    color: "#CBD5E1",
+                    color:
+                      "#CBD5E1",
 
-                    fontSize: "15px",
+                    fontSize:
+                      "15px",
                   }}
                 >
-                  {selectedUser?.email}
+                  {
+                    selectedUser?.email
+                  }
                 </p>
+
+                {typing && (
+                  <p
+                    style={{
+                      color:
+                        "#A78BFA",
+
+                      marginTop:
+                        "8px",
+
+                      fontSize:
+                        "13px",
+                    }}
+                  >
+                    typing...
+                  </p>
+                )}
               </div>
 
               <button
@@ -462,14 +725,15 @@ function Chat() {
               </button>
             </div>
 
-            {/* Messages */}
+            {/* MESSAGES */}
             <div
               style={{
                 flex: 1,
 
                 padding: "28px",
 
-                overflowY: "auto",
+                overflowY:
+                  "auto",
 
                 display: "flex",
 
@@ -493,7 +757,8 @@ function Chat() {
                           ? "flex-end"
                           : "flex-start",
 
-                      maxWidth: "72%",
+                      maxWidth:
+                        "72%",
                     }}
                   >
                     <div
@@ -531,9 +796,15 @@ function Chat() {
                   </div>
                 )
               )}
+
+              <div
+                ref={
+                  messagesEndRef
+                }
+              />
             </div>
 
-            {/* Input */}
+            {/* INPUT */}
             <div
               style={{
                 padding: "24px",
@@ -550,10 +821,8 @@ function Chat() {
                 type="text"
                 placeholder="Type your message..."
                 value={input}
-                onChange={(e) =>
-                  setInput(
-                    e.target.value
-                  )
+                onChange={
+                  handleTyping
                 }
                 style={{
                   flex: 1,
@@ -571,9 +840,11 @@ function Chat() {
 
                   color: "white",
 
-                  outline: "none",
+                  outline:
+                    "none",
 
-                  fontSize: "15px",
+                  fontSize:
+                    "15px",
                 }}
               />
 

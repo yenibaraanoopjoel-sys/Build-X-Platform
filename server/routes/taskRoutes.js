@@ -7,20 +7,44 @@ const protect = require("../middleware/authMiddleware");
 const {
   createTask,
   getTasks,
+  getTasksByProject,
   updateTaskStatus,
   deleteTask,
 } = require("../controllers/taskController");
 
-// Create Task
-router.post("/", protect, createTask);
+// CREATE TASK
+router.post(
+  "/",
+  protect,
+  createTask
+);
 
-// Get All Tasks
-router.get("/", protect, getTasks);
+// GET ALL TASKS
+router.get(
+  "/",
+  protect,
+  getTasks
+);
 
-// Update Task Status
-router.put("/:id", protect, updateTaskStatus);
+// GET TASKS BY PROJECT
+router.get(
+  "/project/:projectId",
+  protect,
+  getTasksByProject
+);
 
-// Delete Task
-router.delete("/:id", protect, deleteTask);
+// UPDATE TASK STATUS
+router.put(
+  "/:id",
+  protect,
+  updateTaskStatus
+);
+
+// DELETE TASK
+router.delete(
+  "/:id",
+  protect,
+  deleteTask
+);
 
 module.exports = router;

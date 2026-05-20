@@ -8,8 +8,21 @@ import Sidebar from "../components/Sidebar";
 
 import API from "../services/api";
 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  CartesianGrid,
+} from "recharts";
+
 function Dashboard() {
-  // Stats State
+  // STATS
   const [stats, setStats] =
     useState([
       {
@@ -37,11 +50,27 @@ function Dashboard() {
       },
     ]);
 
-  // Loading
+  // ANALYTICS
+  const [
+    analytics,
+    setAnalytics,
+  ] = useState({
+    completedTasks: 0,
+
+    pendingTasks: 0,
+
+    completionRate: 0,
+
+    activeUsers: 0,
+  });
+
+  // LOADING
   const [loading, setLoading] =
     useState(true);
 
-  // Fetch Real Dashboard Data
+  //
+  // FETCH DASHBOARD DATA
+  //
   useEffect(() => {
     const fetchDashboard =
       async () => {
@@ -51,7 +80,6 @@ function Dashboard() {
               "token"
             );
 
-          // Fetch All APIs
           const [
             projectsRes,
             ideasRes,
@@ -83,13 +111,17 @@ function Dashboard() {
             }),
           ]);
 
-          // Update Stats
           setStats([
             {
               title: "Projects",
               value:
                 projectsRes.data
-                  ?.length || 0,
+                  ?.projects
+                  ?.length ||
+                projectsRes.data
+                  ?.length ||
+                0,
+
               icon: "🛠️",
             },
 
@@ -97,7 +129,12 @@ function Dashboard() {
               title: "Ideas",
               value:
                 ideasRes.data
-                  ?.length || 0,
+                  ?.ideas
+                  ?.length ||
+                ideasRes.data
+                  ?.length ||
+                0,
+
               icon: "💡",
             },
 
@@ -105,7 +142,12 @@ function Dashboard() {
               title: "Tasks",
               value:
                 tasksRes.data
-                  ?.length || 0,
+                  ?.tasks
+                  ?.length ||
+                tasksRes.data
+                  ?.length ||
+                0,
+
               icon: "✅",
             },
 
@@ -113,14 +155,63 @@ function Dashboard() {
               title: "Messages",
               value:
                 messagesRes.data
-                  ?.length || 0,
+                  ?.messages
+                  ?.length ||
+                messagesRes.data
+                  ?.length ||
+                0,
+
               icon: "💬",
             },
           ]);
+
+          //
+          // TASK ANALYTICS
+          //
+          const tasks =
+            tasksRes.data
+              ?.tasks || [];
+
+          const completedTasks =
+            tasks.filter(
+              (task) =>
+                task.status ===
+                "Completed"
+            ).length;
+
+          const pendingTasks =
+            tasks.filter(
+              (task) =>
+                task.status !==
+                "Completed"
+            ).length;
+
+          const completionRate =
+            tasks.length === 0
+              ? 0
+              : Math.round(
+                  (completedTasks /
+                    tasks.length) *
+                    100
+                );
+
+          setAnalytics({
+            completedTasks,
+
+            pendingTasks,
+
+            completionRate,
+
+            activeUsers:
+              projectsRes.data
+                ?.projects
+                ?.length || 0,
+          });
         } catch (error) {
           console.log(
             "DASHBOARD ERROR:",
-            error.response?.data ||
+            error.response
+              ?.data ||
               error.message
           );
         } finally {
@@ -131,7 +222,69 @@ function Dashboard() {
     fetchDashboard();
   }, []);
 
-  // Loading Screen
+  //
+  // CHART DATA
+  //
+  const productivityData =
+    [
+      {
+        name: "Mon",
+        tasks: 4,
+      },
+
+      {
+        name: "Tue",
+        tasks: 7,
+      },
+
+      {
+        name: "Wed",
+        tasks: 5,
+      },
+
+      {
+        name: "Thu",
+        tasks: 9,
+      },
+
+      {
+        name: "Fri",
+        tasks: 11,
+      },
+
+      {
+        name: "Sat",
+        tasks: 8,
+      },
+
+      {
+        name: "Sun",
+        tasks: 13,
+      },
+    ];
+
+  const pieData = [
+    {
+      name: "Completed",
+      value:
+        analytics.completedTasks,
+    },
+
+    {
+      name: "Pending",
+      value:
+        analytics.pendingTasks,
+    },
+  ];
+
+  const COLORS = [
+    "#8B5CF6",
+    "#EC4899",
+  ];
+
+  //
+  // LOADING SCREEN
+  //
   if (loading) {
     return (
       <div
@@ -174,65 +327,15 @@ function Dashboard() {
         position: "relative",
       }}
     >
-      {/* Background Glow */}
-      <div
-        style={{
-          position: "absolute",
-
-          width: "500px",
-
-          height: "500px",
-
-          background:
-            "rgba(59,130,246,0.12)",
-
-          borderRadius: "50%",
-
-          filter: "blur(140px)",
-
-          top: "-180px",
-
-          left: "-100px",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-
-          width: "450px",
-
-          height: "450px",
-
-          background:
-            "rgba(124,58,237,0.14)",
-
-          borderRadius: "50%",
-
-          filter: "blur(130px)",
-
-          bottom: "-160px",
-
-          right: "-120px",
-        }}
-      />
-
-      {/* Navbar */}
       <Navbar />
 
       <div
         style={{
           display: "flex",
-
-          position: "relative",
-
-          zIndex: 2,
         }}
       >
-        {/* Sidebar */}
         <Sidebar />
 
-        {/* Main */}
         <div
           style={{
             flex: 1,
@@ -240,58 +343,24 @@ function Dashboard() {
             padding: "42px",
           }}
         >
-          {/* HERO */}
+          {/* TITLE */}
           <div
             className="glass-card"
             style={{
-              padding: "52px",
+              padding: "42px",
 
               marginBottom: "38px",
-
-              position: "relative",
-
-              overflow: "hidden",
             }}
           >
-            {/* Hero Glow */}
-            <div
-              style={{
-                position: "absolute",
-
-                width: "260px",
-
-                height: "260px",
-
-                background:
-                  "rgba(91,95,255,0.12)",
-
-                borderRadius: "50%",
-
-                filter: "blur(90px)",
-
-                top: "-80px",
-
-                right: "-50px",
-              }}
-            />
-
             <h1
-              className="welcome-title"
               style={{
                 fontSize: "54px",
 
-                marginBottom: "24px",
-
-                lineHeight: "1.3",
-
-                color: "white",
-
-                position: "relative",
-
-                zIndex: 2,
+                marginBottom:
+                  "18px",
               }}
             >
-              WELCOME TO BUILDX
+              AI Analytics Dashboard
             </h1>
 
             <p
@@ -300,26 +369,16 @@ function Dashboard() {
 
                 fontSize: "18px",
 
-                lineHeight: "2",
-
-                maxWidth: "850px",
-
-                position: "relative",
-
-                zIndex: 2,
+                lineHeight: "1.9",
               }}
             >
-              AI-powered collaboration,
-              productivity, innovation,
-              and futuristic project
-              management platform
-              designed for creators,
-              developers, startups,
-              and next-gen teams.
+              Real-time AI-powered
+              productivity and
+              collaboration insights.
             </p>
           </div>
 
-          {/* REAL STATS */}
+          {/* STATS */}
           <div
             style={{
               display: "grid",
@@ -339,42 +398,8 @@ function Dashboard() {
                   className="glass-card"
                   style={{
                     padding: "30px",
-
-                    position:
-                      "relative",
-
-                    overflow:
-                      "hidden",
                   }}
                 >
-                  {/* Glow */}
-                  <div
-                    style={{
-                      position:
-                        "absolute",
-
-                      width:
-                        "180px",
-
-                      height:
-                        "180px",
-
-                      background:
-                        "rgba(124,58,237,0.08)",
-
-                      borderRadius:
-                        "50%",
-
-                      filter:
-                        "blur(70px)",
-
-                      top: "-60px",
-
-                      right:
-                        "-60px",
-                    }}
-                  />
-
                   <div
                     style={{
                       display:
@@ -383,25 +408,14 @@ function Dashboard() {
                       justifyContent:
                         "space-between",
 
-                      alignItems:
-                        "center",
-
                       marginBottom:
-                        "18px",
-
-                      position:
-                        "relative",
-
-                      zIndex: 2,
+                        "20px",
                     }}
                   >
                     <h2
                       style={{
                         fontSize:
                           "28px",
-
-                        color:
-                          "white",
                       }}
                     >
                       {
@@ -424,15 +438,7 @@ function Dashboard() {
                   <h1
                     style={{
                       fontSize:
-                        "48px",
-
-                      color:
-                        "white",
-
-                      position:
-                        "relative",
-
-                      zIndex: 2,
+                        "52px",
                     }}
                   >
                     {item.value}
@@ -440,6 +446,198 @@ function Dashboard() {
                 </div>
               )
             )}
+          </div>
+
+          {/* CHARTS */}
+          <div
+            style={{
+              display: "grid",
+
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(420px, 1fr))",
+
+              gap: "28px",
+
+              marginBottom: "40px",
+            }}
+          >
+            {/* LINE CHART */}
+            <div
+              className="glass-card"
+              style={{
+                padding: "30px",
+
+                height: "420px",
+              }}
+            >
+              <h2
+                style={{
+                  marginBottom:
+                    "24px",
+
+                  fontSize: "32px",
+                }}
+              >
+                Productivity Growth
+              </h2>
+
+              <ResponsiveContainer
+                width="100%"
+                height="85%"
+              >
+                <LineChart
+                  data={
+                    productivityData
+                  }
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="rgba(255,255,255,0.08)"
+                  />
+
+                  <XAxis
+                    dataKey="name"
+                    stroke="#CBD5E1"
+                  />
+
+                  <YAxis
+                    stroke="#CBD5E1"
+                  />
+
+                  <Tooltip />
+
+                  <Line
+                    type="monotone"
+                    dataKey="tasks"
+                    stroke="#A855F7"
+                    strokeWidth={4}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* PIE CHART */}
+            <div
+              className="glass-card"
+              style={{
+                padding: "30px",
+
+                height: "420px",
+              }}
+            >
+              <h2
+                style={{
+                  marginBottom:
+                    "24px",
+
+                  fontSize: "32px",
+                }}
+              >
+                Task Distribution
+              </h2>
+
+              <ResponsiveContainer
+                width="100%"
+                height="85%"
+              >
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={120}
+                    dataKey="value"
+                    label
+                  >
+                    {pieData.map(
+                      (
+                        entry,
+                        index
+                      ) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={
+                            COLORS[
+                              index %
+                                COLORS.length
+                            ]
+                          }
+                        />
+                      )
+                    )}
+                  </Pie>
+
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* AI INSIGHTS */}
+          <div
+            className="glass-card"
+            style={{
+              padding: "42px",
+
+              marginBottom: "40px",
+            }}
+          >
+            <h1
+              style={{
+                marginBottom:
+                  "28px",
+
+                fontSize: "42px",
+              }}
+            >
+              AI Productivity Insights
+            </h1>
+
+            <div
+              style={{
+                display: "flex",
+
+                flexDirection:
+                  "column",
+
+                gap: "18px",
+              }}
+            >
+              <div
+                className="glass-card"
+                style={{
+                  padding: "22px",
+                }}
+              >
+                🚀 Productivity
+                increased this week
+                compared to previous
+                performance.
+              </div>
+
+              <div
+                className="glass-card"
+                style={{
+                  padding: "22px",
+                }}
+              >
+                ⚡ High task completion
+                efficiency detected in
+                active projects.
+              </div>
+
+              <div
+                className="glass-card"
+                style={{
+                  padding: "22px",
+                }}
+              >
+                🤖 AI recommends
+                focusing on pending
+                tasks for better
+                workflow optimization.
+              </div>
+            </div>
           </div>
         </div>
       </div>

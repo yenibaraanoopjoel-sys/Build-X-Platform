@@ -22,9 +22,11 @@ function Tasks() {
   const [aiLoading, setAiLoading] =
     useState(false);
 
-  // Fetch Tasks
+  // FETCH TASKS
   const fetchTasks = async () => {
     try {
+      setLoading(true);
+
       const token =
         localStorage.getItem(
           "token"
@@ -37,9 +39,23 @@ function Tasks() {
           },
         });
 
-      setTasks(response.data);
+      if (
+        response.data.success
+      ) {
+        setTasks(
+          response.data.tasks
+        );
+      } else {
+        setTasks([]);
+      }
     } catch (error) {
-      console.error(error);
+      console.error(
+        "TASK FETCH ERROR:",
+        error.response?.data ||
+          error.message
+      );
+
+      setTasks([]);
     } finally {
       setLoading(false);
     }
@@ -49,7 +65,71 @@ function Tasks() {
     fetchTasks();
   }, []);
 
-  // AI Generator
+  // UPDATE TASK STATUS
+  const updateTaskStatus =
+    async (
+      taskId,
+      status,
+      progress
+    ) => {
+      try {
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        await API.put(
+          `/tasks/${taskId}`,
+          {
+            status,
+            progress,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        fetchTasks();
+      } catch (error) {
+        console.log(
+          "TASK UPDATE ERROR:",
+          error.response?.data ||
+            error.message
+        );
+      }
+    };
+
+  // DELETE TASK
+  const deleteTask =
+    async (taskId) => {
+      try {
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        await API.delete(
+          `/tasks/${taskId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        fetchTasks();
+      } catch (error) {
+        console.log(
+          "DELETE TASK ERROR:",
+          error.response?.data ||
+            error.message
+        );
+      }
+    };
+
+  // AI GENERATOR
   const generateTasks =
     async () => {
       if (!projectIdea) {
@@ -94,6 +174,8 @@ Keep it beginner-friendly and structured.
             response.data.reply,
 
           status: "Pending",
+
+          progress: 0,
         };
 
         setTasks((prev) => [
@@ -111,7 +193,29 @@ Keep it beginner-friendly and structured.
       }
     };
 
-  // Loading
+  // COUNTS
+  const completedTasks =
+    tasks.filter(
+      (task) =>
+        task.status ===
+        "Completed"
+    ).length;
+
+  const pendingTasks =
+    tasks.filter(
+      (task) =>
+        task.status ===
+        "Pending"
+    ).length;
+
+  const inProgressTasks =
+    tasks.filter(
+      (task) =>
+        task.status ===
+        "In Progress"
+    ).length;
+
+  // LOADING
   if (loading) {
     return <Loader />;
   }
@@ -274,6 +378,143 @@ Keep it beginner-friendly and structured.
             </div>
           </div>
 
+          {/* STATS */}
+          <div
+            style={{
+              display: "grid",
+
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(240px, 1fr))",
+
+              gap: "24px",
+
+              marginBottom: "42px",
+            }}
+          >
+            {[
+              {
+                title:
+                  "Total Tasks",
+                value:
+                  tasks.length,
+                icon: "📌",
+              },
+
+              {
+                title:
+                  "Completed",
+                value:
+                  completedTasks,
+                icon: "✅",
+              },
+
+              {
+                title:
+                  "Pending",
+                value:
+                  pendingTasks,
+                icon: "⏳",
+              },
+
+              {
+                title:
+                  "In Progress",
+                value:
+                  inProgressTasks,
+                icon: "🚀",
+              },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="glass-card"
+                style={{
+                  padding: "28px",
+
+                  position:
+                    "relative",
+
+                  overflow:
+                    "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    position:
+                      "absolute",
+
+                    width: "180px",
+
+                    height:
+                      "180px",
+
+                    background:
+                      "rgba(124,58,237,0.08)",
+
+                    borderRadius:
+                      "50%",
+
+                    filter:
+                      "blur(70px)",
+
+                    top: "-60px",
+
+                    right: "-60px",
+                  }}
+                />
+
+                <div
+                  style={{
+                    display: "flex",
+
+                    justifyContent:
+                      "space-between",
+
+                    alignItems:
+                      "center",
+
+                    marginBottom:
+                      "14px",
+
+                    position:
+                      "relative",
+
+                    zIndex: 2,
+                  }}
+                >
+                  <h2
+                    style={{
+                      fontSize: "26px",
+                    }}
+                  >
+                    {item.title}
+                  </h2>
+
+                  <span
+                    style={{
+                      fontSize:
+                        "30px",
+                    }}
+                  >
+                    {item.icon}
+                  </span>
+                </div>
+
+                <h1
+                  style={{
+                    fontSize: "48px",
+
+                    position:
+                      "relative",
+
+                    zIndex: 2,
+                  }}
+                >
+                  {item.value}
+                </h1>
+              </div>
+            ))}
+          </div>
+
           {/* AI GENERATOR */}
           <div
             className="glass-card"
@@ -356,6 +597,11 @@ Keep it beginner-friendly and structured.
                 fontSize:
                   "15px",
 
+                border: "none",
+
+                cursor:
+                  "pointer",
+
                 boxShadow:
                   "0 0 24px rgba(124,58,237,0.24)",
               }}
@@ -425,6 +671,12 @@ Keep it beginner-friendly and structured.
                 >
                   <TaskCard
                     task={task}
+                    updateTaskStatus={
+                      updateTaskStatus
+                    }
+                    deleteTask={
+                      deleteTask
+                    }
                   />
                 </div>
               ))}

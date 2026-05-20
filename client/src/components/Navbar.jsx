@@ -5,14 +5,222 @@ import {
   useNavigate,
 } from "react-router-dom";
 
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import API from "../services/api";
+
+import socket from "../socket";
+
 function Navbar() {
   const navigate = useNavigate();
 
+  const [
+    unreadCount,
+    setUnreadCount,
+  ] = useState(0);
+
+  const [
+    notifications,
+    setNotifications,
+  ] = useState([]);
+
+  const [
+    showNotifications,
+    setShowNotifications,
+  ] = useState(false);
+
+  //
+  // LOGOUT
+  //
   const logoutHandler = () => {
     localStorage.removeItem("token");
 
+    localStorage.removeItem("user");
+
     navigate("/login");
   };
+
+  //
+  // FETCH UNREAD COUNT
+  //
+  const fetchUnreadCount =
+    async () => {
+      try {
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        const response =
+          await API.get(
+            "/notifications/unread-count",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+        if (
+          response.data.success
+        ) {
+          setUnreadCount(
+            response.data
+              .unreadCount
+          );
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+  //
+  // FETCH NOTIFICATIONS
+  //
+  const fetchNotifications =
+    async () => {
+      try {
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        const response =
+          await API.get(
+            "/notifications",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+        if (
+          response.data.success
+        ) {
+          setNotifications(
+            response.data
+              .notifications
+          );
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+  //
+  // MARK AS READ
+  //
+  const markAsRead =
+    async (id) => {
+      try {
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        await API.put(
+          `/notifications/read/${id}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        fetchNotifications();
+
+        fetchUnreadCount();
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+  //
+  // DELETE NOTIFICATION
+  //
+  const deleteNotification =
+    async (id) => {
+      try {
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        await API.delete(
+          `/notifications/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        fetchNotifications();
+
+        fetchUnreadCount();
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+  //
+  // REALTIME SOCKET EFFECT
+  //
+  useEffect(() => {
+    fetchUnreadCount();
+
+    fetchNotifications();
+
+    const user =
+      JSON.parse(
+        localStorage.getItem(
+          "user"
+        )
+      );
+
+    //
+    // JOIN USER ROOM
+    //
+    if (user?._id) {
+      socket.emit(
+        "join_user",
+        user._id
+      );
+    }
+
+    //
+    // RECEIVE LIVE NOTIFICATIONS
+    //
+    socket.on(
+      "receive_notification",
+      (data) => {
+        setNotifications(
+          (prev) => [
+            data,
+            ...prev,
+          ]
+        );
+
+        setUnreadCount(
+          (prev) => prev + 1
+        );
+      }
+    );
+
+    //
+    // CLEANUP
+    //
+    return () => {
+      socket.off(
+        "receive_notification"
+      );
+    };
+  }, []);
 
   return (
     <nav
@@ -47,7 +255,7 @@ function Navbar() {
           "0 8px 35px rgba(168,85,247,0.12)",
       }}
     >
-      {/* Logo */}
+      {/* LOGO */}
       <div>
         <h2
           style={{
@@ -96,7 +304,7 @@ function Navbar() {
         </p>
       </div>
 
-      {/* Navigation */}
+      {/* NAVIGATION */}
       <div
         style={{
           display: "flex",
@@ -104,6 +312,8 @@ function Navbar() {
           gap: "18px",
 
           alignItems: "center",
+
+          position: "relative",
         }}
       >
         {[
@@ -120,6 +330,13 @@ function Navbar() {
           {
             name: "Projects",
             path: "/projects",
+          },
+
+          {
+            name:
+              "Collaborations",
+            path:
+              "/collaboration-requests",
           },
 
           {
@@ -169,7 +386,308 @@ function Navbar() {
           </Link>
         ))}
 
-        {/* AI Status */}
+        {/* NOTIFICATIONS */}
+        <div
+          style={{
+            position:
+              "relative",
+          }}
+        >
+          <button
+            onClick={() =>
+              setShowNotifications(
+                !showNotifications
+              )
+            }
+            style={{
+              position:
+                "relative",
+
+              padding:
+                "12px 16px",
+
+              borderRadius:
+                "16px",
+
+              border:
+                "1px solid rgba(255,255,255,0.08)",
+
+              background:
+                "rgba(255,255,255,0.05)",
+
+              color: "white",
+
+              cursor:
+                "pointer",
+
+              fontSize: "20px",
+
+              backdropFilter:
+                "blur(10px)",
+            }}
+          >
+            🔔
+
+            {unreadCount >
+              0 && (
+              <span
+                style={{
+                  position:
+                    "absolute",
+
+                  top: "-8px",
+
+                  right:
+                    "-8px",
+
+                  background:
+                    "#EC4899",
+
+                  color:
+                    "white",
+
+                  borderRadius:
+                    "50%",
+
+                  width:
+                    "22px",
+
+                  height:
+                    "22px",
+
+                  display:
+                    "flex",
+
+                  alignItems:
+                    "center",
+
+                  justifyContent:
+                    "center",
+
+                  fontSize:
+                    "11px",
+
+                  fontWeight:
+                    "bold",
+                }}
+              >
+                {
+                  unreadCount
+                }
+              </span>
+            )}
+          </button>
+
+          {/* DROPDOWN */}
+          {showNotifications && (
+            <div
+              style={{
+                position:
+                  "absolute",
+
+                top: "70px",
+
+                right: 0,
+
+                width: "380px",
+
+                maxHeight:
+                  "500px",
+
+                overflowY:
+                  "auto",
+
+                background:
+                  "rgba(10,10,25,0.96)",
+
+                border:
+                  "1px solid rgba(255,255,255,0.08)",
+
+                borderRadius:
+                  "24px",
+
+                padding:
+                  "20px",
+
+                backdropFilter:
+                  "blur(20px)",
+
+                boxShadow:
+                  "0 20px 60px rgba(0,0,0,0.45)",
+
+                zIndex: 9999,
+              }}
+            >
+              <h2
+                style={{
+                  marginBottom:
+                    "20px",
+
+                  fontFamily:
+                    "'Cinzel', serif",
+
+                  fontSize:
+                    "24px",
+                }}
+              >
+                Notifications
+              </h2>
+
+              {notifications.length ===
+              0 ? (
+                <p
+                  style={{
+                    color:
+                      "#CBD5E1",
+                  }}
+                >
+                  No notifications
+                </p>
+              ) : (
+                notifications.map(
+                  (
+                    notification
+                  ) => (
+                    <div
+                      key={
+                        notification._id
+                      }
+                      style={{
+                        padding:
+                          "16px",
+
+                        borderRadius:
+                          "18px",
+
+                        marginBottom:
+                          "14px",
+
+                        background:
+                          notification.isRead
+                            ? "rgba(255,255,255,0.03)"
+                            : "rgba(124,58,237,0.14)",
+
+                        border:
+                          "1px solid rgba(255,255,255,0.06)",
+                      }}
+                    >
+                      <p
+                        style={{
+                          lineHeight:
+                            "1.8",
+
+                          marginBottom:
+                            "10px",
+
+                          color:
+                            "white",
+                        }}
+                      >
+                        {
+                          notification.message
+                        }
+                      </p>
+
+                      <p
+                        style={{
+                          color:
+                            "#A5B4FC",
+
+                          fontSize:
+                            "13px",
+
+                          marginBottom:
+                            "12px",
+                        }}
+                      >
+                        {new Date(
+                          notification.createdAt
+                        ).toLocaleString()}
+                      </p>
+
+                      <div
+                        style={{
+                          display:
+                            "flex",
+
+                          gap: "10px",
+                        }}
+                      >
+                        {!notification.isRead && (
+                          <button
+                            onClick={() =>
+                              markAsRead(
+                                notification._id
+                              )
+                            }
+                            style={{
+                              padding:
+                                "8px 14px",
+
+                              borderRadius:
+                                "12px",
+
+                              border:
+                                "none",
+
+                              background:
+                                "linear-gradient(to right, #8B5CF6, #EC4899)",
+
+                              color:
+                                "white",
+
+                              cursor:
+                                "pointer",
+
+                              fontSize:
+                                "12px",
+                            }}
+                          >
+                            Mark Read
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() =>
+                            deleteNotification(
+                              notification._id
+                            )
+                          }
+                          style={{
+                            padding:
+                              "8px 14px",
+
+                            borderRadius:
+                              "12px",
+
+                            border:
+                              "none",
+
+                            background:
+                              "rgba(239,68,68,0.18)",
+
+                            color:
+                              "#FCA5A5",
+
+                            cursor:
+                              "pointer",
+
+                            fontSize:
+                              "12px",
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )
+                )
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* AI STATUS */}
         <div
           style={{
             padding:
@@ -202,7 +720,7 @@ function Navbar() {
           🤖 JARVIS ONLINE
         </div>
 
-        {/* Logout */}
+        {/* LOGOUT */}
         <button
           onClick={logoutHandler}
           style={{

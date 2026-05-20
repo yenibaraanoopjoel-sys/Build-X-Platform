@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
-    // Basic Info
+    // BASIC INFO
     name: {
       type: String,
       required: true,
@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
-    // Profile Info
+    // PROFILE INFO
     bio: {
       type: String,
       default: "",
@@ -38,71 +38,160 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
 
-    // Skill Swapping
-    skillsHave: {
-      type: [String],
-      default: [],
-    },
-
-    skillsWant: {
-      type: [String],
-      default: [],
-    },
-
-    // User Role
+    // PROFESSIONAL ROLE
     role: {
       type: String,
+
       enum: [
-        "learner",
-        "mentor",
-        "collaborator",
+        "Frontend Developer",
+        "Backend Developer",
+        "Full Stack Developer",
+        "UI/UX Designer",
+        "AI Engineer",
+        "Project Manager",
+        "Researcher",
+        "Collaborator",
       ],
-      default: "learner",
+
+      default:
+        "Collaborator",
     },
 
-    // Contribution System
+    // EXPERIENCE
+    experienceLevel: {
+      type: String,
+
+      enum: [
+        "Beginner",
+        "Intermediate",
+        "Advanced",
+      ],
+
+      default:
+        "Beginner",
+    },
+
+    // SKILLS USER HAS
+    skillsHave: {
+      type: [String],
+
+      default: [],
+    },
+
+    // SKILLS USER WANTS
+    skillsWant: {
+      type: [String],
+
+      default: [],
+    },
+
+    // INTERESTS
+    interests: {
+      type: [String],
+
+      default: [],
+    },
+
+    // ACTIVE PROJECTS
+    activeProjects: [
+      {
+        type:
+          mongoose.Schema.Types
+            .ObjectId,
+
+        ref: "Project",
+      },
+    ],
+
+    // TASKS ASSIGNED
+    assignedTasks: [
+      {
+        type:
+          mongoose.Schema.Types
+            .ObjectId,
+
+        ref: "Task",
+      },
+    ],
+
+    // COLLABORATION SCORE
     contributionScore: {
       type: Number,
+
       default: 0,
     },
 
+    // PRODUCTIVITY SCORE
+    productivityScore: {
+      type: Number,
+
+      default: 0,
+    },
+
+    // COMPLETED PROJECTS
     completedProjects: {
       type: Number,
+
       default: 0,
     },
 
+    // COMPLETED TASKS
+    completedTasks: {
+      type: Number,
+
+      default: 0,
+    },
+
+    // SESSIONS COMPLETED
     sessionsCompleted: {
       type: Number,
+
       default: 0,
     },
 
-    // Social Links
+    // GITHUB
     github: {
       type: String,
+
       default: "",
     },
 
+    // LINKEDIN
     linkedin: {
       type: String,
+
       default: "",
     },
 
+    // PORTFOLIO
     portfolio: {
       type: String,
+
       default: "",
     },
 
-    // Availability
+    // AVAILABILITY
     availability: {
       type: String,
+
       enum: [
         "Available",
         "Busy",
         "Offline",
       ],
-      default: "Available",
+
+      default:
+        "Available",
+    },
+
+    // ONLINE STATUS
+    isOnline: {
+      type: Boolean,
+
+      default: false,
     },
   },
+
   {
     timestamps: true,
   }
@@ -110,4 +199,7 @@ const userSchema = new mongoose.Schema(
 
 module.exports =
   mongoose.models.User ||
-  mongoose.model("User", userSchema);
+  mongoose.model(
+    "User",
+    userSchema
+  );
