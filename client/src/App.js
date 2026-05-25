@@ -15,7 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import Ideas from "./pages/Ideas";
 import Tasks from "./pages/Tasks";
 import PostIdea from "./pages/PostIdea";
-import Projects from "./pages/Projects";
+import ProjectWorkspace from "./pages/ProjectWorkspace";
 import Chat from "./pages/Chat";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
@@ -90,7 +90,7 @@ function App() {
           path="/projects"
           element={
             <PrivateRoute>
-              <Projects />
+              <ProjectWorkspace />
             </PrivateRoute>
           }
         />
