@@ -6,8 +6,12 @@ import {
 } from "react-router-dom";
 
 function Sidebar() {
-  const location = useLocation();
+  const location =
+    useLocation();
 
+  //
+  // MENU ITEMS
+  //
   const menuItems = [
     {
       name: "Dashboard",
@@ -37,6 +41,13 @@ function Sidebar() {
       name: "Tasks",
       path: "/tasks",
       icon: "✅",
+    },
+
+    {
+      name: "Requests",
+      path:
+        "/collaboration-requests",
+      icon: "📨",
     },
 
     {
@@ -84,9 +95,11 @@ function Sidebar() {
 
         boxShadow:
           "8px 0 40px rgba(168,85,247,0.15)",
+
+        overflowY: "auto",
       }}
     >
-      {/* Logo */}
+      {/* LOGO */}
       <div
         style={{
           marginBottom: "45px",
@@ -140,93 +153,114 @@ function Sidebar() {
         </p>
       </div>
 
-      {/* Navigation */}
+      {/* NAVIGATION */}
       <div
         style={{
           display: "flex",
 
-          flexDirection: "column",
+          flexDirection:
+            "column",
 
           gap: "16px",
         }}
       >
-        {menuItems.map((item) => {
-          const active =
-            location.pathname ===
-            item.path;
+        {menuItems.map(
+          (item) => {
+            const active =
+              location?.pathname ===
+              item?.path;
 
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              style={{
-                display: "flex",
-
-                alignItems: "center",
-
-                gap: "15px",
-
-                padding:
-                  "16px 20px",
-
-                borderRadius:
-                  "18px",
-
-                textDecoration:
-                  "none",
-
-                color: "white",
-
-                fontWeight: "600",
-
-                fontFamily:
-                  "'Cinzel', serif",
-
-                letterSpacing: "1px",
-
-                transition:
-                  "all 0.35s ease",
-
-                background: active
-                  ? "linear-gradient(to right, #9333EA, #EC4899)"
-                  : "rgba(255,255,255,0.05)",
-
-                border:
-                  active
-                    ? "1px solid rgba(236,72,153,0.35)"
-                    : "1px solid rgba(255,255,255,0.06)",
-
-                boxShadow: active
-                  ? "0 10px 30px rgba(236,72,153,0.28)"
-                  : "none",
-
-                transform: active
-                  ? "scale(1.04)"
-                  : "scale(1)",
-              }}
-            >
-              <span
+            return (
+              <Link
+                key={
+                  item?.path
+                }
+                to={
+                  item?.path
+                }
                 style={{
-                  fontSize: "21px",
+                  display:
+                    "flex",
+
+                  alignItems:
+                    "center",
+
+                  gap: "15px",
+
+                  padding:
+                    "16px 20px",
+
+                  borderRadius:
+                    "18px",
+
+                  textDecoration:
+                    "none",
+
+                  color:
+                    "white",
+
+                  fontWeight:
+                    "600",
+
+                  fontFamily:
+                    "'Cinzel', serif",
+
+                  letterSpacing:
+                    "1px",
+
+                  transition:
+                    "all 0.35s ease",
+
+                  background:
+                    active
+                      ? "linear-gradient(to right, #9333EA, #EC4899)"
+                      : "rgba(255,255,255,0.05)",
+
+                  border:
+                    active
+                      ? "1px solid rgba(236,72,153,0.35)"
+                      : "1px solid rgba(255,255,255,0.06)",
+
+                  boxShadow:
+                    active
+                      ? "0 10px 30px rgba(236,72,153,0.28)"
+                      : "none",
+
+                  transform:
+                    active
+                      ? "scale(1.04)"
+                      : "scale(1)",
                 }}
               >
-                {item.icon}
-              </span>
+                <span
+                  style={{
+                    fontSize:
+                      "21px",
+                  }}
+                >
+                  {
+                    item?.icon
+                  }
+                </span>
 
-              {item.name}
-            </Link>
-          );
-        })}
+                {
+                  item?.name
+                }
+              </Link>
+            );
+          }
+        )}
       </div>
 
-      {/* Bottom AI Card */}
+      {/* AI CARD */}
       <div
         style={{
           marginTop: "45px",
 
           padding: "24px",
 
-          borderRadius: "24px",
+          borderRadius:
+            "24px",
 
           background:
             "linear-gradient(to right, rgba(147,51,234,0.18), rgba(236,72,153,0.18))",
@@ -240,16 +274,20 @@ function Sidebar() {
       >
         <h3
           style={{
-            marginBottom: "14px",
+            marginBottom:
+              "14px",
 
-            fontSize: "22px",
+            fontSize:
+              "22px",
 
-            color: "#F9A8D4",
+            color:
+              "#F9A8D4",
 
             fontFamily:
               "'Cinzel', serif",
 
-            letterSpacing: "1px",
+            letterSpacing:
+              "1px",
           }}
         >
           🤖 JARVIS AI
@@ -266,7 +304,8 @@ function Sidebar() {
             fontFamily:
               "'Cinzel', serif",
 
-            letterSpacing: "0.5px",
+            letterSpacing:
+              "0.5px",
           }}
         >
           Your luxury AI-powered

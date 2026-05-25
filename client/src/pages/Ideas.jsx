@@ -22,7 +22,7 @@ function Ideas() {
       localStorage.getItem(
         "user"
       )
-    );
+    ) || {};
 
   //
   // STATES
@@ -57,7 +57,7 @@ function Ideas() {
         response.data.success
       ) {
         setIdeas(
-          response.data.ideas
+          response.data.ideas || []
         );
       }
     } catch (error) {
@@ -76,26 +76,17 @@ function Ideas() {
   const fetchSentRequests =
     async () => {
       try {
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
         const response =
           await API.get(
-            "/collaborations/sent",
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
+            "/collaborations/sent"
           );
 
         if (
           response.data.success
         ) {
           setSentRequests(
-            response.data.requests
+            response.data
+              .requests || []
           );
         }
       } catch (error) {
@@ -121,37 +112,41 @@ function Ideas() {
   const sendRequest =
     async (idea) => {
       try {
+        //
+        // SAFETY CHECK
+        //
+        if (
+          !idea?.createdBy?._id
+        ) {
+          alert(
+            "Idea owner not found"
+          );
+
+          return;
+        }
+
         setRequestLoading(
           idea._id
         );
-
-        const token =
-          localStorage.getItem(
-            "token"
-          );
 
         await API.post(
           "/collaborations/send",
           {
             receiver:
-              idea.createdBy._id,
+              idea?.createdBy
+                ?._id,
 
             ideaId:
-              idea._id,
+              idea?._id,
 
             title:
-              idea.title,
+              idea?.title,
 
             requestType:
               "Idea Collaboration",
 
             message:
               "I'd like to collaborate on this project.",
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
           }
         );
 
@@ -179,11 +174,6 @@ function Ideas() {
   const deleteIdea =
     async (ideaId) => {
       try {
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
         const confirmDelete =
           window.confirm(
             "Delete this idea?"
@@ -195,12 +185,7 @@ function Ideas() {
           return;
 
         await API.delete(
-          `/ideas/${ideaId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          `/ideas/${ideaId}`
         );
 
         fetchIdeas();
@@ -226,9 +211,9 @@ function Ideas() {
     (ideaId) => {
       return sentRequests.some(
         (request) =>
-          request.idea?._id ===
+          request?.idea?._id ===
             ideaId &&
-          request.status ===
+          request?.status ===
             "Pending"
       );
     };
@@ -499,7 +484,7 @@ function Ideas() {
             >
               {ideas.map((idea) => (
                 <div
-                  key={idea._id}
+                  key={idea?._id}
                   className="glass-card"
                   style={{
                     padding: "34px",
@@ -554,7 +539,7 @@ function Ideas() {
                       zIndex: 2,
                     }}
                   >
-                    {idea.title}
+                    {idea?.title}
                   </h2>
 
                   {/* DESCRIPTION */}
@@ -576,7 +561,9 @@ function Ideas() {
                       zIndex: 2,
                     }}
                   >
-                    {idea.description}
+                    {
+                      idea?.description
+                    }
                   </p>
 
                   {/* TECH STACK */}
@@ -598,38 +585,37 @@ function Ideas() {
                       zIndex: 2,
                     }}
                   >
-                    {idea.techStack &&
-                      idea.techStack.map(
-                        (
-                          tech,
-                          index
-                        ) => (
-                          <span
-                            key={index}
-                            style={{
-                              padding:
-                                "10px 16px",
+                    {idea?.techStack?.map(
+                      (
+                        tech,
+                        index
+                      ) => (
+                        <span
+                          key={index}
+                          style={{
+                            padding:
+                              "10px 16px",
 
-                              borderRadius:
-                                "24px",
+                            borderRadius:
+                              "24px",
 
-                              background:
-                                "rgba(79,70,229,0.16)",
+                            background:
+                              "rgba(79,70,229,0.16)",
 
-                              border:
-                                "1px solid rgba(255,255,255,0.06)",
+                            border:
+                              "1px solid rgba(255,255,255,0.06)",
 
-                              color:
-                                "white",
+                            color:
+                              "white",
 
-                              fontSize:
-                                "13px",
-                            }}
-                          >
-                            {tech}
-                          </span>
-                        )
-                      )}
+                            fontSize:
+                              "13px",
+                          }}
+                        >
+                          {tech}
+                        </span>
+                      )
+                    )}
                   </div>
 
                   {/* FOOTER */}
@@ -679,7 +665,7 @@ function Ideas() {
                           }}
                         >
                           {idea
-                            .createdBy
+                            ?.createdBy
                             ?.name ||
                             "Anonymous"}
                         </span>
@@ -696,12 +682,12 @@ function Ideas() {
                       >
                         Status:{" "}
                         {
-                          idea.status
+                          idea?.status
                         }
                       </p>
                     </div>
 
-                    {/* ACTION BUTTONS */}
+                    {/* ACTIONS */}
                     <div
                       style={{
                         display: "flex",
@@ -713,7 +699,7 @@ function Ideas() {
                       }}
                     >
                       {/* OPEN WORKSPACE */}
-                      {idea.linkedProject && (
+                      {idea?.linkedProject && (
                         <button
                           onClick={() =>
                             navigate(
@@ -754,9 +740,14 @@ function Ideas() {
                       )}
 
                       {/* OWNER CONTROLS */}
-                      {idea.createdBy
+                      {idea
+                        ?.createdBy
+                        ?._id &&
+                      idea
+                        ?.createdBy
                         ?._id ===
-                      currentUser?.userId ? (
+                        (currentUser?.userId ||
+                          currentUser?._id) ? (
                         <button
                           onClick={() =>
                             deleteIdea(
@@ -795,7 +786,7 @@ function Ideas() {
                           Delete Idea
                         </button>
                       ) : hasRequested(
-                          idea._id
+                          idea?._id
                         ) ? (
                         <button
                           style={{
@@ -829,7 +820,7 @@ function Ideas() {
                           }
                           disabled={
                             requestLoading ===
-                            idea._id
+                            idea?._id
                           }
                           style={{
                             padding:
@@ -861,7 +852,7 @@ function Ideas() {
                           }}
                         >
                           {requestLoading ===
-                          idea._id
+                          idea?._id
                             ? "Sending..."
                             : "Collaborate"}
                         </button>

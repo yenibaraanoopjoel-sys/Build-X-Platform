@@ -3,8 +3,6 @@ import {
   useState,
 } from "react";
 
-import axios from "axios";
-
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import Loader from "../components/Loader";
@@ -12,7 +10,9 @@ import Loader from "../components/Loader";
 import API from "../services/api";
 
 function ProjectWorkspace() {
+  //
   // STATES
+  //
   const [projects, setProjects] =
     useState([]);
 
@@ -22,41 +22,26 @@ function ProjectWorkspace() {
   const [loading, setLoading] =
     useState(true);
 
-  const [meetingNotes, setMeetingNotes] =
-    useState("");
-
-  const [summary, setSummary] =
-    useState("");
-
-  const [aiLoading, setAiLoading] =
-    useState(false);
-
+  //
   // FETCH PROJECTS
+  //
   const fetchProjects =
     async () => {
       try {
         setLoading(true);
 
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
         const response =
           await API.get(
-            "/projects",
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
+            "/projects"
           );
 
         if (
-          response.data.success
+          response?.data
+            ?.success
         ) {
           setProjects(
-            response.data.projects
+            response?.data
+              ?.projects || []
           );
         } else {
           setProjects([]);
@@ -74,31 +59,27 @@ function ProjectWorkspace() {
       }
     };
 
+  //
   // FETCH TASKS
+  //
   const fetchTasks =
     async () => {
       try {
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
         const response =
           await API.get(
-            "/tasks",
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
+            "/tasks"
           );
 
         if (
-          response.data.success
+          response?.data
+            ?.success
         ) {
           setTasks(
-            response.data.tasks
+            response?.data
+              ?.tasks || []
           );
+        } else {
+          setTasks([]);
         }
       } catch (error) {
         console.log(
@@ -111,84 +92,45 @@ function ProjectWorkspace() {
       }
     };
 
+  //
+  // INITIAL LOAD
+  //
   useEffect(() => {
     fetchProjects();
+
     fetchTasks();
   }, []);
 
-  // AI SUMMARY
-  const generateSummary =
-    async () => {
-      if (!meetingNotes) {
-        alert(
-          "Enter meeting notes first"
-        );
-
-        return;
-      }
-
-      try {
-        setAiLoading(true);
-
-        const response =
-          await axios.post(
-            "https://build-x-platform.onrender.com/api/ai",
-            {
-              message: `
-Create a professional meeting summary from these notes.
-
-Meeting Notes:
-${meetingNotes}
-
-Provide:
-1. Summary
-2. Key Decisions
-3. Action Items
-4. Next Steps
-`,
-            }
-          );
-
-        setSummary(
-          response.data.reply
-        );
-      } catch (error) {
-        console.log(error);
-
-        alert(
-          "AI Summary failed"
-        );
-      } finally {
-        setAiLoading(false);
-      }
-    };
-
+  //
   // CALCULATIONS
+  //
   const totalProjects =
-    projects.length;
+    projects?.length || 0;
 
   const totalTasks =
-    tasks.length;
+    tasks?.length || 0;
 
   const completedProjects =
-    projects.filter(
+    projects?.filter(
       (project) =>
-        project.status ===
+        project?.status ===
         "Completed"
-    ).length;
+    )?.length || 0;
 
   const contributors =
     new Set(
-      projects.flatMap(
+      projects?.flatMap(
         (project) =>
-          project.members?.map(
+          project?.members?.map(
             (member) =>
-              member._id
+              member?._id
           ) || []
       )
     ).size;
 
-  // LOADER
+  //
+  // LOADING
+  //
   if (loading) {
     return <Loader />;
   }
@@ -208,7 +150,7 @@ Provide:
         position: "relative",
       }}
     >
-      {/* Glow */}
+      {/* GLOW */}
       <div
         style={{
           position: "absolute",
@@ -287,7 +229,6 @@ Provide:
               overflow: "hidden",
             }}
           >
-            {/* Glow */}
             <div
               style={{
                 position: "absolute",
@@ -341,7 +282,6 @@ Provide:
                 }}
               >
                 Manage projects,
-                AI-powered meetings,
                 collaboration systems,
                 productivity workflows,
                 and futuristic teamwork
@@ -350,7 +290,7 @@ Provide:
             </div>
           </div>
 
-          {/* PROJECTS SECTION */}
+          {/* PROJECTS */}
           <div
             className="glass-card"
             style={{
@@ -359,31 +299,18 @@ Provide:
               marginBottom: "42px",
             }}
           >
-            <div
+            <h2
+              className="section-title"
               style={{
-                display: "flex",
-
-                justifyContent:
-                  "space-between",
-
-                alignItems:
-                  "center",
+                fontSize: "42px",
 
                 marginBottom: "28px",
               }}
             >
-              <h2
-                className="section-title"
-                style={{
-                  fontSize: "42px",
-                }}
-              >
-                Your Projects
-              </h2>
-            </div>
+              Your Projects
+            </h2>
 
-            {/* EMPTY STATE */}
-            {projects.length ===
+            {projects?.length ===
             0 ? (
               <div
                 style={{
@@ -456,13 +383,16 @@ Provide:
                   gap: "24px",
                 }}
               >
-                {projects.map(
+                {projects?.map(
                   (
                     project,
                     index
                   ) => (
                     <div
-                      key={index}
+                      key={
+                        project?._id ||
+                        index
+                      }
                       className="glass-card"
                       style={{
                         padding:
@@ -481,9 +411,8 @@ Provide:
                             "14px",
                         }}
                       >
-                        {
-                          project.title
-                        }
+                        {project?.title ||
+                          "Untitled Project"}
                       </h2>
 
                       <p
@@ -498,7 +427,7 @@ Provide:
                             "20px",
                         }}
                       >
-                        {project.description ||
+                        {project?.description ||
                           "No description"}
                       </p>
 
@@ -525,9 +454,8 @@ Provide:
                           }}
                         >
                           📅{" "}
-                          {
-                            project.status
-                          }
+                          {project?.status ||
+                            "Pending"}
                         </span>
 
                         <span
@@ -536,15 +464,13 @@ Provide:
                               "#34D399",
                           }}
                         >
-                          {
-                            project
-                              .completionPercentage
-                          }
+                          {project?.completionPercentage ||
+                            0}
                           % Complete
                         </span>
                       </div>
 
-                      {/* PROGRESS BAR */}
+                      {/* PROGRESS */}
                       <div
                         style={{
                           width: "100%",
@@ -563,7 +489,10 @@ Provide:
                       >
                         <div
                           style={{
-                            width: `${project.completionPercentage}%`,
+                            width: `${
+                              project?.completionPercentage ||
+                              0
+                            }%`,
 
                             height:
                               "100%",
@@ -595,17 +524,15 @@ Provide:
                       >
                         <div>
                           Total Tasks:{" "}
-                          {
-                            project.totalTasks
-                          }
+                          {project?.totalTasks ||
+                            0}
                         </div>
 
                         <div>
                           Completed
                           Tasks:{" "}
-                          {
-                            project.completedTasks
-                          }
+                          {project?.completedTasks ||
+                            0}
                         </div>
                       </div>
                     </div>
@@ -615,147 +542,7 @@ Provide:
             )}
           </div>
 
-          {/* AI SUMMARY */}
-          <div
-            className="glass-card"
-            style={{
-              padding: "36px",
-
-              marginBottom: "42px",
-            }}
-          >
-            <h2
-              className="section-title"
-              style={{
-                fontSize: "42px",
-
-                marginBottom: "26px",
-              }}
-            >
-              AI Meeting Summary
-            </h2>
-
-            <textarea
-              placeholder="Paste meeting notes here..."
-              value={meetingNotes}
-              onChange={(e) =>
-                setMeetingNotes(
-                  e.target.value
-                )
-              }
-              rows="7"
-              style={{
-                width: "100%",
-
-                padding: "22px",
-
-                borderRadius:
-                  "18px",
-
-                resize: "none",
-
-                background:
-                  "rgba(255,255,255,0.04)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                color: "white",
-
-                lineHeight: "1.9",
-
-                marginBottom: "24px",
-
-                fontSize: "15px",
-
-                backdropFilter:
-                  "blur(10px)",
-              }}
-            />
-
-            <button
-              onClick={
-                generateSummary
-              }
-              disabled={aiLoading}
-              style={{
-                padding:
-                  "16px 30px",
-
-                borderRadius:
-                  "16px",
-
-                border: "none",
-
-                background:
-                  "linear-gradient(135deg, #2563EB, #7C3AED)",
-
-                color:
-                  "white",
-
-                fontWeight:
-                  "600",
-
-                fontSize:
-                  "15px",
-
-                cursor:
-                  "pointer",
-
-                marginBottom:
-                  "24px",
-
-                boxShadow:
-                  "0 0 24px rgba(124,58,237,0.24)",
-              }}
-            >
-              {aiLoading
-                ? "Generating..."
-                : "Generate Summary"}
-            </button>
-
-            {/* OUTPUT */}
-            {summary && (
-              <div
-                style={{
-                  background:
-                    "rgba(255,255,255,0.04)",
-
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  borderRadius:
-                    "22px",
-
-                  padding: "28px",
-
-                  lineHeight: "2",
-
-                  whiteSpace:
-                    "pre-wrap",
-
-                  color: "#CBD5E1",
-                }}
-              >
-                <h3
-                  style={{
-                    marginBottom:
-                      "18px",
-
-                    fontSize: "30px",
-
-                    color: "white",
-                  }}
-                >
-                  AI Meeting Report
-                </h3>
-
-                {summary}
-              </div>
-            )}
-          </div>
-
-          {/* REAL STATS */}
+          {/* STATS */}
           <div
             style={{
               display: "grid",

@@ -10,6 +10,9 @@ import Loader from "../components/Loader";
 import API from "../services/api";
 
 function Tasks() {
+  //
+  // STATES
+  //
   const [tasks, setTasks] =
     useState([]);
 
@@ -22,28 +25,23 @@ function Tasks() {
   const [aiLoading, setAiLoading] =
     useState(false);
 
+  //
   // FETCH TASKS
+  //
   const fetchTasks = async () => {
     try {
       setLoading(true);
 
-      const token =
-        localStorage.getItem(
-          "token"
-        );
-
       const response =
-        await API.get("/tasks", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        await API.get("/tasks");
 
       if (
-        response.data.success
+        response?.data
+          ?.success
       ) {
         setTasks(
-          response.data.tasks
+          response?.data
+            ?.tasks || []
         );
       } else {
         setTasks([]);
@@ -61,11 +59,16 @@ function Tasks() {
     }
   };
 
+  //
+  // INITIAL LOAD
+  //
   useEffect(() => {
     fetchTasks();
   }, []);
 
+  //
   // UPDATE TASK STATUS
+  //
   const updateTaskStatus =
     async (
       taskId,
@@ -73,21 +76,11 @@ function Tasks() {
       progress
     ) => {
       try {
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
         await API.put(
           `/tasks/${taskId}`,
           {
             status,
             progress,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
           }
         );
 
@@ -101,22 +94,14 @@ function Tasks() {
       }
     };
 
+  //
   // DELETE TASK
+  //
   const deleteTask =
     async (taskId) => {
       try {
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
         await API.delete(
-          `/tasks/${taskId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          `/tasks/${taskId}`
         );
 
         fetchTasks();
@@ -129,7 +114,9 @@ function Tasks() {
       }
     };
 
-  // AI GENERATOR
+  //
+  // AI TASK GENERATOR
+  //
   const generateTasks =
     async () => {
       if (!projectIdea) {
@@ -171,9 +158,12 @@ Keep it beginner-friendly and structured.
             "AI Generated Task Plan",
 
           description:
-            response.data.reply,
+            response?.data
+              ?.reply ||
+            "No AI response generated",
 
-          status: "Pending",
+          status:
+            "Pending",
 
           progress: 0,
         };
@@ -193,29 +183,33 @@ Keep it beginner-friendly and structured.
       }
     };
 
+  //
   // COUNTS
+  //
   const completedTasks =
-    tasks.filter(
+    tasks?.filter(
       (task) =>
-        task.status ===
+        task?.status ===
         "Completed"
-    ).length;
+    )?.length || 0;
 
   const pendingTasks =
-    tasks.filter(
+    tasks?.filter(
       (task) =>
-        task.status ===
+        task?.status ===
         "Pending"
-    ).length;
+    )?.length || 0;
 
   const inProgressTasks =
-    tasks.filter(
+    tasks?.filter(
       (task) =>
-        task.status ===
+        task?.status ===
         "In Progress"
-    ).length;
+    )?.length || 0;
 
+  //
   // LOADING
+  //
   if (loading) {
     return <Loader />;
   }
@@ -314,7 +308,6 @@ Keep it beginner-friendly and structured.
               overflow: "hidden",
             }}
           >
-            {/* Glow */}
             <div
               style={{
                 position: "absolute",
@@ -395,32 +388,41 @@ Keep it beginner-friendly and structured.
               {
                 title:
                   "Total Tasks",
+
                 value:
-                  tasks.length,
+                  tasks?.length ||
+                  0,
+
                 icon: "📌",
               },
 
               {
                 title:
                   "Completed",
+
                 value:
                   completedTasks,
+
                 icon: "✅",
               },
 
               {
                 title:
                   "Pending",
+
                 value:
                   pendingTasks,
+
                 icon: "⏳",
               },
 
               {
                 title:
                   "In Progress",
+
                 value:
                   inProgressTasks,
+
                 icon: "🚀",
               },
             ].map((item, index) => (
@@ -483,7 +485,8 @@ Keep it beginner-friendly and structured.
                 >
                   <h2
                     style={{
-                      fontSize: "26px",
+                      fontSize:
+                        "26px",
                     }}
                   >
                     {item.title}
@@ -501,7 +504,8 @@ Keep it beginner-friendly and structured.
 
                 <h1
                   style={{
-                    fontSize: "48px",
+                    fontSize:
+                      "48px",
 
                     position:
                       "relative",
@@ -613,7 +617,7 @@ Keep it beginner-friendly and structured.
           </div>
 
           {/* EMPTY */}
-          {tasks.length === 0 ? (
+          {tasks?.length === 0 ? (
             <div
               className="glass-card"
               style={{
@@ -661,25 +665,30 @@ Keep it beginner-friendly and structured.
                 gap: "26px",
               }}
             >
-              {tasks.map((task) => (
-                <div
-                  key={task._id}
-                  className="glass-card"
-                  style={{
-                    padding: "24px",
-                  }}
-                >
-                  <TaskCard
-                    task={task}
-                    updateTaskStatus={
-                      updateTaskStatus
+              {tasks?.map(
+                (task) => (
+                  <div
+                    key={
+                      task?._id
                     }
-                    deleteTask={
-                      deleteTask
-                    }
-                  />
-                </div>
-              ))}
+                    className="glass-card"
+                    style={{
+                      padding:
+                        "24px",
+                    }}
+                  >
+                    <TaskCard
+                      task={task}
+                      updateTaskStatus={
+                        updateTaskStatus
+                      }
+                      deleteTask={
+                        deleteTask
+                      }
+                    />
+                  </div>
+                )
+              )}
             </div>
           )}
         </div>

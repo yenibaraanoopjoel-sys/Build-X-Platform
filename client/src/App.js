@@ -5,7 +5,9 @@ import {
   Navigate,
 } from "react-router-dom";
 
-// Pages
+//
+// PAGES
+//
 import Welcome from "./pages/Welcome";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -13,31 +15,36 @@ import Dashboard from "./pages/Dashboard";
 import Ideas from "./pages/Ideas";
 import Tasks from "./pages/Tasks";
 import PostIdea from "./pages/PostIdea";
-import ProjectWorkspace from "./pages/ProjectWorkspace";
+import Projects from "./pages/Projects";
 import Chat from "./pages/Chat";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import SkillSwap from "./pages/SkillSwap";
 import VideoCall from "./pages/VideoCall";
+import CollaborationRequests from "./pages/CollaborationRequests";
 import NotFound from "./pages/NotFound";
 
-// Components
+//
+// COMPONENTS
+//
 import Jarvis from "./components/Jarvis";
 
-// Protected Route
+//
+// PROTECTED ROUTE
+//
 import { PrivateRoute } from "./routes";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Welcome Page */}
+        {/* WELCOME */}
         <Route
           path="/"
           element={<Welcome />}
         />
 
-        {/* Public Routes */}
+        {/* PUBLIC ROUTES */}
         <Route
           path="/login"
           element={<Login />}
@@ -48,7 +55,7 @@ function App() {
           element={<Register />}
         />
 
-        {/* Protected Routes */}
+        {/* DASHBOARD */}
         <Route
           path="/dashboard"
           element={
@@ -58,6 +65,7 @@ function App() {
           }
         />
 
+        {/* IDEAS */}
         <Route
           path="/ideas"
           element={
@@ -67,15 +75,7 @@ function App() {
           }
         />
 
-        <Route
-          path="/tasks"
-          element={
-            <PrivateRoute>
-              <Tasks />
-            </PrivateRoute>
-          }
-        />
-
+        {/* POST IDEA */}
         <Route
           path="/post-idea"
           element={
@@ -85,15 +85,27 @@ function App() {
           }
         />
 
+        {/* PROJECTS */}
         <Route
           path="/projects"
           element={
             <PrivateRoute>
-              <ProjectWorkspace />
+              <Projects />
             </PrivateRoute>
           }
         />
 
+        {/* TASKS */}
+        <Route
+          path="/tasks"
+          element={
+            <PrivateRoute>
+              <Tasks />
+            </PrivateRoute>
+          }
+        />
+
+        {/* CHAT */}
         <Route
           path="/chat"
           element={
@@ -103,7 +115,7 @@ function App() {
           }
         />
 
-        {/* Skill Swap Route */}
+        {/* SKILL SWAP */}
         <Route
           path="/skill-swap"
           element={
@@ -113,7 +125,7 @@ function App() {
           }
         />
 
-        {/* Video Meeting Route */}
+        {/* VIDEO CALL */}
         <Route
           path="/meeting/:roomId"
           element={
@@ -123,6 +135,17 @@ function App() {
           }
         />
 
+        {/* REQUESTS */}
+        <Route
+          path="/collaboration-requests"
+          element={
+            <PrivateRoute>
+              <CollaborationRequests />
+            </PrivateRoute>
+          }
+        />
+
+        {/* PROFILE */}
         <Route
           path="/profile"
           element={
@@ -132,6 +155,7 @@ function App() {
           }
         />
 
+        {/* SETTINGS */}
         <Route
           path="/settings"
           element={
@@ -141,7 +165,7 @@ function App() {
           }
         />
 
-        {/* Redirect Old Route */}
+        {/* REDIRECT */}
         <Route
           path="/home"
           element={
@@ -149,14 +173,14 @@ function App() {
           }
         />
 
-        {/* 404 Page */}
+        {/* 404 */}
         <Route
           path="*"
           element={<NotFound />}
         />
       </Routes>
 
-      {/* Global JARVIS AI */}
+      {/* GLOBAL AI */}
       <Jarvis />
     </BrowserRouter>
   );
