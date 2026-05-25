@@ -7,6 +7,9 @@ import Loader from "../components/Loader";
 import API from "../services/api";
 
 function CollaborationRequests() {
+  //
+  // STATES
+  //
   const [requests, setRequests] =
     useState([]);
 
@@ -50,6 +53,9 @@ function CollaborationRequests() {
       }
     };
 
+  //
+  // INITIAL FETCH
+  //
   useEffect(() => {
     fetchRequests();
   }, []);
@@ -76,8 +82,16 @@ function CollaborationRequests() {
         );
 
         fetchRequests();
+
+        alert(
+          "Request accepted successfully 🚀"
+        );
       } catch (error) {
         console.log(error);
+
+        alert(
+          "Failed to accept request"
+        );
       }
     };
 
@@ -103,8 +117,16 @@ function CollaborationRequests() {
         );
 
         fetchRequests();
+
+        alert(
+          "Request rejected"
+        );
       } catch (error) {
         console.log(error);
+
+        alert(
+          "Failed to reject request"
+        );
       }
     };
 
@@ -130,7 +152,7 @@ function CollaborationRequests() {
         position: "relative",
       }}
     >
-      {/* Glow */}
+      {/* GLOW */}
       <div
         style={{
           position: "absolute",
@@ -173,6 +195,7 @@ function CollaborationRequests() {
         }}
       />
 
+      {/* NAVBAR */}
       <Navbar />
 
       <div
@@ -184,6 +207,7 @@ function CollaborationRequests() {
           zIndex: 2,
         }}
       >
+        {/* SIDEBAR */}
         <Sidebar />
 
         {/* MAIN */}
@@ -201,33 +225,67 @@ function CollaborationRequests() {
               padding: "48px",
 
               marginBottom: "42px",
+
+              position: "relative",
+
+              overflow: "hidden",
             }}
           >
-            <h1
-              className="welcome-title"
+            <div
               style={{
-                fontSize: "52px",
+                position: "absolute",
 
-                marginBottom: "18px",
+                width: "240px",
+
+                height: "240px",
+
+                background:
+                  "rgba(91,95,255,0.10)",
+
+                borderRadius: "50%",
+
+                filter: "blur(90px)",
+
+                top: "-70px",
+
+                right: "-40px",
+              }}
+            />
+
+            <div
+              style={{
+                position: "relative",
+
+                zIndex: 2,
               }}
             >
-              COLLABORATION REQUESTS
-            </h1>
+              <h1
+                className="welcome-title"
+                style={{
+                  fontSize: "52px",
 
-            <p
-              style={{
-                color: "#CBD5E1",
+                  marginBottom: "18px",
+                }}
+              >
+                REQUEST CENTER
+              </h1>
 
-                fontSize: "18px",
+              <p
+                style={{
+                  color: "#CBD5E1",
 
-                lineHeight: "2",
-              }}
-            >
-              Manage incoming team
-              collaboration requests
-              and build futuristic
-              projects together.
-            </p>
+                  fontSize: "18px",
+
+                  lineHeight: "2",
+                }}
+              >
+                Manage collaboration,
+                project, and skill
+                swap requests inside
+                your futuristic AI
+                workspace.
+              </p>
+            </div>
           </div>
 
           {/* EMPTY */}
@@ -294,7 +352,7 @@ function CollaborationRequests() {
                         "hidden",
                     }}
                   >
-                    {/* Glow */}
+                    {/* CARD GLOW */}
                     <div
                       style={{
                         position:
@@ -330,13 +388,14 @@ function CollaborationRequests() {
                         zIndex: 2,
                       }}
                     >
+                      {/* NAME */}
                       <h2
                         style={{
                           fontSize:
                             "34px",
 
                           marginBottom:
-                            "18px",
+                            "12px",
                         }}
                       >
                         {
@@ -346,18 +405,34 @@ function CollaborationRequests() {
                         }
                       </h2>
 
+                      {/* EMAIL */}
                       <p
                         style={{
                           color:
                             "#CBD5E1",
 
-                          lineHeight:
-                            "1.9",
-
                           marginBottom:
-                            "12px",
+                            "10px",
                         }}
                       >
+                        {
+                          request
+                            .sender
+                            ?.email
+                        }
+                      </p>
+
+                      {/* ROLE */}
+                      <p
+                        style={{
+                          color:
+                            "#A5B4FC",
+
+                          marginBottom:
+                            "16px",
+                        }}
+                      >
+                        Role:{" "}
                         {
                           request
                             .sender
@@ -365,25 +440,79 @@ function CollaborationRequests() {
                         }
                       </p>
 
+                      {/* REQUEST TYPE */}
+                      <div
+                        style={{
+                          marginBottom:
+                            "16px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            padding:
+                              "8px 14px",
+
+                            borderRadius:
+                              "20px",
+
+                            background:
+                              "rgba(99,102,241,0.16)",
+
+                            fontSize:
+                              "13px",
+
+                            border:
+                              "1px solid rgba(255,255,255,0.08)",
+                          }}
+                        >
+                          {request.requestType ||
+                            "Idea Collaboration"}
+                        </span>
+                      </div>
+
+                      {/* IDEA TITLE */}
                       <p
                         style={{
                           color:
-                            "#A5B4FC",
+                            "#F9A8D4",
 
                           marginBottom:
                             "20px",
+
+                          fontSize:
+                            "16px",
                         }}
                       >
-                        Wants to
-                        collaborate
-                        on:
+                        Request For:
                         {" "}
-                        {
-                          request
-                            .idea
-                            ?.title
-                        }
+                        {request
+                          .idea
+                          ?.title ||
+                          request.title ||
+                          "Untitled"}
                       </p>
+
+                      {/* MESSAGE */}
+                      {request.message && (
+                        <p
+                          style={{
+                            color:
+                              "#CBD5E1",
+
+                            lineHeight:
+                              "1.9",
+
+                            marginBottom:
+                              "22px",
+                          }}
+                        >
+                          "
+                          {
+                            request.message
+                          }
+                          "
+                        </p>
+                      )}
 
                       {/* SKILLS */}
                       <div
@@ -447,6 +576,9 @@ function CollaborationRequests() {
                                 "Rejected"
                               ? "#F87171"
                               : "#FBBF24",
+
+                          fontWeight:
+                            "600",
                         }}
                       >
                         Status:{" "}
@@ -496,6 +628,9 @@ function CollaborationRequests() {
 
                               fontWeight:
                                 "600",
+
+                              boxShadow:
+                                "0 0 18px rgba(16,185,129,0.25)",
                             }}
                           >
                             Accept
@@ -528,6 +663,9 @@ function CollaborationRequests() {
 
                               fontWeight:
                                 "600",
+
+                              boxShadow:
+                                "0 0 18px rgba(239,68,68,0.25)",
                             }}
                           >
                             Reject

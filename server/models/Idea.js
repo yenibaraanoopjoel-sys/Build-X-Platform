@@ -2,26 +2,42 @@ const mongoose = require("mongoose");
 
 const ideaSchema = new mongoose.Schema(
   {
-    // Idea Title
+    //
+    // IDEA TITLE
+    //
     title: {
       type: String,
+
       required: true,
+
+      trim: true,
     },
 
-    // Idea Description
+    //
+    // IDEA DESCRIPTION
+    //
     description: {
       type: String,
+
       required: true,
+
+      trim: true,
     },
 
-    // Tech Stack
+    //
+    // TECH STACK
+    //
     techStack: [
       {
         type: String,
+
+        trim: true,
       },
     ],
 
-    // Idea Category
+    //
+    // IDEA CATEGORY
+    //
     category: {
       type: String,
 
@@ -40,41 +56,59 @@ const ideaSchema = new mongoose.Schema(
       default: "Other",
     },
 
-    // Idea Creator
+    //
+    // IDEA CREATOR
+    //
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
+      type:
+        mongoose.Schema.Types
+          .ObjectId,
 
       ref: "User",
 
       required: true,
     },
 
-    // Collaborators
+    //
+    // COLLABORATORS
+    //
     collaborators: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type:
+          mongoose.Schema.Types
+            .ObjectId,
 
         ref: "User",
       },
     ],
 
-    // Linked Project
+    //
+    // LINKED PROJECT
+    //
     linkedProject: {
-      type: mongoose.Schema.Types.ObjectId,
+      type:
+        mongoose.Schema.Types
+          .ObjectId,
 
       ref: "Project",
     },
 
-    // Likes
+    //
+    // LIKES
+    //
     likes: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type:
+          mongoose.Schema.Types
+            .ObjectId,
 
         ref: "User",
       },
     ],
 
-    // Idea Status
+    //
+    // IDEA STATUS
+    //
     status: {
       type: String,
 
@@ -94,7 +128,8 @@ const ideaSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model(
-  "Idea",
-  ideaSchema
-);
+module.exports =
+  mongoose.model(
+    "Idea",
+    ideaSchema
+  );

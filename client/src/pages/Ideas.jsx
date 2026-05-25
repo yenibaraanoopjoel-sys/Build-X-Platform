@@ -14,17 +14,34 @@ import API from "../services/api";
 function Ideas() {
   const navigate = useNavigate();
 
+  //
+  // CURRENT USER
+  //
+  const currentUser =
+    JSON.parse(
+      localStorage.getItem(
+        "user"
+      )
+    );
+
+  //
+  // STATES
+  //
   const [ideas, setIdeas] =
     useState([]);
 
   const [loading, setLoading] =
     useState(true);
 
-  const [requestLoading, setRequestLoading] =
-    useState("");
+  const [
+    requestLoading,
+    setRequestLoading,
+  ] = useState("");
 
-  const [sentRequests, setSentRequests] =
-    useState([]);
+  const [
+    sentRequests,
+    setSentRequests,
+  ] = useState([]);
 
   //
   // FETCH IDEAS
@@ -89,13 +106,17 @@ function Ideas() {
       }
     };
 
+  //
+  // LOAD DATA
+  //
   useEffect(() => {
     fetchIdeas();
+
     fetchSentRequests();
   }, []);
 
   //
-  // SEND REQUEST
+  // SEND COLLAB REQUEST
   //
   const sendRequest =
     async (idea) => {
@@ -117,6 +138,12 @@ function Ideas() {
 
             ideaId:
               idea._id,
+
+            title:
+              idea.title,
+
+            requestType:
+              "Idea Collaboration",
 
             message:
               "I'd like to collaborate on this project.",
@@ -147,6 +174,52 @@ function Ideas() {
     };
 
   //
+  // DELETE IDEA
+  //
+  const deleteIdea =
+    async (ideaId) => {
+      try {
+        const token =
+          localStorage.getItem(
+            "token"
+          );
+
+        const confirmDelete =
+          window.confirm(
+            "Delete this idea?"
+          );
+
+        if (
+          !confirmDelete
+        )
+          return;
+
+        await API.delete(
+          `/ideas/${ideaId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        fetchIdeas();
+
+        alert(
+          "Idea deleted successfully 🚀"
+        );
+      } catch (error) {
+        console.log(error);
+
+        alert(
+          error.response?.data
+            ?.message ||
+            "Failed to delete idea"
+        );
+      }
+    };
+
+  //
   // CHECK REQUEST STATUS
   //
   const hasRequested =
@@ -161,7 +234,7 @@ function Ideas() {
     };
 
   //
-  // LOADING
+  // LOADING SCREEN
   //
   if (loading) {
     return <Loader />;
@@ -225,6 +298,7 @@ function Ideas() {
         }}
       />
 
+      {/* NAVBAR */}
       <Navbar />
 
       <div
@@ -236,6 +310,7 @@ function Ideas() {
           zIndex: 2,
         }}
       >
+        {/* SIDEBAR */}
         <Sidebar />
 
         {/* MAIN */}
@@ -364,6 +439,9 @@ function Ideas() {
 
                   whiteSpace:
                     "nowrap",
+
+                  textDecoration:
+                    "none",
                 }}
               >
                 Post New Idea
@@ -576,6 +654,7 @@ function Ideas() {
                       zIndex: 2,
                     }}
                   >
+                    {/* USER INFO */}
                     <div>
                       <p
                         style={{
@@ -622,6 +701,7 @@ function Ideas() {
                       </p>
                     </div>
 
+                    {/* ACTION BUTTONS */}
                     <div
                       style={{
                         display: "flex",
@@ -633,48 +713,90 @@ function Ideas() {
                       }}
                     >
                       {/* OPEN WORKSPACE */}
-                      <button
-                        onClick={() =>
-                          navigate(
-                            `/projects/${idea.linkedProject}`
-                          )
-                        }
-                        style={{
-                          padding:
-                            "13px 22px",
+                      {idea.linkedProject && (
+                        <button
+                          onClick={() =>
+                            navigate(
+                              `/projects/${idea.linkedProject}`
+                            )
+                          }
+                          style={{
+                            padding:
+                              "13px 22px",
 
-                          borderRadius:
-                            "16px",
+                            borderRadius:
+                              "16px",
 
-                          background:
-                            "linear-gradient(135deg, #2563EB, #7C3AED)",
+                            background:
+                              "linear-gradient(135deg, #2563EB, #7C3AED)",
 
-                          color:
-                            "white",
+                            color:
+                              "white",
 
-                          fontSize:
-                            "14px",
+                            fontSize:
+                              "14px",
 
-                          fontWeight:
-                            "600",
+                            fontWeight:
+                              "600",
 
-                          boxShadow:
-                            "0 0 22px rgba(124,58,237,0.24)",
+                            boxShadow:
+                              "0 0 22px rgba(124,58,237,0.24)",
 
-                          border:
-                            "none",
+                            border:
+                              "none",
 
-                          cursor:
-                            "pointer",
-                        }}
-                      >
-                        Open Workspace
-                      </button>
+                            cursor:
+                              "pointer",
+                          }}
+                        >
+                          Open Workspace
+                        </button>
+                      )}
 
-                      {/* COLLABORATE */}
-                      {hasRequested(
-                        idea._id
-                      ) ? (
+                      {/* OWNER CONTROLS */}
+                      {idea.createdBy
+                        ?._id ===
+                      currentUser?.userId ? (
+                        <button
+                          onClick={() =>
+                            deleteIdea(
+                              idea._id
+                            )
+                          }
+                          style={{
+                            padding:
+                              "13px 22px",
+
+                            borderRadius:
+                              "16px",
+
+                            background:
+                              "linear-gradient(135deg, #EF4444, #DC2626)",
+
+                            color:
+                              "white",
+
+                            fontSize:
+                              "14px",
+
+                            fontWeight:
+                              "600",
+
+                            border:
+                              "none",
+
+                            cursor:
+                              "pointer",
+
+                            boxShadow:
+                              "0 0 20px rgba(239,68,68,0.28)",
+                          }}
+                        >
+                          Delete Idea
+                        </button>
+                      ) : hasRequested(
+                          idea._id
+                        ) ? (
                         <button
                           style={{
                             padding:

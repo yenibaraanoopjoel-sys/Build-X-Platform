@@ -1,9 +1,12 @@
-const mongoose = require("mongoose");
+const mongoose =
+  require("mongoose");
 
 const collaborationRequestSchema =
   new mongoose.Schema(
     {
+      //
       // USER WHO SENT REQUEST
+      //
       sender: {
         type:
           mongoose.Schema.Types
@@ -14,7 +17,9 @@ const collaborationRequestSchema =
         required: true,
       },
 
+      //
       // USER WHO RECEIVES REQUEST
+      //
       receiver: {
         type:
           mongoose.Schema.Types
@@ -25,18 +30,20 @@ const collaborationRequestSchema =
         required: true,
       },
 
+      //
       // RELATED IDEA
+      //
       idea: {
         type:
           mongoose.Schema.Types
             .ObjectId,
 
         ref: "Idea",
-
-        required: true,
       },
 
+      //
       // RELATED PROJECT
+      //
       project: {
         type:
           mongoose.Schema.Types
@@ -45,14 +52,43 @@ const collaborationRequestSchema =
         ref: "Project",
       },
 
+      //
+      // TITLE
+      //
+      title: {
+        type: String,
+
+        default: "",
+      },
+
+      //
+      // REQUEST TYPE
+      //
+      requestType: {
+        type: String,
+
+        enum: [
+          "Idea Collaboration",
+          "Project Collaboration",
+          "Skill Swap",
+        ],
+
+        default:
+          "Idea Collaboration",
+      },
+
+      //
       // OPTIONAL MESSAGE
+      //
       message: {
         type: String,
 
         default: "",
       },
 
+      //
       // REQUEST STATUS
+      //
       status: {
         type: String,
 

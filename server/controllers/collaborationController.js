@@ -1,10 +1,18 @@
-const CollaborationRequest = require("../models/CollaborationRequest");
+const CollaborationRequest =
+  require(
+    "../models/CollaborationRequest"
+  );
 
-const Idea = require("../models/Idea");
+const Idea =
+  require("../models/Idea");
 
-const Project = require("../models/Project");
+const Project =
+  require("../models/Project");
 
-const Notification = require("../models/Notification");
+const Notification =
+  require(
+    "../models/Notification"
+  );
 
 //
 // SEND COLLABORATION REQUEST
@@ -18,9 +26,13 @@ exports.sendRequest = async (
       receiver,
       ideaId,
       message,
+      requestType,
+      title,
     } = req.body;
 
+    //
     // CHECK IDEA
+    //
     const idea =
       await Idea.findById(
         ideaId
@@ -37,7 +49,9 @@ exports.sendRequest = async (
         });
     }
 
+    //
     // PREVENT SELF REQUEST
+    //
     if (
       idea.createdBy.toString() ===
       req.user._id.toString()
@@ -52,7 +66,9 @@ exports.sendRequest = async (
         });
     }
 
+    //
     // CHECK EXISTING REQUEST
+    //
     const existingRequest =
       await CollaborationRequest.findOne(
         {
@@ -79,7 +95,9 @@ exports.sendRequest = async (
         });
     }
 
+    //
     // CREATE REQUEST
+    //
     const request =
       await CollaborationRequest.create(
         {
@@ -93,6 +111,14 @@ exports.sendRequest = async (
           project:
             idea.linkedProject,
 
+          title:
+            title ||
+            idea.title,
+
+          requestType:
+            requestType ||
+            "Idea Collaboration",
+
           message,
 
           status:
@@ -100,7 +126,9 @@ exports.sendRequest = async (
         }
       );
 
+    //
     // CREATE NOTIFICATION
+    //
     await Notification.create({
       receiver,
 
@@ -110,13 +138,15 @@ exports.sendRequest = async (
       type:
         "COLLAB_REQUEST",
 
-      message:
-        "You received a collaboration request.",
+      message: `${req.user.name} sent you a collaboration request.`,
 
       idea: ideaId,
 
       project:
         idea.linkedProject,
+
+      collaborationRequest:
+        request._id,
     });
 
     res.status(201).json({
@@ -131,13 +161,14 @@ exports.sendRequest = async (
     res.status(500).json({
       success: false,
 
-      error: error.message,
+      error:
+        error.message,
     });
   }
 };
 
 //
-// GET MY REQUESTS
+// GET RECEIVED REQUESTS
 //
 exports.getMyRequests =
   async (req, res) => {
@@ -206,58 +237,90 @@ exports.acceptRequest =
           });
       }
 
+      //
+      // ALREADY ACCEPTED
+      //
+      if (
+        request.status ===
+        "Accepted"
+      ) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+
+            message:
+              "Request already accepted",
+          });
+      }
+
+      //
       // UPDATE STATUS
+      //
       request.status =
         "Accepted";
 
       await request.save();
 
+      //
       // ADD USER TO IDEA
+      //
       const idea =
         await Idea.findById(
           request.idea
         );
 
-      if (
-        idea &&
-        !idea.collaborators?.includes(
-          request.sender
-        )
-      ) {
+      if (idea) {
+        const alreadyExists =
+          idea.collaborators.some(
+            (
+              collaborator
+            ) =>
+              collaborator.toString() ===
+              request.sender.toString()
+          );
+
         if (
-          !idea.collaborators
+          !alreadyExists
         ) {
-          idea.collaborators =
-            [];
+          idea.collaborators.push(
+            request.sender
+          );
+
+          await idea.save();
         }
-
-        idea.collaborators.push(
-          request.sender
-        );
-
-        await idea.save();
       }
 
+      //
       // ADD USER TO PROJECT
+      //
       const project =
         await Project.findById(
           request.project
         );
 
-      if (
-        project &&
-        !project.members.includes(
-          request.sender
-        )
-      ) {
-        project.members.push(
-          request.sender
-        );
+      if (project) {
+        const alreadyMember =
+          project.members.some(
+            (member) =>
+              member.toString() ===
+              request.sender.toString()
+          );
 
-        await project.save();
+        if (
+          !alreadyMember
+        ) {
+          project.members.push(
+            request.sender
+          );
+
+          await project.save();
+        }
       }
 
-      // NOTIFICATION
+      //
+      // CREATE NOTIFICATION
+      //
       await Notification.create({
         receiver:
           request.sender,
@@ -276,13 +339,16 @@ exports.acceptRequest =
 
         project:
           request.project,
+
+        collaborationRequest:
+          request._id,
       });
 
       res.json({
         success: true,
 
         message:
-          "Collaboration request accepted",
+          "Collaboration request accepted successfully",
 
         request,
       });
@@ -318,12 +384,17 @@ exports.rejectRequest =
           });
       }
 
+      //
+      // UPDATE STATUS
+      //
       request.status =
         "Rejected";
 
       await request.save();
 
-      // NOTIFICATION
+      //
+      // CREATE NOTIFICATION
+      //
       await Notification.create({
         receiver:
           request.sender,
@@ -342,6 +413,9 @@ exports.rejectRequest =
 
         project:
           request.project,
+
+        collaborationRequest:
+          request._id,
       });
 
       res.json({
@@ -383,6 +457,11 @@ exports.getSentRequests =
 
           .populate(
             "idea",
+            "title"
+          )
+
+          .populate(
+            "project",
             "title"
           )
 

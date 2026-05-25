@@ -1,9 +1,12 @@
-const mongoose = require("mongoose");
+const mongoose =
+  require("mongoose");
 
 const notificationSchema =
   new mongoose.Schema(
     {
+      //
       // RECEIVER
+      //
       receiver: {
         type:
           mongoose.Schema.Types
@@ -14,7 +17,9 @@ const notificationSchema =
         required: true,
       },
 
+      //
       // SENDER
+      //
       sender: {
         type:
           mongoose.Schema.Types
@@ -23,7 +28,9 @@ const notificationSchema =
         ref: "User",
       },
 
+      //
       // NOTIFICATION TYPE
+      //
       type: {
         type: String,
 
@@ -42,32 +49,20 @@ const notificationSchema =
           "GENERAL",
       },
 
+      //
       // MESSAGE
+      //
       message: {
         type: String,
 
         required: true,
+
+        trim: true,
       },
 
-      // RELATED PROJECT
-      project: {
-        type:
-          mongoose.Schema.Types
-            .ObjectId,
-
-        ref: "Project",
-      },
-
-      // RELATED TASK
-      task: {
-        type:
-          mongoose.Schema.Types
-            .ObjectId,
-
-        ref: "Task",
-      },
-
+      //
       // RELATED IDEA
+      //
       idea: {
         type:
           mongoose.Schema.Types
@@ -76,7 +71,43 @@ const notificationSchema =
         ref: "Idea",
       },
 
+      //
+      // RELATED PROJECT
+      //
+      project: {
+        type:
+          mongoose.Schema.Types
+            .ObjectId,
+
+        ref: "Project",
+      },
+
+      //
+      // RELATED TASK
+      //
+      task: {
+        type:
+          mongoose.Schema.Types
+            .ObjectId,
+
+        ref: "Task",
+      },
+
+      //
+      // RELATED COLLAB REQUEST
+      //
+      collaborationRequest: {
+        type:
+          mongoose.Schema.Types
+            .ObjectId,
+
+        ref:
+          "CollaborationRequest",
+      },
+
+      //
       // READ STATUS
+      //
       isRead: {
         type: Boolean,
 

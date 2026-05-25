@@ -169,7 +169,7 @@ function Navbar() {
     };
 
   //
-  // REALTIME SOCKET EFFECT
+  // SOCKET + NOTIFICATIONS
   //
   useEffect(() => {
     fetchUnreadCount();
@@ -186,10 +186,14 @@ function Navbar() {
     //
     // JOIN USER ROOM
     //
-    if (user?._id) {
+    if (
+      user?._id ||
+      user?.userId
+    ) {
       socket.emit(
         "join_user",
-        user._id
+        user._id ||
+          user.userId
       );
     }
 
@@ -209,6 +213,13 @@ function Navbar() {
         setUnreadCount(
           (prev) => prev + 1
         );
+
+        //
+        // REFRESH
+        //
+        fetchNotifications();
+
+        fetchUnreadCount();
       }
     );
 
@@ -333,8 +344,7 @@ function Navbar() {
           },
 
           {
-            name:
-              "Collaborations",
+            name: "Requests",
             path:
               "/collaboration-requests",
           },
@@ -396,7 +406,7 @@ function Navbar() {
           <button
             onClick={() =>
               setShowNotifications(
-                !showNotifications
+                (prev) => !prev
               )
             }
             style={{
