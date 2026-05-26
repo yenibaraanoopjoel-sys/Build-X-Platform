@@ -9,11 +9,18 @@ import Sidebar from "../components/Sidebar";
 import API from "../services/api";
 
 function Profile() {
-  // User State
+  //
+  // USER STATE
+  //
   const [user, setUser] =
     useState(null);
 
-  // Editable Fields
+  //
+  // EDITABLE FIELDS
+  //
+  const [role, setRole] =
+    useState("");
+
   const [bio, setBio] =
     useState("");
 
@@ -23,11 +30,15 @@ function Profile() {
   const [skillsWant, setSkillsWant] =
     useState("");
 
-  // Avatar
+  //
+  // AVATAR
+  //
   const [selectedAvatar] =
     useState("👨‍💻");
 
-  // Fetch Profile
+  //
+  // FETCH PROFILE
+  //
   useEffect(() => {
     const fetchProfile =
       async () => {
@@ -49,6 +60,11 @@ function Profile() {
 
           setUser(
             response.data
+          );
+
+          setRole(
+            response.data.role ||
+              ""
           );
 
           setBio(
@@ -80,7 +96,9 @@ function Profile() {
     fetchProfile();
   }, []);
 
-  // Save Profile
+  //
+  // SAVE PROFILE
+  //
   const saveProfile =
     async () => {
       try {
@@ -93,6 +111,8 @@ function Profile() {
           await API.put(
             "/user/update-profile",
             {
+              role,
+
               bio,
 
               skills:
@@ -100,14 +120,16 @@ function Profile() {
                   .split(",")
                   .map((s) =>
                     s.trim()
-                  ),
+                  )
+                  .filter(Boolean),
 
               skillsToLearn:
                 skillsWant
                   .split(",")
                   .map((s) =>
                     s.trim()
-                  ),
+                  )
+                  .filter(Boolean),
             },
             {
               headers: {
@@ -117,7 +139,7 @@ function Profile() {
           );
 
         alert(
-          "Profile Updated Successfully"
+          "Profile Updated Successfully 🚀"
         );
 
         setUser(
@@ -136,7 +158,9 @@ function Profile() {
       }
     };
 
-  // Loading
+  //
+  // LOADING
+  //
   if (!user) {
     return (
       <div
@@ -164,14 +188,17 @@ function Profile() {
     );
   }
 
-  // Dynamic User Data
+  //
+  // DYNAMIC USER
+  //
   const dynamicUser = {
     name:
       user.name ||
       "BuildX User",
 
     role:
-      "Full Stack Developer",
+      role ||
+      "No role added",
 
     email:
       user.email ||
@@ -206,16 +233,16 @@ function Profile() {
     tasksCompleted: 46,
   };
 
-  // Badges
-  const creatorBadges = [
-    "🚀 Startup Founder",
-
-    "⚡ Full Stack Developer",
-
-    "🤖 AI Innovator",
-
-    "🎨 UI Visionary",
-  ];
+  //
+  // DYNAMIC BADGES
+  //
+  const creatorBadges =
+    dynamicUser.skillsHave
+      .slice(0, 4)
+      .map(
+        (skill) =>
+          `⚡ ${skill}`
+      );
 
   return (
     <div
@@ -232,62 +259,20 @@ function Profile() {
         position: "relative",
       }}
     >
-      {/* Glow */}
-      <div
-        style={{
-          position: "absolute",
-
-          width: "500px",
-
-          height: "500px",
-
-          background:
-            "rgba(59,130,246,0.10)",
-
-          borderRadius: "50%",
-
-          filter: "blur(140px)",
-
-          top: "-180px",
-
-          left: "-120px",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-
-          width: "450px",
-
-          height: "450px",
-
-          background:
-            "rgba(124,58,237,0.12)",
-
-          borderRadius: "50%",
-
-          filter: "blur(130px)",
-
-          bottom: "-150px",
-
-          right: "-100px",
-        }}
-      />
-
-      {/* Navbar */}
+      {/* NAVBAR */}
       <Navbar />
 
       <div
         style={{
           display: "flex",
 
-          position: "relative",
+          position:
+            "relative",
 
           zIndex: 2,
         }}
       >
-        {/* Sidebar */}
+        {/* SIDEBAR */}
         <Sidebar />
 
         {/* MAIN */}
@@ -304,73 +289,37 @@ function Profile() {
             style={{
               padding: "48px",
 
-              marginBottom: "38px",
-
-              position: "relative",
-
-              overflow: "hidden",
+              marginBottom:
+                "38px",
             }}
           >
-            <div
+            <h1
               style={{
-                position: "absolute",
+                fontSize: "54px",
 
-                width: "260px",
-
-                height: "260px",
-
-                background:
-                  "rgba(91,95,255,0.10)",
-
-                borderRadius: "50%",
-
-                filter: "blur(90px)",
-
-                top: "-70px",
-
-                right: "-50px",
-              }}
-            />
-
-            <div
-              style={{
-                position: "relative",
-
-                zIndex: 2,
+                marginBottom:
+                  "22px",
               }}
             >
-              <h1
-                className="welcome-title"
-                style={{
-                  fontSize: "54px",
+              CREATOR PROFILE
+            </h1>
 
-                  marginBottom: "22px",
+            <p
+              style={{
+                color: "#CBD5E1",
 
-                  lineHeight: "1.3",
-                }}
-              >
-                CREATOR PROFILE
-              </h1>
+                fontSize: "18px",
 
-              <p
-                style={{
-                  color: "#CBD5E1",
+                lineHeight: "2",
 
-                  fontSize: "18px",
-
-                  lineHeight: "2",
-
-                  maxWidth: "850px",
-                }}
-              >
-                Build your futuristic
-                AI creator identity,
-                showcase achievements,
-                manage collaboration,
-                and scale innovation
-                inside BuildX.
-              </p>
-            </div>
+                maxWidth: "850px",
+              }}
+            >
+              Build your futuristic
+              creator identity and
+              showcase your real
+              skills inside BuildX.
+            </p>
           </div>
 
           {/* PROFILE CARD */}
@@ -379,7 +328,8 @@ function Profile() {
             style={{
               padding: "40px",
 
-              marginBottom: "32px",
+              marginBottom:
+                "32px",
             }}
           >
             <div
@@ -390,17 +340,19 @@ function Profile() {
 
                 flexWrap: "wrap",
 
-                alignItems: "center",
+                alignItems:
+                  "center",
               }}
             >
-              {/* Avatar */}
+              {/* AVATAR */}
               <div
                 style={{
                   width: "160px",
 
                   height: "160px",
 
-                  borderRadius: "50%",
+                  borderRadius:
+                    "50%",
 
                   background:
                     "linear-gradient(135deg, #2563EB, #7C3AED)",
@@ -414,12 +366,6 @@ function Profile() {
                     "center",
 
                   fontSize: "68px",
-
-                  boxShadow:
-                    "0 0 28px rgba(124,58,237,0.22)",
-
-                  border:
-                    "4px solid rgba(255,255,255,0.08)",
                 }}
               >
                 {selectedAvatar}
@@ -428,14 +374,11 @@ function Profile() {
               {/* INFO */}
               <div>
                 <h1
-                  className="section-title"
                   style={{
                     fontSize: "52px",
 
                     marginBottom:
                       "12px",
-
-                    color: "white",
                   }}
                 >
                   {
@@ -471,7 +414,7 @@ function Profile() {
                   }
                 </p>
 
-                {/* Badges */}
+                {/* BADGES */}
                 <div
                   style={{
                     display: "flex",
@@ -481,36 +424,49 @@ function Profile() {
                     gap: "12px",
                   }}
                 >
-                  {creatorBadges.map(
-                    (
-                      badge,
-                      index
-                    ) => (
-                      <span
-                        key={index}
-                        style={{
-                          padding:
-                            "11px 18px",
+                  {creatorBadges
+                    .length >
+                  0 ? (
+                    creatorBadges.map(
+                      (
+                        badge,
+                        index
+                      ) => (
+                        <span
+                          key={index}
+                          style={{
+                            padding:
+                              "11px 18px",
 
-                          borderRadius:
-                            "24px",
+                            borderRadius:
+                              "24px",
 
-                          background:
-                            "rgba(79,70,229,0.16)",
+                            background:
+                              "rgba(79,70,229,0.16)",
 
-                          border:
-                            "1px solid rgba(255,255,255,0.06)",
+                            border:
+                              "1px solid rgba(255,255,255,0.06)",
 
-                          color:
-                            "white",
+                            color:
+                              "white",
 
-                          fontSize:
-                            "14px",
-                        }}
-                      >
-                        {badge}
-                      </span>
+                            fontSize:
+                              "14px",
+                          }}
+                        >
+                          {badge}
+                        </span>
+                      )
                     )
+                  ) : (
+                    <span
+                      style={{
+                        color:
+                          "#94A3B8",
+                      }}
+                    >
+                      No skills added
+                    </span>
                   )}
                 </div>
               </div>
@@ -523,19 +479,53 @@ function Profile() {
             style={{
               padding: "32px",
 
-              marginBottom: "32px",
+              marginBottom:
+                "32px",
             }}
           >
             <h2
-              className="section-title"
               style={{
-                marginBottom: "22px",
+                marginBottom:
+                  "22px",
 
                 fontSize: "38px",
               }}
             >
               Edit Profile
             </h2>
+
+            {/* ROLE */}
+            <input
+              type="text"
+              value={role}
+              onChange={(e) =>
+                setRole(
+                  e.target.value
+                )
+              }
+              placeholder="Enter your role..."
+              style={{
+                width: "100%",
+
+                padding: "16px",
+
+                borderRadius:
+                  "16px",
+
+                background:
+                  "rgba(255,255,255,0.05)",
+
+                border:
+                  "1px solid rgba(255,255,255,0.08)",
+
+                color: "white",
+
+                marginBottom:
+                  "18px",
+
+                outline: "none",
+              }}
+            />
 
             {/* BIO */}
             <textarea
@@ -548,15 +538,25 @@ function Profile() {
               placeholder="Enter your bio..."
               style={{
                 width: "100%",
+
                 minHeight: "120px",
+
                 padding: "18px",
-                borderRadius: "18px",
+
+                borderRadius:
+                  "18px",
+
                 background:
                   "rgba(255,255,255,0.05)",
+
                 border:
                   "1px solid rgba(255,255,255,0.08)",
+
                 color: "white",
-                marginBottom: "22px",
+
+                marginBottom:
+                  "22px",
+
                 outline: "none",
               }}
             />
@@ -573,14 +573,23 @@ function Profile() {
               placeholder="Skills you have (comma separated)"
               style={{
                 width: "100%",
+
                 padding: "16px",
-                borderRadius: "16px",
+
+                borderRadius:
+                  "16px",
+
                 background:
                   "rgba(255,255,255,0.05)",
+
                 border:
                   "1px solid rgba(255,255,255,0.08)",
+
                 color: "white",
-                marginBottom: "18px",
+
+                marginBottom:
+                  "18px",
+
                 outline: "none",
               }}
             />
@@ -597,14 +606,23 @@ function Profile() {
               placeholder="Skills you want to learn (comma separated)"
               style={{
                 width: "100%",
+
                 padding: "16px",
-                borderRadius: "16px",
+
+                borderRadius:
+                  "16px",
+
                 background:
                   "rgba(255,255,255,0.05)",
+
                 border:
                   "1px solid rgba(255,255,255,0.08)",
+
                 color: "white",
-                marginBottom: "24px",
+
+                marginBottom:
+                  "22px",
+
                 outline: "none",
               }}
             />
@@ -616,28 +634,26 @@ function Profile() {
               }
               style={{
                 padding:
-                  "16px 30px",
+                  "16px 28px",
 
                 borderRadius:
                   "18px",
 
                 border: "none",
 
+                cursor: "pointer",
+
+                fontWeight: "700",
+
                 background:
-                  "linear-gradient(135deg, #2563EB, #7C3AED)",
+                  "linear-gradient(135deg, #8B5CF6, #EC4899)",
 
                 color: "white",
 
-                fontWeight:
-                  "600",
-
-                cursor: "pointer",
-
-                boxShadow:
-                  "0 0 20px rgba(124,58,237,0.24)",
+                fontSize: "16px",
               }}
             >
-              Save Profile
+              Save Profile 🚀
             </button>
           </div>
         </div>

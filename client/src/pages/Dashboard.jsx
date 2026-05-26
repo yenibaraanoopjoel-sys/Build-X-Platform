@@ -1,10 +1,12 @@
 import {
   useState,
   useEffect,
+  useCallback,
 } from "react";
 
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
+import Loader from "../components/Loader";
 
 import API from "../services/api";
 
@@ -22,7 +24,17 @@ import {
 } from "recharts";
 
 function Dashboard() {
+  //
+  // TOKEN
+  //
+  const token =
+    localStorage.getItem(
+      "token"
+    );
+
+  //
   // STATS
+  //
   const [stats, setStats] =
     useState([
       {
@@ -50,7 +62,9 @@ function Dashboard() {
       },
     ]);
 
+  //
   // ANALYTICS
+  //
   const [
     analytics,
     setAnalytics,
@@ -62,104 +76,173 @@ function Dashboard() {
     completionRate: 0,
 
     activeUsers: 0,
+
+    totalProjects: 0,
+
+    totalIdeas: 0,
+
+    totalTasks: 0,
   });
 
+  //
   // LOADING
+  //
   const [loading, setLoading] =
     useState(true);
 
   //
   // FETCH DASHBOARD DATA
   //
-  useEffect(() => {
-    const fetchDashboard =
+  const fetchDashboard =
+    useCallback(
       async () => {
         try {
-          const token =
-            localStorage.getItem(
-              "token"
-            );
+          setLoading(true);
+
+          //
+          // SAFE REQUESTS
+          //
+          const requests = [
+            API.get(
+              "/projects",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            ).catch(() => ({
+              data: {},
+            })),
+
+            API.get(
+              "/ideas",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            ).catch(() => ({
+              data: {},
+            })),
+
+            API.get(
+              "/tasks",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            ).catch(() => ({
+              data: {},
+            })),
+
+            API.get(
+              "/messages",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            ).catch(() => ({
+              data: {},
+            })),
+          ];
 
           const [
             projectsRes,
             ideasRes,
             tasksRes,
             messagesRes,
-          ] = await Promise.all([
-            API.get("/projects", {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }),
+          ] =
+            await Promise.all(
+              requests
+            );
 
-            API.get("/ideas", {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }),
+          //
+          // SAFE ARRAYS
+          //
+          const projects =
+            Array.isArray(
+              projectsRes
+                ?.data
+                ?.projects
+            )
+              ? projectsRes
+                  .data
+                  .projects
+              : [];
 
-            API.get("/tasks", {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }),
+          const ideas =
+            Array.isArray(
+              ideasRes?.data
+                ?.ideas
+            )
+              ? ideasRes
+                  .data
+                  .ideas
+              : [];
 
-            API.get("/messages", {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }),
-          ]);
+          const tasks =
+            Array.isArray(
+              tasksRes?.data
+                ?.tasks
+            )
+              ? tasksRes
+                  .data
+                  .tasks
+              : [];
 
+          const messages =
+            Array.isArray(
+              messagesRes
+                ?.data
+                ?.messages
+            )
+              ? messagesRes
+                  .data
+                  .messages
+              : [];
+
+          //
+          // STATS
+          //
           setStats([
             {
-              title: "Projects",
+              title:
+                "Projects",
+
               value:
-                projectsRes.data
-                  ?.projects
-                  ?.length ||
-                projectsRes.data
-                  ?.length ||
-                0,
+                projects.length,
 
               icon: "🛠️",
             },
 
             {
-              title: "Ideas",
+              title:
+                "Ideas",
+
               value:
-                ideasRes.data
-                  ?.ideas
-                  ?.length ||
-                ideasRes.data
-                  ?.length ||
-                0,
+                ideas.length,
 
               icon: "💡",
             },
 
             {
-              title: "Tasks",
+              title:
+                "Tasks",
+
               value:
-                tasksRes.data
-                  ?.tasks
-                  ?.length ||
-                tasksRes.data
-                  ?.length ||
-                0,
+                tasks.length,
 
               icon: "✅",
             },
 
             {
-              title: "Messages",
+              title:
+                "Messages",
+
               value:
-                messagesRes.data
-                  ?.messages
-                  ?.length ||
-                messagesRes.data
-                  ?.length ||
-                0,
+                messages.length,
 
               icon: "💬",
             },
@@ -168,21 +251,17 @@ function Dashboard() {
           //
           // TASK ANALYTICS
           //
-          const tasks =
-            tasksRes.data
-              ?.tasks || [];
-
           const completedTasks =
             tasks.filter(
               (task) =>
-                task.status ===
+                task?.status ===
                 "Completed"
             ).length;
 
           const pendingTasks =
             tasks.filter(
               (task) =>
-                task.status !==
+                task?.status !==
                 "Completed"
             ).length;
 
@@ -195,6 +274,31 @@ function Dashboard() {
                     100
                 );
 
+          //
+          // UNIQUE USERS
+          //
+          const activeUsers =
+            new Set(
+              projects.flatMap(
+                (
+                  project
+                ) =>
+                  Array.isArray(
+                    project?.members
+                  )
+                    ? project.members.map(
+                        (
+                          member
+                        ) =>
+                          member?._id
+                      )
+                    : []
+              )
+            ).size;
+
+          //
+          // SAVE ANALYTICS
+          //
           setAnalytics({
             completedTasks,
 
@@ -202,28 +306,41 @@ function Dashboard() {
 
             completionRate,
 
-            activeUsers:
-              projectsRes.data
-                ?.projects
-                ?.length || 0,
+            activeUsers,
+
+            totalProjects:
+              projects.length,
+
+            totalIdeas:
+              ideas.length,
+
+            totalTasks:
+              tasks.length,
           });
         } catch (error) {
           console.log(
             "DASHBOARD ERROR:",
-            error.response
+            error
+              ?.response
               ?.data ||
               error.message
           );
         } finally {
           setLoading(false);
         }
-      };
-
-    fetchDashboard();
-  }, []);
+      },
+      [token]
+    );
 
   //
-  // CHART DATA
+  // LOAD
+  //
+  useEffect(() => {
+    fetchDashboard();
+  }, [fetchDashboard]);
+
+  //
+  // PRODUCTIVITY DATA
   //
   const productivityData =
     [
@@ -263,53 +380,38 @@ function Dashboard() {
       },
     ];
 
+  //
+  // PIE DATA
+  //
   const pieData = [
     {
       name: "Completed",
+
       value:
         analytics.completedTasks,
     },
 
     {
       name: "Pending",
+
       value:
         analytics.pendingTasks,
     },
   ];
 
+  //
+  // COLORS
+  //
   const COLORS = [
     "#8B5CF6",
     "#EC4899",
   ];
 
   //
-  // LOADING SCREEN
+  // LOADING
   //
   if (loading) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-
-          background:
-            "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
-
-          display: "flex",
-
-          justifyContent:
-            "center",
-
-          alignItems:
-            "center",
-
-          color: "white",
-
-          fontSize: "32px",
-        }}
-      >
-        Loading BuildX...
-      </div>
-    );
+    return <Loader />;
   }
 
   return (
@@ -327,6 +429,56 @@ function Dashboard() {
         position: "relative",
       }}
     >
+      {/* GLOW */}
+      <div
+        style={{
+          position:
+            "absolute",
+
+          width: "500px",
+
+          height: "500px",
+
+          background:
+            "rgba(59,130,246,0.10)",
+
+          borderRadius:
+            "50%",
+
+          filter:
+            "blur(140px)",
+
+          top: "-180px",
+
+          left: "-120px",
+        }}
+      />
+
+      <div
+        style={{
+          position:
+            "absolute",
+
+          width: "450px",
+
+          height: "450px",
+
+          background:
+            "rgba(124,58,237,0.12)",
+
+          borderRadius:
+            "50%",
+
+          filter:
+            "blur(130px)",
+
+          bottom: "-150px",
+
+          right: "-100px",
+        }}
+      />
+
+      {/* NAVBAR */}
       <Navbar />
 
       <div
@@ -334,8 +486,10 @@ function Dashboard() {
           display: "flex",
         }}
       >
+        {/* SIDEBAR */}
         <Sidebar />
 
+        {/* MAIN */}
         <div
           style={{
             flex: 1,
@@ -343,39 +497,86 @@ function Dashboard() {
             padding: "42px",
           }}
         >
-          {/* TITLE */}
+          {/* HERO */}
           <div
             className="glass-card"
             style={{
               padding: "42px",
 
               marginBottom: "38px",
+
+              position:
+                "relative",
+
+              overflow:
+                "hidden",
             }}
           >
-            <h1
+            <div
               style={{
-                fontSize: "54px",
+                position:
+                  "absolute",
 
-                marginBottom:
-                  "18px",
+                width: "260px",
+
+                height: "260px",
+
+                background:
+                  "rgba(91,95,255,0.10)",
+
+                borderRadius:
+                  "50%",
+
+                filter:
+                  "blur(90px)",
+
+                top: "-80px",
+
+                right: "-40px",
+              }}
+            />
+
+            <div
+              style={{
+                position:
+                  "relative",
+
+                zIndex: 2,
               }}
             >
-              AI Analytics Dashboard
-            </h1>
+              <h1
+                style={{
+                  fontSize: "54px",
 
-            <p
-              style={{
-                color: "#CBD5E1",
+                  marginBottom:
+                    "18px",
+                }}
+              >
+                AI Analytics Dashboard
+              </h1>
 
-                fontSize: "18px",
+              <p
+                style={{
+                  color: "#CBD5E1",
 
-                lineHeight: "1.9",
-              }}
-            >
-              Real-time AI-powered
-              productivity and
-              collaboration insights.
-            </p>
+                  fontSize: "18px",
+
+                  lineHeight: "1.9",
+
+                  maxWidth:
+                    "820px",
+                }}
+              >
+                Real-time
+                AI-powered
+                productivity,
+                collaboration,
+                analytics,
+                and futuristic
+                workflow insights
+                for BuildX.
+              </p>
+            </div>
           </div>
 
           {/* STATS */}
@@ -392,14 +593,50 @@ function Dashboard() {
             }}
           >
             {stats.map(
-              (item, index) => (
+              (
+                item,
+                index
+              ) => (
                 <div
                   key={index}
                   className="glass-card"
                   style={{
                     padding: "30px",
+
+                    position:
+                      "relative",
+
+                    overflow:
+                      "hidden",
                   }}
                 >
+                  <div
+                    style={{
+                      position:
+                        "absolute",
+
+                      width:
+                        "180px",
+
+                      height:
+                        "180px",
+
+                      background:
+                        "rgba(124,58,237,0.08)",
+
+                      borderRadius:
+                        "50%",
+
+                      filter:
+                        "blur(70px)",
+
+                      top: "-60px",
+
+                      right:
+                        "-60px",
+                    }}
+                  />
+
                   <div
                     style={{
                       display:
@@ -410,6 +647,11 @@ function Dashboard() {
 
                       marginBottom:
                         "20px",
+
+                      position:
+                        "relative",
+
+                      zIndex: 2,
                     }}
                   >
                     <h2
@@ -439,6 +681,11 @@ function Dashboard() {
                     style={{
                       fontSize:
                         "52px",
+
+                      position:
+                        "relative",
+
+                      zIndex: 2,
                     }}
                   >
                     {item.value}
@@ -461,7 +708,7 @@ function Dashboard() {
               marginBottom: "40px",
             }}
           >
-            {/* LINE CHART */}
+            {/* LINE */}
             <div
               className="glass-card"
               style={{
@@ -516,7 +763,7 @@ function Dashboard() {
               </ResponsiveContainer>
             </div>
 
-            {/* PIE CHART */}
+            {/* PIE */}
             <div
               className="glass-card"
               style={{
@@ -578,8 +825,6 @@ function Dashboard() {
             className="glass-card"
             style={{
               padding: "42px",
-
-              marginBottom: "40px",
             }}
           >
             <h1
@@ -610,9 +855,13 @@ function Dashboard() {
                 }}
               >
                 🚀 Productivity
-                increased this week
-                compared to previous
-                performance.
+                increased by{" "}
+                {
+                  analytics.completionRate
+                }
+                % based on current
+                task completion
+                metrics.
               </div>
 
               <div
@@ -621,8 +870,12 @@ function Dashboard() {
                   padding: "22px",
                 }}
               >
-                ⚡ High task completion
-                efficiency detected in
+                ⚡{" "}
+                {
+                  analytics.completedTasks
+                }{" "}
+                tasks completed
+                successfully across
                 active projects.
               </div>
 
@@ -633,9 +886,28 @@ function Dashboard() {
                 }}
               >
                 🤖 AI recommends
-                focusing on pending
-                tasks for better
-                workflow optimization.
+                focusing on{" "}
+                {
+                  analytics.pendingTasks
+                }{" "}
+                pending tasks to
+                optimize workflow
+                efficiency.
+              </div>
+
+              <div
+                className="glass-card"
+                style={{
+                  padding: "22px",
+                }}
+              >
+                👥{" "}
+                {
+                  analytics.activeUsers
+                }{" "}
+                active collaborators
+                detected across the
+                BuildX ecosystem.
               </div>
             </div>
           </div>

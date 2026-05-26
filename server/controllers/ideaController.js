@@ -1,250 +1,405 @@
-const Idea = require("../models/Idea");
-const Project = require("../models/Project");
+const Idea =
+  require("../models/Idea");
 
+const Project =
+  require("../models/Project");
+
+//
 // CREATE IDEA + AUTO CREATE PROJECT
-exports.createIdea = async (req, res) => {
-  try {
-    const {
-      title,
-      description,
-      techStack,
-      category,
-    } = req.body;
+//
+exports.createIdea =
+  async (req, res) => {
+    try {
+      const {
+        title,
+        description,
+        techStack,
+        category,
+        visibility,
+      } = req.body;
 
-    // Create Idea
-    const idea = await Idea.create({
-      title,
-      description,
-      techStack,
-      category,
+      //
+      // VALIDATION
+      //
+      if (
+        !title ||
+        !description
+      ) {
+        return res
+          .status(400)
+          .json({
+            success: false,
 
-      createdBy: req.user,
-    });
+            message:
+              "Title and description are required",
+          });
+      }
 
-    // Automatically Create Project
-    const project = await Project.create({
-      title,
+      //
+      // SAFE TECH STACK
+      //
+      let safeTechStack =
+        [];
 
-      description,
+      if (
+        Array.isArray(
+          techStack
+        )
+      ) {
+        safeTechStack =
+          techStack;
+      } else if (
+        typeof techStack ===
+        "string"
+      ) {
+        safeTechStack =
+          techStack
+            .split(",")
+            .map((tech) =>
+              tech.trim()
+            );
+      }
 
-      owner: req.user,
+      //
+      // CREATE IDEA
+      //
+      const idea =
+        await Idea.create({
+          title,
 
-      linkedIdea: idea._id,
+          description,
 
-      members: [req.user],
+          techStack:
+            safeTechStack,
 
-      status: "Pending",
+          category,
 
-      completionPercentage: 0,
+          visibility:
+            visibility ||
+            "Public",
 
-      totalTasks: 0,
+          createdBy:
+            req.user._id,
+        });
 
-      completedTasks: 0,
-    });
+      //
+      // CREATE PROJECT
+      //
+      const project =
+        await Project.create({
+          title,
 
-    // Link Project to Idea
-    idea.linkedProject = project._id;
+          description,
 
-    await idea.save();
+          owner:
+            req.user._id,
 
-    res.status(201).json({
-      success: true,
+          linkedIdea:
+            idea._id,
 
-      message:
-        "Idea and Project created successfully",
+          members: [
+            req.user._id,
+          ],
 
-      idea,
+          status:
+            "Pending",
 
-      project,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
+          completionPercentage: 0,
 
-      error: error.message,
-    });
-  }
-};
+          totalTasks: 0,
 
-// GET ALL IDEAS
-exports.getIdeas = async (req, res) => {
-  try {
-    const ideas = await Idea.find()
+          completedTasks: 0,
+        });
 
-      .populate(
-        "createdBy",
-        "name email"
-      )
+      //
+      // LINK PROJECT
+      //
+      idea.linkedProject =
+        project._id;
 
-      .populate(
-        "collaborators",
-        "name email"
-      )
+      await idea.save();
 
-      .populate(
-        "linkedProject"
-      )
+      res.status(201).json({
+        success: true,
 
-      .sort({
-        createdAt: -1,
+        message:
+          "Idea and project created successfully 🚀",
+
+        idea,
+
+        project,
       });
+    } catch (error) {
+      console.log(error);
 
-    res.json({
-      success: true,
+      res.status(500).json({
+        success: false,
 
-      ideas,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
+        message:
+          error.message,
+      });
+    }
+  };
 
-      error: error.message,
-    });
-  }
-};
+//
+// GET ALL IDEAS
+//
+exports.getIdeas =
+  async (req, res) => {
+    try {
+      const ideas =
+        await Idea.find()
 
+          .populate(
+            "createdBy",
+            "name email role profilePicture"
+          )
+
+          .populate(
+            "collaborators",
+            "name email role"
+          )
+
+          .populate(
+            "linkedProject"
+          )
+
+          .sort({
+            createdAt: -1,
+          });
+
+      res.json({
+        success: true,
+
+        ideas:
+          Array.isArray(
+            ideas
+          )
+            ? ideas
+            : [],
+      });
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        success: false,
+
+        message:
+          error.message,
+      });
+    }
+  };
+
+//
 // GET SINGLE IDEA
-exports.getIdeaById = async (
-  req,
-  res
-) => {
-  try {
-    const idea =
-      await Idea.findById(
-        req.params.id
-      )
-
-        .populate(
-          "createdBy",
-          "name email"
+//
+exports.getIdeaById =
+  async (req, res) => {
+    try {
+      const idea =
+        await Idea.findById(
+          req.params.id
         )
 
-        .populate(
-          "collaborators",
-          "name email"
-        )
+          .populate(
+            "createdBy",
+            "name email role profilePicture"
+          )
 
-        .populate(
-          "linkedProject"
-        );
+          .populate(
+            "collaborators",
+            "name email role"
+          )
 
-    if (!idea) {
-      return res
-        .status(404)
-        .json({
-          success: false,
+          .populate(
+            "linkedProject"
+          );
 
-          message:
-            "Idea not found",
-        });
+      if (!idea) {
+        return res
+          .status(404)
+          .json({
+            success: false,
+
+            message:
+              "Idea not found",
+          });
+      }
+
+      //
+      // INCREASE VIEWS
+      //
+      idea.views =
+        (idea.views || 0) +
+        1;
+
+      await idea.save();
+
+      res.json({
+        success: true,
+
+        idea,
+      });
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        success: false,
+
+        message:
+          error.message,
+      });
     }
+  };
 
-    res.json({
-      success: true,
-
-      idea,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-
-      error: error.message,
-    });
-  }
-};
-
+//
 // DELETE IDEA
-exports.deleteIdea = async (
-  req,
-  res
-) => {
-  try {
-    const idea =
-      await Idea.findById(
-        req.params.id
-      );
-
-    if (!idea) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-
-          message:
-            "Idea not found",
-        });
-    }
-
-    await idea.deleteOne();
-
-    res.json({
-      success: true,
-
-      message:
-        "Idea deleted successfully",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-
-      error: error.message,
-    });
-  }
-};
-
-// LIKE IDEA
-exports.likeIdea = async (
-  req,
-  res
-) => {
-  try {
-    const idea =
-      await Idea.findById(
-        req.params.id
-      );
-
-    if (!idea) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-
-          message:
-            "Idea not found",
-        });
-    }
-
-    const alreadyLiked =
-      idea.likes.includes(
-        req.user
-      );
-
-    if (alreadyLiked) {
-      idea.likes =
-        idea.likes.filter(
-          (userId) =>
-            userId.toString() !==
-            req.user.toString()
+//
+exports.deleteIdea =
+  async (req, res) => {
+    try {
+      const idea =
+        await Idea.findById(
+          req.params.id
         );
-    } else {
-      idea.likes.push(
-        req.user
-      );
+
+      if (!idea) {
+        return res
+          .status(404)
+          .json({
+            success: false,
+
+            message:
+              "Idea not found",
+          });
+      }
+
+      //
+      // OWNER CHECK
+      //
+      if (
+        idea.createdBy.toString() !==
+        req.user._id.toString()
+      ) {
+        return res
+          .status(403)
+          .json({
+            success: false,
+
+            message:
+              "Only the owner can delete this idea",
+          });
+      }
+
+      //
+      // DELETE LINKED PROJECT
+      //
+      if (
+        idea.linkedProject
+      ) {
+        await Project.findByIdAndDelete(
+          idea.linkedProject
+        );
+      }
+
+      //
+      // DELETE IDEA
+      //
+      await idea.deleteOne();
+
+      res.json({
+        success: true,
+
+        message:
+          "Idea deleted successfully 🚀",
+      });
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        success: false,
+
+        message:
+          error.message,
+      });
     }
+  };
 
-    await idea.save();
+//
+// LIKE / UNLIKE IDEA
+//
+exports.likeIdea =
+  async (req, res) => {
+    try {
+      const idea =
+        await Idea.findById(
+          req.params.id
+        );
 
-    res.json({
-      success: true,
+      if (!idea) {
+        return res
+          .status(404)
+          .json({
+            success: false,
 
-      likes:
-        idea.likes.length,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
+            message:
+              "Idea not found",
+          });
+      }
 
-      error: error.message,
-    });
-  }
-};
+      //
+      // SAFE ARRAY
+      //
+      if (
+        !Array.isArray(
+          idea.likes
+        )
+      ) {
+        idea.likes = [];
+      }
+
+      //
+      // CHECK LIKE
+      //
+      const alreadyLiked =
+        idea.likes.some(
+          (userId) =>
+            userId.toString() ===
+            req.user._id.toString()
+        );
+
+      if (alreadyLiked) {
+        idea.likes =
+          idea.likes.filter(
+            (userId) =>
+              userId.toString() !==
+              req.user._id.toString()
+          );
+      } else {
+        idea.likes.push(
+          req.user._id
+        );
+      }
+
+      await idea.save();
+
+      res.json({
+        success: true,
+
+        totalLikes:
+          idea.likes.length,
+
+        liked:
+          !alreadyLiked,
+      });
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        success: false,
+
+        message:
+          error.message,
+      });
+    }
+  };

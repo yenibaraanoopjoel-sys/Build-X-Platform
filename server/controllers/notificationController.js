@@ -1,4 +1,7 @@
-const Notification = require("../models/Notification");
+const Notification =
+  require(
+    "../models/Notification"
+  );
 
 //
 // GET USER NOTIFICATIONS
@@ -13,27 +16,22 @@ exports.getNotifications =
               req.user._id,
           }
         )
-
           .populate(
             "sender",
-            "name email profilePicture"
+            "name email profilePicture role"
           )
-
           .populate(
             "project",
             "title"
           )
-
           .populate(
             "task",
             "title"
           )
-
           .populate(
             "idea",
             "title"
           )
-
           .sort({
             createdAt: -1,
           });
@@ -41,13 +39,20 @@ exports.getNotifications =
       res.json({
         success: true,
 
-        notifications,
+        notifications:
+          Array.isArray(
+            notifications
+          )
+            ? notifications
+            : [],
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         success: false,
 
-        error:
+        message:
           error.message,
       });
     }
@@ -75,6 +80,23 @@ exports.markAsRead =
           });
       }
 
+      //
+      // SECURITY CHECK
+      //
+      if (
+        notification.receiver.toString() !==
+        req.user._id.toString()
+      ) {
+        return res
+          .status(403)
+          .json({
+            success: false,
+
+            message:
+              "Unauthorized",
+          });
+      }
+
       notification.isRead =
         true;
 
@@ -89,10 +111,12 @@ exports.markAsRead =
         notification,
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         success: false,
 
-        error:
+        message:
           error.message,
       });
     }
@@ -123,10 +147,12 @@ exports.markAllAsRead =
           "All notifications marked as read",
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         success: false,
 
-        error:
+        message:
           error.message,
       });
     }
@@ -154,6 +180,23 @@ exports.deleteNotification =
           });
       }
 
+      //
+      // SECURITY CHECK
+      //
+      if (
+        notification.receiver.toString() !==
+        req.user._id.toString()
+      ) {
+        return res
+          .status(403)
+          .json({
+            success: false,
+
+            message:
+              "Unauthorized",
+          });
+      }
+
       await notification.deleteOne();
 
       res.json({
@@ -163,10 +206,12 @@ exports.deleteNotification =
           "Notification deleted successfully",
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         success: false,
 
-        error:
+        message:
           error.message,
       });
     }
@@ -192,13 +237,15 @@ exports.getUnreadCount =
         success: true,
 
         unreadCount:
-          count,
+          count || 0,
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         success: false,
 
-        error:
+        message:
           error.message,
       });
     }

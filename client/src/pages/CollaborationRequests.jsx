@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
@@ -8,57 +12,87 @@ import API from "../services/api";
 
 function CollaborationRequests() {
   //
+  // TOKEN
+  //
+  const token =
+    localStorage.getItem(
+      "token"
+    );
+
+  //
   // STATES
   //
-  const [requests, setRequests] =
-    useState([]);
+  const [
+    requests,
+    setRequests,
+  ] = useState([]);
 
   const [loading, setLoading] =
     useState(true);
+
+  const [
+    activeFilter,
+    setActiveFilter,
+  ] = useState("All");
 
   //
   // FETCH REQUESTS
   //
   const fetchRequests =
-    async () => {
-      try {
-        setLoading(true);
+    useCallback(
+      async () => {
+        try {
+          setLoading(true);
 
-        const token =
-          localStorage.getItem(
-            "token"
+          const response =
+            await API.get(
+              "/collaborations/received",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+          if (
+            response?.data
+              ?.success
+          ) {
+            setRequests(
+              Array.isArray(
+                response.data
+                  .requests
+              )
+                ? response.data
+                    .requests
+                : []
+            );
+          } else {
+            setRequests([]);
+          }
+        } catch (error) {
+          console.log(
+            "REQUEST FETCH ERROR:",
+            error
+              ?.response
+              ?.data ||
+              error.message
           );
 
-        const response =
-          await API.get(
-            "/collaborations/received",
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-        if (
-          response.data.success
-        ) {
-          setRequests(
-            response.data.requests
-          );
+          setRequests([]);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      },
+      [token]
+    );
 
   //
-  // INITIAL FETCH
+  // LOAD
   //
   useEffect(() => {
     fetchRequests();
-  }, []);
+  }, [fetchRequests]);
 
   //
   // ACCEPT REQUEST
@@ -66,11 +100,6 @@ function CollaborationRequests() {
   const acceptRequest =
     async (id) => {
       try {
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
         await API.put(
           `/collaborations/accept/${id}`,
           {},
@@ -84,10 +113,12 @@ function CollaborationRequests() {
         fetchRequests();
 
         alert(
-          "Request accepted successfully 🚀"
+          "Collaboration Request Accepted 🚀"
         );
       } catch (error) {
-        console.log(error);
+        console.log(
+          error
+        );
 
         alert(
           "Failed to accept request"
@@ -101,11 +132,6 @@ function CollaborationRequests() {
   const rejectRequest =
     async (id) => {
       try {
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
         await API.put(
           `/collaborations/reject/${id}`,
           {},
@@ -119,14 +145,81 @@ function CollaborationRequests() {
         fetchRequests();
 
         alert(
-          "Request rejected"
+          "Request Rejected ❌"
         );
       } catch (error) {
-        console.log(error);
+        console.log(
+          error
+        );
 
         alert(
           "Failed to reject request"
         );
+      }
+    };
+
+  //
+  // FILTERED REQUESTS
+  //
+  const filteredRequests =
+    Array.isArray(
+      requests
+    )
+      ? requests.filter(
+          (request) => {
+            if (
+              activeFilter ===
+              "All"
+            ) {
+              return true;
+            }
+
+            return (
+              request?.status ===
+              activeFilter
+            );
+          }
+        )
+      : [];
+
+  //
+  // COUNTS
+  //
+  const pendingCount =
+    requests.filter(
+      (request) =>
+        request?.status ===
+        "Pending"
+    ).length;
+
+  const acceptedCount =
+    requests.filter(
+      (request) =>
+        request?.status ===
+        "Accepted"
+    ).length;
+
+  const rejectedCount =
+    requests.filter(
+      (request) =>
+        request?.status ===
+        "Rejected"
+    ).length;
+
+  //
+  // STATUS COLOR
+  //
+  const getStatusColor =
+    (status) => {
+      switch (status) {
+        case "Accepted":
+          return "#10B981";
+
+        case "Rejected":
+          return "#EF4444";
+
+        default:
+          return "#F59E0B";
       }
     };
 
@@ -155,7 +248,8 @@ function CollaborationRequests() {
       {/* GLOW */}
       <div
         style={{
-          position: "absolute",
+          position:
+            "absolute",
 
           width: "500px",
 
@@ -164,9 +258,11 @@ function CollaborationRequests() {
           background:
             "rgba(59,130,246,0.10)",
 
-          borderRadius: "50%",
+          borderRadius:
+            "50%",
 
-          filter: "blur(140px)",
+          filter:
+            "blur(140px)",
 
           top: "-180px",
 
@@ -176,7 +272,8 @@ function CollaborationRequests() {
 
       <div
         style={{
-          position: "absolute",
+          position:
+            "absolute",
 
           width: "450px",
 
@@ -185,9 +282,11 @@ function CollaborationRequests() {
           background:
             "rgba(124,58,237,0.12)",
 
-          borderRadius: "50%",
+          borderRadius:
+            "50%",
 
-          filter: "blur(130px)",
+          filter:
+            "blur(130px)",
 
           bottom: "-150px",
 
@@ -202,7 +301,8 @@ function CollaborationRequests() {
         style={{
           display: "flex",
 
-          position: "relative",
+          position:
+            "relative",
 
           zIndex: 2,
         }}
@@ -224,50 +324,57 @@ function CollaborationRequests() {
             style={{
               padding: "48px",
 
-              marginBottom: "42px",
+              marginBottom:
+                "40px",
 
-              position: "relative",
+              position:
+                "relative",
 
-              overflow: "hidden",
+              overflow:
+                "hidden",
             }}
           >
             <div
               style={{
-                position: "absolute",
+                position:
+                  "absolute",
 
-                width: "240px",
+                width: "250px",
 
-                height: "240px",
+                height: "250px",
 
                 background:
-                  "rgba(91,95,255,0.10)",
+                  "rgba(124,58,237,0.10)",
 
-                borderRadius: "50%",
+                borderRadius:
+                  "50%",
 
-                filter: "blur(90px)",
+                filter:
+                  "blur(100px)",
 
-                top: "-70px",
+                top: "-80px",
 
-                right: "-40px",
+                right: "-50px",
               }}
             />
 
             <div
               style={{
-                position: "relative",
+                position:
+                  "relative",
 
                 zIndex: 2,
               }}
             >
               <h1
-                className="welcome-title"
                 style={{
-                  fontSize: "52px",
+                  fontSize: "54px",
 
-                  marginBottom: "18px",
+                  marginBottom:
+                    "18px",
                 }}
               >
-                REQUEST CENTER
+                Collaboration Requests
               </h1>
 
               <p
@@ -276,51 +383,303 @@ function CollaborationRequests() {
 
                   fontSize: "18px",
 
-                  lineHeight: "2",
+                  lineHeight: "1.9",
+
+                  maxWidth:
+                    "820px",
                 }}
               >
-                Manage collaboration,
-                project, and skill
-                swap requests inside
-                your futuristic AI
-                workspace.
+                Manage team
+                invitations,
+                collaboration
+                workflows,
+                skill swap
+                partnerships,
+                and futuristic
+                project requests
+                inside BuildX.
               </p>
             </div>
           </div>
 
+          {/* STATS */}
+          <div
+            style={{
+              display: "grid",
+
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(240px, 1fr))",
+
+              gap: "24px",
+
+              marginBottom:
+                "40px",
+            }}
+          >
+            {[
+              {
+                title:
+                  "Pending",
+
+                value:
+                  pendingCount,
+
+                icon: "⏳",
+
+                color:
+                  "#F59E0B",
+              },
+
+              {
+                title:
+                  "Accepted",
+
+                value:
+                  acceptedCount,
+
+                icon: "✅",
+
+                color:
+                  "#10B981",
+              },
+
+              {
+                title:
+                  "Rejected",
+
+                value:
+                  rejectedCount,
+
+                icon: "❌",
+
+                color:
+                  "#EF4444",
+              },
+
+              {
+                title:
+                  "Total",
+
+                value:
+                  requests.length,
+
+                icon: "📨",
+
+                color:
+                  "#8B5CF6",
+              },
+            ].map(
+              (
+                item,
+                index
+              ) => (
+                <div
+                  key={index}
+                  className="glass-card"
+                  style={{
+                    padding:
+                      "28px",
+
+                    position:
+                      "relative",
+
+                    overflow:
+                      "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      position:
+                        "absolute",
+
+                      width:
+                        "180px",
+
+                      height:
+                        "180px",
+
+                      background:
+                        `${item.color}20`,
+
+                      borderRadius:
+                        "50%",
+
+                      filter:
+                        "blur(80px)",
+
+                      top:
+                        "-70px",
+
+                      right:
+                        "-70px",
+                    }}
+                  />
+
+                  <div
+                    style={{
+                      display:
+                        "flex",
+
+                      justifyContent:
+                        "space-between",
+
+                      alignItems:
+                        "center",
+
+                      marginBottom:
+                        "18px",
+
+                      position:
+                        "relative",
+
+                      zIndex: 2,
+                    }}
+                  >
+                    <h2
+                      style={{
+                        fontSize:
+                          "28px",
+                      }}
+                    >
+                      {
+                        item.title
+                      }
+                    </h2>
+
+                    <span
+                      style={{
+                        fontSize:
+                          "30px",
+                      }}
+                    >
+                      {
+                        item.icon
+                      }
+                    </span>
+                  </div>
+
+                  <h1
+                    style={{
+                      fontSize:
+                        "52px",
+
+                      color:
+                        item.color,
+
+                      position:
+                        "relative",
+
+                      zIndex: 2,
+                    }}
+                  >
+                    {
+                      item.value
+                    }
+                  </h1>
+                </div>
+              )
+            )}
+          </div>
+
+          {/* FILTERS */}
+          <div
+            style={{
+              display: "flex",
+
+              gap: "16px",
+
+              flexWrap: "wrap",
+
+              marginBottom:
+                "34px",
+            }}
+          >
+            {[
+              "All",
+              "Pending",
+              "Accepted",
+              "Rejected",
+            ].map(
+              (filter) => (
+                <button
+                  key={filter}
+                  onClick={() =>
+                    setActiveFilter(
+                      filter
+                    )
+                  }
+                  style={{
+                    padding:
+                      "14px 24px",
+
+                    borderRadius:
+                      "16px",
+
+                    border:
+                      "none",
+
+                    cursor:
+                      "pointer",
+
+                    fontWeight:
+                      "700",
+
+                    background:
+                      activeFilter ===
+                      filter
+                        ? "linear-gradient(135deg, #8B5CF6, #EC4899)"
+                        : "rgba(255,255,255,0.06)",
+
+                    color:
+                      "white",
+                  }}
+                >
+                  {filter}
+                </button>
+              )
+            )}
+          </div>
+
           {/* EMPTY */}
-          {requests.length ===
+          {filteredRequests.length ===
           0 ? (
             <div
               className="glass-card"
               style={{
                 padding: "70px",
 
-                textAlign: "center",
+                textAlign:
+                  "center",
               }}
             >
               <h2
                 style={{
-                  fontSize: "42px",
+                  fontSize:
+                    "42px",
 
                   marginBottom:
                     "20px",
                 }}
               >
-                No Requests Yet
+                No Requests Found
               </h2>
 
               <p
                 style={{
-                  color: "#CBD5E1",
+                  color:
+                    "#CBD5E1",
 
                   lineHeight:
                     "1.9",
+
+                  fontSize:
+                    "17px",
                 }}
               >
-                Incoming collaboration
-                requests will appear
-                here.
+                There are no
+                collaboration
+                requests in this
+                category right now.
               </p>
             </div>
           ) : (
@@ -331,19 +690,19 @@ function CollaborationRequests() {
                 flexDirection:
                   "column",
 
-                gap: "24px",
+                gap: "28px",
               }}
             >
-              {requests.map(
+              {filteredRequests.map(
                 (request) => (
                   <div
                     key={
-                      request._id
+                      request?._id
                     }
                     className="glass-card"
                     style={{
                       padding:
-                        "30px",
+                        "34px",
 
                       position:
                         "relative",
@@ -352,17 +711,17 @@ function CollaborationRequests() {
                         "hidden",
                     }}
                   >
-                    {/* CARD GLOW */}
+                    {/* GLOW */}
                     <div
                       style={{
                         position:
                           "absolute",
 
                         width:
-                          "220px",
+                          "240px",
 
                         height:
-                          "220px",
+                          "240px",
 
                         background:
                           "rgba(124,58,237,0.08)",
@@ -371,129 +730,53 @@ function CollaborationRequests() {
                           "50%",
 
                         filter:
-                          "blur(80px)",
+                          "blur(90px)",
 
-                        top: "-80px",
+                        top:
+                          "-80px",
 
                         right:
                           "-60px",
                       }}
                     />
 
+                    {/* HEADER */}
                     <div
                       style={{
+                        display:
+                          "flex",
+
+                        justifyContent:
+                          "space-between",
+
+                        alignItems:
+                          "start",
+
+                        gap: "24px",
+
+                        marginBottom:
+                          "22px",
+
                         position:
                           "relative",
 
                         zIndex: 2,
                       }}
                     >
-                      {/* NAME */}
-                      <h2
-                        style={{
-                          fontSize:
-                            "34px",
-
-                          marginBottom:
-                            "12px",
-                        }}
-                      >
-                        {
-                          request
-                            .sender
-                            ?.name
-                        }
-                      </h2>
-
-                      {/* EMAIL */}
-                      <p
-                        style={{
-                          color:
-                            "#CBD5E1",
-
-                          marginBottom:
-                            "10px",
-                        }}
-                      >
-                        {
-                          request
-                            .sender
-                            ?.email
-                        }
-                      </p>
-
-                      {/* ROLE */}
-                      <p
-                        style={{
-                          color:
-                            "#A5B4FC",
-
-                          marginBottom:
-                            "16px",
-                        }}
-                      >
-                        Role:{" "}
-                        {
-                          request
-                            .sender
-                            ?.role
-                        }
-                      </p>
-
-                      {/* REQUEST TYPE */}
-                      <div
-                        style={{
-                          marginBottom:
-                            "16px",
-                        }}
-                      >
-                        <span
+                      <div>
+                        <h2
                           style={{
-                            padding:
-                              "8px 14px",
-
-                            borderRadius:
-                              "20px",
-
-                            background:
-                              "rgba(99,102,241,0.16)",
-
                             fontSize:
-                              "13px",
+                              "36px",
 
-                            border:
-                              "1px solid rgba(255,255,255,0.08)",
+                            marginBottom:
+                              "14px",
                           }}
                         >
-                          {request.requestType ||
-                            "Idea Collaboration"}
-                        </span>
-                      </div>
+                          {request?.title ||
+                            "Untitled Request"}
+                        </h2>
 
-                      {/* IDEA TITLE */}
-                      <p
-                        style={{
-                          color:
-                            "#F9A8D4",
-
-                          marginBottom:
-                            "20px",
-
-                          fontSize:
-                            "16px",
-                        }}
-                      >
-                        Request For:
-                        {" "}
-                        {request
-                          .idea
-                          ?.title ||
-                          request.title ||
-                          "Untitled"}
-                      </p>
-
-                      {/* MESSAGE */}
-                      {request.message && (
                         <p
                           style={{
                             color:
@@ -502,177 +785,208 @@ function CollaborationRequests() {
                             lineHeight:
                               "1.9",
 
-                            marginBottom:
-                              "22px",
+                            maxWidth:
+                              "820px",
                           }}
                         >
-                          "
-                          {
-                            request.message
-                          }
-                          "
+                          {request?.message ||
+                            "No message available"}
                         </p>
-                      )}
+                      </div>
 
-                      {/* SKILLS */}
+                      <div
+                        style={{
+                          padding:
+                            "12px 18px",
+
+                          borderRadius:
+                            "16px",
+
+                          background:
+                            getStatusColor(
+                              request?.status
+                            ),
+
+                          color:
+                            "white",
+
+                          fontWeight:
+                            "700",
+                        }}
+                      >
+                        {request?.status}
+                      </div>
+                    </div>
+
+                    {/* DETAILS */}
+                    <div
+                      style={{
+                        display:
+                          "flex",
+
+                        flexWrap:
+                          "wrap",
+
+                        gap: "14px",
+
+                        marginBottom:
+                          "24px",
+
+                        position:
+                          "relative",
+
+                        zIndex: 2,
+                      }}
+                    >
+                      <div
+                        style={{
+                          padding:
+                            "10px 16px",
+
+                          borderRadius:
+                            "18px",
+
+                          background:
+                            "rgba(255,255,255,0.05)",
+
+                          border:
+                            "1px solid rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        👤{" "}
+                        {request
+                          ?.sender
+                          ?.name ||
+                          "Unknown"}
+                      </div>
+
+                      <div
+                        style={{
+                          padding:
+                            "10px 16px",
+
+                          borderRadius:
+                            "18px",
+
+                          background:
+                            "rgba(255,255,255,0.05)",
+
+                          border:
+                            "1px solid rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        📧{" "}
+                        {request
+                          ?.sender
+                          ?.email ||
+                          "No Email"}
+                      </div>
+
+                      <div
+                        style={{
+                          padding:
+                            "10px 16px",
+
+                          borderRadius:
+                            "18px",
+
+                          background:
+                            "rgba(255,255,255,0.05)",
+
+                          border:
+                            "1px solid rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        🚀{" "}
+                        {request?.requestType ||
+                          "Collaboration"}
+                      </div>
+                    </div>
+
+                    {/* ACTIONS */}
+                    {request?.status ===
+                      "Pending" && (
                       <div
                         style={{
                           display:
                             "flex",
 
+                          gap: "16px",
+
                           flexWrap:
                             "wrap",
 
-                          gap: "10px",
+                          position:
+                            "relative",
 
-                          marginBottom:
-                            "24px",
+                          zIndex: 2,
                         }}
                       >
-                        {request
-                          .sender
-                          ?.skillsHave?.map(
-                            (
-                              skill,
-                              index
-                            ) => (
-                              <span
-                                key={
-                                  index
-                                }
-                                style={{
-                                  padding:
-                                    "8px 14px",
-
-                                  borderRadius:
-                                    "22px",
-
-                                  background:
-                                    "rgba(79,70,229,0.16)",
-
-                                  fontSize:
-                                    "13px",
-                                }}
-                              >
-                                {
-                                  skill
-                                }
-                              </span>
+                        <button
+                          onClick={() =>
+                            acceptRequest(
+                              request?._id
                             )
-                          )}
-                      </div>
-
-                      {/* STATUS */}
-                      <p
-                        style={{
-                          marginBottom:
-                            "24px",
-
-                          color:
-                            request.status ===
-                            "Accepted"
-                              ? "#34D399"
-                              : request.status ===
-                                "Rejected"
-                              ? "#F87171"
-                              : "#FBBF24",
-
-                          fontWeight:
-                            "600",
-                        }}
-                      >
-                        Status:{" "}
-                        {
-                          request.status
-                        }
-                      </p>
-
-                      {/* ACTIONS */}
-                      {request.status ===
-                        "Pending" && (
-                        <div
+                          }
                           style={{
-                            display:
-                              "flex",
+                            padding:
+                              "14px 24px",
 
-                            gap: "14px",
+                            borderRadius:
+                              "16px",
 
-                            flexWrap:
-                              "wrap",
+                            border:
+                              "none",
+
+                            cursor:
+                              "pointer",
+
+                            fontWeight:
+                              "700",
+
+                            background:
+                              "linear-gradient(135deg, #10B981, #059669)",
+
+                            color:
+                              "white",
                           }}
                         >
-                          <button
-                            onClick={() =>
-                              acceptRequest(
-                                request._id
-                              )
-                            }
-                            style={{
-                              padding:
-                                "13px 22px",
+                          Accept Request
+                        </button>
 
-                              borderRadius:
-                                "14px",
+                        <button
+                          onClick={() =>
+                            rejectRequest(
+                              request?._id
+                            )
+                          }
+                          style={{
+                            padding:
+                              "14px 24px",
 
-                              background:
-                                "linear-gradient(135deg, #10B981, #059669)",
+                            borderRadius:
+                              "16px",
 
-                              color:
-                                "white",
+                            border:
+                              "none",
 
-                              border:
-                                "none",
+                            cursor:
+                              "pointer",
 
-                              cursor:
-                                "pointer",
+                            fontWeight:
+                              "700",
 
-                              fontWeight:
-                                "600",
+                            background:
+                              "linear-gradient(135deg, #EF4444, #DC2626)",
 
-                              boxShadow:
-                                "0 0 18px rgba(16,185,129,0.25)",
-                            }}
-                          >
-                            Accept
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              rejectRequest(
-                                request._id
-                              )
-                            }
-                            style={{
-                              padding:
-                                "13px 22px",
-
-                              borderRadius:
-                                "14px",
-
-                              background:
-                                "linear-gradient(135deg, #EF4444, #DC2626)",
-
-                              color:
-                                "white",
-
-                              border:
-                                "none",
-
-                              cursor:
-                                "pointer",
-
-                              fontWeight:
-                                "600",
-
-                              boxShadow:
-                                "0 0 18px rgba(239,68,68,0.25)",
-                            }}
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                            color:
+                              "white",
+                          }}
+                        >
+                          Reject Request
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )
               )}

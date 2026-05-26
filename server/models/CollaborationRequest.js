@@ -58,6 +58,8 @@ const collaborationRequestSchema =
       title: {
         type: String,
 
+        trim: true,
+
         default: "",
       },
 
@@ -83,6 +85,8 @@ const collaborationRequestSchema =
       message: {
         type: String,
 
+        trim: true,
+
         default: "",
       },
 
@@ -101,12 +105,34 @@ const collaborationRequestSchema =
         default:
           "Pending",
       },
+
+      //
+      // SOCKET / LIVE STATUS
+      //
+      isRealtime: {
+        type: Boolean,
+
+        default: true,
+      },
     },
 
     {
       timestamps: true,
     }
   );
+
+//
+// INDEXES
+//
+collaborationRequestSchema.index(
+  {
+    sender: 1,
+
+    receiver: 1,
+
+    idea: 1,
+  }
+);
 
 module.exports =
   mongoose.model(

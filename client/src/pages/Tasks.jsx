@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 
 import axios from "axios";
 
@@ -26,45 +30,71 @@ function Tasks() {
     useState(false);
 
   //
+  // TOKEN
+  //
+  const token =
+    localStorage.getItem(
+      "token"
+    );
+
+  //
   // FETCH TASKS
   //
-  const fetchTasks = async () => {
-    try {
-      setLoading(true);
+  const fetchTasks =
+    useCallback(
+      async () => {
+        try {
+          setLoading(true);
 
-      const response =
-        await API.get("/tasks");
+          const response =
+            await API.get(
+              "/tasks",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
 
-      if (
-        response?.data
-          ?.success
-      ) {
-        setTasks(
-          response?.data
-            ?.tasks || []
-        );
-      } else {
-        setTasks([]);
-      }
-    } catch (error) {
-      console.error(
-        "TASK FETCH ERROR:",
-        error.response?.data ||
-          error.message
-      );
+          if (
+            response?.data
+              ?.success
+          ) {
+            setTasks(
+              Array.isArray(
+                response.data
+                  .tasks
+              )
+                ? response.data
+                    .tasks
+                : []
+            );
+          } else {
+            setTasks([]);
+          }
+        } catch (error) {
+          console.error(
+            "TASK FETCH ERROR:",
+            error
+              ?.response
+              ?.data ||
+              error.message
+          );
 
-      setTasks([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+          setTasks([]);
+        } finally {
+          setLoading(false);
+        }
+      },
+      [token]
+    );
 
   //
   // INITIAL LOAD
   //
   useEffect(() => {
     fetchTasks();
-  }, []);
+  }, [fetchTasks]);
 
   //
   // UPDATE TASK STATUS
@@ -81,6 +111,11 @@ function Tasks() {
           {
             status,
             progress,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
 
@@ -88,7 +123,9 @@ function Tasks() {
       } catch (error) {
         console.log(
           "TASK UPDATE ERROR:",
-          error.response?.data ||
+          error
+            ?.response
+            ?.data ||
             error.message
         );
       }
@@ -101,14 +138,21 @@ function Tasks() {
     async (taskId) => {
       try {
         await API.delete(
-          `/tasks/${taskId}`
+          `/tasks/${taskId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
         fetchTasks();
       } catch (error) {
         console.log(
           "DELETE TASK ERROR:",
-          error.response?.data ||
+          error
+            ?.response
+            ?.data ||
             error.message
         );
       }
@@ -166,12 +210,21 @@ Keep it beginner-friendly and structured.
             "Pending",
 
           progress: 0,
+
+          priority:
+            "Medium",
         };
 
-        setTasks((prev) => [
-          aiTask,
-          ...prev,
-        ]);
+        setTasks(
+          (prev) => [
+            aiTask,
+            ...(Array.isArray(
+              prev
+            )
+              ? prev
+              : []),
+          ]
+        );
       } catch (error) {
         console.log(error);
 
@@ -187,25 +240,31 @@ Keep it beginner-friendly and structured.
   // COUNTS
   //
   const completedTasks =
-    tasks?.filter(
-      (task) =>
-        task?.status ===
-        "Completed"
-    )?.length || 0;
+    Array.isArray(tasks)
+      ? tasks.filter(
+          (task) =>
+            task?.status ===
+            "Completed"
+        ).length
+      : 0;
 
   const pendingTasks =
-    tasks?.filter(
-      (task) =>
-        task?.status ===
-        "Pending"
-    )?.length || 0;
+    Array.isArray(tasks)
+      ? tasks.filter(
+          (task) =>
+            task?.status ===
+            "Pending"
+        ).length
+      : 0;
 
   const inProgressTasks =
-    tasks?.filter(
-      (task) =>
-        task?.status ===
-        "In Progress"
-    )?.length || 0;
+    Array.isArray(tasks)
+      ? tasks.filter(
+          (task) =>
+            task?.status ===
+            "In Progress"
+        ).length
+      : 0;
 
   //
   // LOADING
@@ -390,8 +449,11 @@ Keep it beginner-friendly and structured.
                   "Total Tasks",
 
                 value:
-                  tasks?.length ||
-                  0,
+                  Array.isArray(
+                    tasks
+                  )
+                    ? tasks.length
+                    : 0,
 
                 icon: "📌",
               },
@@ -425,98 +487,106 @@ Keep it beginner-friendly and structured.
 
                 icon: "🚀",
               },
-            ].map((item, index) => (
-              <div
-                key={index}
-                className="glass-card"
-                style={{
-                  padding: "28px",
-
-                  position:
-                    "relative",
-
-                  overflow:
-                    "hidden",
-                }}
-              >
+            ].map(
+              (
+                item,
+                index
+              ) => (
                 <div
+                  key={index}
+                  className="glass-card"
                   style={{
-                    position:
-                      "absolute",
-
-                    width: "180px",
-
-                    height:
-                      "180px",
-
-                    background:
-                      "rgba(124,58,237,0.08)",
-
-                    borderRadius:
-                      "50%",
-
-                    filter:
-                      "blur(70px)",
-
-                    top: "-60px",
-
-                    right: "-60px",
-                  }}
-                />
-
-                <div
-                  style={{
-                    display: "flex",
-
-                    justifyContent:
-                      "space-between",
-
-                    alignItems:
-                      "center",
-
-                    marginBottom:
-                      "14px",
+                    padding:
+                      "28px",
 
                     position:
                       "relative",
 
-                    zIndex: 2,
+                    overflow:
+                      "hidden",
                   }}
                 >
-                  <h2
+                  <div
                     style={{
-                      fontSize:
-                        "26px",
-                    }}
-                  >
-                    {item.title}
-                  </h2>
+                      position:
+                        "absolute",
 
-                  <span
+                      width:
+                        "180px",
+
+                      height:
+                        "180px",
+
+                      background:
+                        "rgba(124,58,237,0.08)",
+
+                      borderRadius:
+                        "50%",
+
+                      filter:
+                        "blur(70px)",
+
+                      top: "-60px",
+
+                      right: "-60px",
+                    }}
+                  />
+
+                  <div
                     style={{
-                      fontSize:
-                        "30px",
+                      display:
+                        "flex",
+
+                      justifyContent:
+                        "space-between",
+
+                      alignItems:
+                        "center",
+
+                      marginBottom:
+                        "14px",
+
+                      position:
+                        "relative",
+
+                      zIndex: 2,
                     }}
                   >
-                    {item.icon}
-                  </span>
+                    <h2
+                      style={{
+                        fontSize:
+                          "26px",
+                      }}
+                    >
+                      {item.title}
+                    </h2>
+
+                    <span
+                      style={{
+                        fontSize:
+                          "30px",
+                      }}
+                    >
+                      {item.icon}
+                    </span>
+                  </div>
+
+                  <h1
+                    style={{
+                      fontSize:
+                        "48px",
+
+                      position:
+                        "relative",
+
+                      zIndex: 2,
+                    }}
+                  >
+                    {item.value}
+                  </h1>
                 </div>
-
-                <h1
-                  style={{
-                    fontSize:
-                      "48px",
-
-                    position:
-                      "relative",
-
-                    zIndex: 2,
-                  }}
-                >
-                  {item.value}
-                </h1>
-              </div>
-            ))}
+              )
+            )}
           </div>
 
           {/* AI GENERATOR */}
@@ -617,7 +687,7 @@ Keep it beginner-friendly and structured.
           </div>
 
           {/* EMPTY */}
-          {tasks?.length === 0 ? (
+          {tasks.length === 0 ? (
             <div
               className="glass-card"
               style={{
@@ -665,7 +735,7 @@ Keep it beginner-friendly and structured.
                 gap: "26px",
               }}
             >
-              {tasks?.map(
+              {tasks.map(
                 (task) => (
                   <div
                     key={

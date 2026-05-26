@@ -2,29 +2,27 @@ import {
   useState,
   useEffect,
   useRef,
+  useCallback,
 } from "react";
-
-import {
-  useNavigate,
-} from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
+import Loader from "../components/Loader";
 
 import API from "../services/api";
 
 import socket from "../socket";
 
 function Chat() {
-  // NAVIGATE
-  const navigate =
-    useNavigate();
-
+  //
   // SCROLL REF
+  //
   const messagesEndRef =
     useRef(null);
 
-  // SAFE USER PARSE
+  //
+  // SAFE USER
+  //
   const storedUser =
     localStorage.getItem(
       "user"
@@ -37,35 +35,48 @@ function Chat() {
         )
       : {};
 
-  // COLLABORATORS
+  const currentUserId =
+    currentUser?._id ||
+    currentUser?.userId ||
+    "";
+
+  //
+  // STATES
+  //
   const [
     collaborators,
     setCollaborators,
   ] = useState([]);
 
-  // SELECTED USER
   const [
     selectedUser,
     setSelectedUser,
   ] = useState(null);
 
-  // MESSAGES
   const [messages, setMessages] =
     useState([]);
 
-  // INPUT
   const [input, setInput] =
     useState("");
 
-  // TYPING
   const [typing, setTyping] =
     useState(false);
 
-  // ONLINE USERS
   const [
     onlineUsers,
     setOnlineUsers,
   ] = useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  //
+  // TOKEN
+  //
+  const token =
+    localStorage.getItem(
+      "token"
+    );
 
   //
   // AUTO SCROLL
@@ -80,39 +91,18 @@ function Chat() {
       );
     };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  //
-  // SOCKET JOIN
-  //
-  useEffect(() => {
-    if (
-      currentUser?.userId
-    ) {
-      socket.emit(
-        "join_user",
-        currentUser.userId
-      );
-    }
-  }, [currentUser.userId]);
-
   //
   // FETCH USERS
   //
-  useEffect(() => {
-    const fetchUsers =
+  const fetchCollaborators =
+    useCallback(
       async () => {
         try {
-          const token =
-            localStorage.getItem(
-              "token"
-            );
+          setLoading(true);
 
           const response =
             await API.get(
-              "/user/all-users",
+              "/users/all",
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -120,56 +110,60 @@ function Chat() {
               }
             );
 
-          const filteredUsers =
-            response.data.filter(
-              (user) =>
-                user._id !==
-                currentUser.userId
-            );
-
-          setCollaborators(
-            filteredUsers
-          );
-
           if (
-            filteredUsers.length >
-            0
+            response?.data
+              ?.success
           ) {
-            setSelectedUser(
-              filteredUsers[0]
+            const filtered =
+              Array.isArray(
+                response.data
+                  .users
+              )
+                ? response.data.users.filter(
+                    (
+                      user
+                    ) =>
+                      user?._id !==
+                      currentUserId
+                  )
+                : [];
+
+            setCollaborators(
+              filtered
             );
+          } else {
+            setCollaborators([]);
           }
         } catch (error) {
           console.log(
-            "USER FETCH ERROR:",
-            error.response
+            "COLLABORATOR ERROR:",
+            error
+              ?.response
               ?.data ||
               error.message
           );
-        }
-      };
 
-    fetchUsers();
-  }, [currentUser.userId]);
+          setCollaborators([]);
+        } finally {
+          setLoading(false);
+        }
+      },
+      [
+        token,
+        currentUserId,
+      ]
+    );
 
   //
   // FETCH MESSAGES
   //
-  useEffect(() => {
-    const fetchMessages =
-      async () => {
-        if (!selectedUser)
-          return;
-
+  const fetchMessages =
+    useCallback(
+      async (receiverId) => {
         try {
-          const token =
-            localStorage.getItem(
-              "token"
-            );
-
           const response =
             await API.get(
-              `/messages/${selectedUser._id}`,
+              `/messages/${receiverId}`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -177,56 +171,82 @@ function Chat() {
               }
             );
 
-          setMessages(
-            response.data
-          );
+          if (
+            response?.data
+              ?.success
+          ) {
+            setMessages(
+              Array.isArray(
+                response.data
+                  .messages
+              )
+                ? response.data
+                    .messages
+                : []
+            );
+          } else {
+            setMessages([]);
+          }
         } catch (error) {
           console.log(
-            "MESSAGE FETCH ERROR:",
-            error.response
+            "MESSAGE ERROR:",
+            error
+              ?.response
               ?.data ||
               error.message
           );
-        }
-      };
 
-    fetchMessages();
+          setMessages([]);
+        }
+      },
+      [token]
+    );
+
+  //
+  // LOAD USERS
+  //
+  useEffect(() => {
+    fetchCollaborators();
   }, [
-    selectedUser,
-    currentUser.userId,
+    fetchCollaborators,
   ]);
 
   //
-  // REALTIME SOCKET EVENTS
+  // SOCKET CONNECTION
   //
   useEffect(() => {
-    //
-    // RECEIVE MESSAGE
-    //
+    if (!currentUserId)
+      return;
+
+    socket.emit(
+      "join",
+      currentUserId
+    );
+
     socket.on(
-      "receive_message",
-      (messageData) => {
+      "receiveMessage",
+      (message) => {
         if (
-          messageData.sender ===
+          message?.sender ===
             selectedUser?._id ||
-          messageData.receiverId ===
+          message?.receiver ===
+            selectedUser?._id ||
+          message?.sender
+            ?._id ===
             selectedUser?._id
         ) {
           setMessages(
             (prev) => [
               ...prev,
-              messageData,
+              message,
             ]
           );
         }
       }
     );
 
-    //
-    // USER TYPING
-    //
     socket.on(
-      "user_typing",
+      "typing",
       () => {
         setTyping(true);
 
@@ -236,59 +256,73 @@ function Chat() {
       }
     );
 
-    //
-    // ONLINE USERS
-    //
     socket.on(
-      "online_users",
+      "onlineUsers",
       (users) => {
         setOnlineUsers(
-          users
+          Array.isArray(
+            users
+          )
+            ? users
+            : []
         );
       }
     );
 
-    //
-    // CLEANUP
-    //
     return () => {
       socket.off(
-        "receive_message"
+        "receiveMessage"
       );
 
-      socket.off(
-        "user_typing"
-      );
+      socket.off("typing");
 
       socket.off(
-        "online_users"
+        "onlineUsers"
       );
     };
-  }, [selectedUser]);
+  }, [
+    currentUserId,
+    selectedUser,
+  ]);
+
+  //
+  // AUTO SCROLL
+  //
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  //
+  // SELECT USER
+  //
+  const selectUser =
+    async (user) => {
+      setSelectedUser(user);
+
+      await fetchMessages(
+        user?._id
+      );
+    };
 
   //
   // SEND MESSAGE
   //
-  const handleSendMessage =
+  const sendMessage =
     async () => {
       if (
         !input.trim() ||
         !selectedUser
-      )
+      ) {
         return;
+      }
 
       try {
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
         const response =
           await API.post(
-            "/messages",
+            "/messages/send",
             {
-              receiverId:
-                selectedUser._id,
+              receiver:
+                selectedUser?._id,
 
               text: input,
             },
@@ -299,30 +333,33 @@ function Chat() {
             }
           );
 
-        // UPDATE UI
-        setMessages(
-          (prev) => [
-            ...prev,
-            response.data,
-          ]
-        );
+        if (
+          response?.data
+            ?.success
+        ) {
+          const newMessage =
+            response.data
+              .message;
 
-        // REALTIME EMIT
-        socket.emit(
-          "send_message",
-          {
-            ...response.data,
+          setMessages(
+            (prev) => [
+              ...prev,
+              newMessage,
+            ]
+          );
 
-            receiverId:
-              selectedUser._id,
-          }
-        );
+          socket.emit(
+            "sendMessage",
+            newMessage
+          );
 
-        setInput("");
+          setInput("");
+        }
       } catch (error) {
         console.log(
           "SEND ERROR:",
-          error.response
+          error
+            ?.response
             ?.data ||
             error.message
         );
@@ -330,44 +367,23 @@ function Chat() {
     };
 
   //
-  // TYPING EVENT
+  // ENTER SEND
   //
-  const handleTyping =
+  const handleKeyDown =
     (e) => {
-      setInput(
-        e.target.value
-      );
-
-      socket.emit(
-        "typing",
-        {
-          sender:
-            currentUser.userId,
-
-          receiver:
-            selectedUser?._id,
-        }
-      );
+      if (
+        e.key === "Enter"
+      ) {
+        sendMessage();
+      }
     };
 
   //
-  // START MEETING
+  // LOADING
   //
-  const handleStartMeeting =
-    () => {
-      if (!selectedUser)
-        return;
-
-      const roomId =
-        selectedUser.name.replace(
-          /\s+/g,
-          "-"
-        ) + "-BuildX";
-
-      navigate(
-        `/meeting/${roomId}`
-      );
-    };
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div
@@ -380,63 +396,14 @@ function Chat() {
         color: "white",
 
         overflow: "hidden",
-
-        position: "relative",
       }}
     >
-      {/* GLOW */}
-      <div
-        style={{
-          position: "absolute",
-
-          width: "500px",
-
-          height: "500px",
-
-          background:
-            "rgba(59,130,246,0.10)",
-
-          borderRadius: "50%",
-
-          filter: "blur(140px)",
-
-          top: "-180px",
-
-          left: "-120px",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-
-          width: "450px",
-
-          height: "450px",
-
-          background:
-            "rgba(124,58,237,0.12)",
-
-          borderRadius: "50%",
-
-          filter: "blur(130px)",
-
-          bottom: "-150px",
-
-          right: "-100px",
-        }}
-      />
-
       {/* NAVBAR */}
       <Navbar />
 
       <div
         style={{
           display: "flex",
-
-          position: "relative",
-
-          zIndex: 2,
         }}
       >
         {/* SIDEBAR */}
@@ -447,165 +414,185 @@ function Chat() {
           style={{
             flex: 1,
 
+            padding: "30px",
+
             display: "flex",
 
-            padding: "32px",
+            gap: "24px",
 
-            gap: "26px",
+            height:
+              "calc(100vh - 80px)",
           }}
         >
-          {/* USERS */}
+          {/* USERS PANEL */}
           <div
-            className="glass-card"
             style={{
               width: "340px",
 
-              padding: "28px",
+              borderRadius:
+                "28px",
 
-              overflowY:
-                "auto",
+              background:
+                "rgba(255,255,255,0.05)",
+
+              border:
+                "1px solid rgba(255,255,255,0.08)",
+
+              backdropFilter:
+                "blur(18px)",
+
+              overflow: "hidden",
+
+              display: "flex",
+
+              flexDirection:
+                "column",
             }}
           >
-            <h2
-              className="section-title"
-              style={{
-                marginBottom:
-                  "30px",
-
-                fontSize: "38px",
-              }}
-            >
-              Collaborators
-            </h2>
-
+            {/* HEADER */}
             <div
               style={{
-                display: "flex",
+                padding: "24px",
 
-                flexDirection:
-                  "column",
+                borderBottom:
+                  "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize:
+                    "32px",
+                }}
+              >
+                Chats 💬
+              </h2>
+            </div>
 
-                gap: "18px",
+            {/* USERS */}
+            <div
+              style={{
+                flex: 1,
+
+                overflowY:
+                  "auto",
               }}
             >
               {collaborators.map(
                 (user) => {
-                  const isOnline =
+                  const online =
                     onlineUsers.includes(
-                      user._id
+                      user?._id
                     );
 
                   return (
                     <div
-                      key={user._id}
+                      key={
+                        user?._id
+                      }
                       onClick={() =>
-                        setSelectedUser(
+                        selectUser(
                           user
                         )
                       }
                       style={{
                         padding:
-                          "18px",
-
-                        borderRadius:
-                          "22px",
+                          "20px",
 
                         cursor:
                           "pointer",
 
-                        transition:
-                          "0.3s ease",
+                        borderBottom:
+                          "1px solid rgba(255,255,255,0.05)",
 
                         background:
                           selectedUser?._id ===
-                          user._id
-                            ? "linear-gradient(135deg, #2563EB, #7C3AED)"
-                            : "rgba(255,255,255,0.04)",
+                          user?._id
+                            ? "rgba(124,58,237,0.25)"
+                            : "transparent",
 
-                        border:
-                          "1px solid rgba(255,255,255,0.08)",
-
-                        position:
-                          "relative",
+                        transition:
+                          "0.3s",
                       }}
                     >
-                      {/* ONLINE STATUS */}
                       <div
                         style={{
-                          position:
-                            "absolute",
+                          display:
+                            "flex",
 
-                          top: "18px",
+                          alignItems:
+                            "center",
 
-                          right:
-                            "18px",
-
-                          width:
-                            "12px",
-
-                          height:
-                            "12px",
-
-                          borderRadius:
-                            "50%",
-
-                          background:
-                            isOnline
-                              ? "#10B981"
-                              : "#6B7280",
-
-                          boxShadow:
-                            isOnline
-                              ? "0 0 12px #10B981"
-                              : "none",
-                        }}
-                      />
-
-                      <h3
-                        style={{
-                          marginBottom:
-                            "6px",
-
-                          fontSize:
-                            "24px",
-
-                          color:
-                            "white",
+                          gap: "16px",
                         }}
                       >
-                        {user.name}
-                      </h3>
+                        {/* AVATAR */}
+                        <div
+                          style={{
+                            width:
+                              "56px",
 
-                      <p
-                        style={{
-                          color:
-                            "#CBD5E1",
+                            height:
+                              "56px",
 
-                          fontSize:
-                            "14px",
+                            borderRadius:
+                              "50%",
 
-                          marginBottom:
-                            "8px",
-                        }}
-                      >
-                        {user.email}
-                      </p>
+                            background:
+                              "linear-gradient(135deg, #8B5CF6, #EC4899)",
 
-                      <p
-                        style={{
-                          color:
-                            isOnline
-                              ? "#10B981"
-                              : "#9CA3AF",
+                            display:
+                              "flex",
 
-                          fontSize:
-                            "12px",
-                        }}
-                      >
-                        {isOnline
-                          ? "● Online"
-                          : "● Offline"}
-                      </p>
+                            alignItems:
+                              "center",
+
+                            justifyContent:
+                              "center",
+
+                            fontWeight:
+                              "bold",
+
+                            fontSize:
+                              "22px",
+                          }}
+                        >
+                          {user?.name
+                            ?.charAt(
+                              0
+                            )
+                            ?.toUpperCase()}
+                        </div>
+
+                        {/* INFO */}
+                        <div>
+                          <h3
+                            style={{
+                              marginBottom:
+                                "6px",
+                            }}
+                          >
+                            {
+                              user?.name
+                            }
+                          </h3>
+
+                          <p
+                            style={{
+                              color:
+                                online
+                                  ? "#10B981"
+                                  : "#94A3B8",
+
+                              fontSize:
+                                "13px",
+                            }}
+                          >
+                            {online
+                              ? "Online"
+                              : "Offline"}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   );
                 }
@@ -613,273 +600,365 @@ function Chat() {
             </div>
           </div>
 
-          {/* CHAT */}
+          {/* CHAT PANEL */}
           <div
-            className="glass-card"
             style={{
               flex: 1,
+
+              borderRadius:
+                "28px",
+
+              background:
+                "rgba(255,255,255,0.05)",
+
+              border:
+                "1px solid rgba(255,255,255,0.08)",
+
+              backdropFilter:
+                "blur(18px)",
 
               display: "flex",
 
               flexDirection:
                 "column",
 
-              overflow:
-                "hidden",
+              overflow: "hidden",
             }}
           >
-            {/* HEADER */}
-            <div
-              style={{
-                padding: "28px",
+            {/* EMPTY */}
+            {!selectedUser ? (
+              <div
+                style={{
+                  flex: 1,
 
-                borderBottom:
-                  "1px solid rgba(255,255,255,0.08)",
+                  display:
+                    "flex",
 
-                display: "flex",
+                  alignItems:
+                    "center",
 
-                justifyContent:
-                  "space-between",
+                  justifyContent:
+                    "center",
 
-                alignItems:
-                  "center",
-              }}
-            >
-              <div>
-                <h2
+                  flexDirection:
+                    "column",
+                }}
+              >
+                <h1
                   style={{
                     fontSize:
-                      "38px",
+                      "48px",
 
                     marginBottom:
-                      "6px",
+                      "16px",
                   }}
                 >
-                  {
-                    selectedUser?.name
-                  }
-                </h2>
+                  BuildX Chat 🚀
+                </h1>
 
                 <p
                   style={{
                     color:
                       "#CBD5E1",
-
-                    fontSize:
-                      "15px",
                   }}
                 >
-                  {
-                    selectedUser?.email
-                  }
+                  Select a user
+                  to start
+                  chatting.
                 </p>
+              </div>
+            ) : (
+              <>
+                {/* HEADER */}
+                <div
+                  style={{
+                    padding:
+                      "24px",
 
-                {typing && (
-                  <p
+                    borderBottom:
+                      "1px solid rgba(255,255,255,0.08)",
+
+                    display:
+                      "flex",
+
+                    alignItems:
+                      "center",
+
+                    gap: "16px",
+                  }}
+                >
+                  <div
                     style={{
-                      color:
-                        "#A78BFA",
+                      width:
+                        "58px",
 
-                      marginTop:
-                        "8px",
+                      height:
+                        "58px",
+
+                      borderRadius:
+                        "50%",
+
+                      background:
+                        "linear-gradient(135deg, #8B5CF6, #EC4899)",
+
+                      display:
+                        "flex",
+
+                      alignItems:
+                        "center",
+
+                      justifyContent:
+                        "center",
+
+                      fontWeight:
+                        "bold",
 
                       fontSize:
-                        "13px",
+                        "24px",
                     }}
                   >
-                    typing...
-                  </p>
-                )}
-              </div>
+                    {selectedUser?.name
+                      ?.charAt(0)
+                      ?.toUpperCase()}
+                  </div>
 
-              <button
-                onClick={
-                  handleStartMeeting
-                }
-                style={{
-                  padding:
-                    "14px 24px",
+                  <div>
+                    <h2>
+                      {
+                        selectedUser?.name
+                      }
+                    </h2>
 
-                  borderRadius:
-                    "16px",
-
-                  border: "none",
-
-                  background:
-                    "linear-gradient(135deg, #2563EB, #7C3AED)",
-
-                  color:
-                    "white",
-
-                  fontWeight:
-                    "600",
-
-                  cursor:
-                    "pointer",
-
-                  boxShadow:
-                    "0 0 22px rgba(124,58,237,0.24)",
-                }}
-              >
-                Start Meeting
-              </button>
-            </div>
-
-            {/* MESSAGES */}
-            <div
-              style={{
-                flex: 1,
-
-                padding: "28px",
-
-                overflowY:
-                  "auto",
-
-                display: "flex",
-
-                flexDirection:
-                  "column",
-
-                gap: "18px",
-              }}
-            >
-              {messages.map(
-                (
-                  message,
-                  index
-                ) => (
-                  <div
-                    key={index}
-                    style={{
-                      alignSelf:
-                        message.sender ===
-                        currentUser.userId
-                          ? "flex-end"
-                          : "flex-start",
-
-                      maxWidth:
-                        "72%",
-                    }}
-                  >
-                    <div
+                    <p
                       style={{
-                        background:
-                          message.sender ===
-                          currentUser.userId
-                            ? "linear-gradient(135deg, #2563EB, #7C3AED)"
-                            : "rgba(255,255,255,0.06)",
+                        color:
+                          onlineUsers.includes(
+                            selectedUser?._id
+                          )
+                            ? "#10B981"
+                            : "#94A3B8",
 
-                        padding:
-                          "16px 20px",
-
-                        borderRadius:
-                          "22px",
-
-                        border:
-                          "1px solid rgba(255,255,255,0.08)",
+                        fontSize:
+                          "13px",
                       }}
                     >
-                      <p
-                        style={{
-                          lineHeight:
-                            "1.8",
-
-                          fontSize:
-                            "16px",
-                        }}
-                      >
-                        {
-                          message.text
-                        }
-                      </p>
-                    </div>
+                      {onlineUsers.includes(
+                        selectedUser?._id
+                      )
+                        ? "Online"
+                        : "Offline"}
+                    </p>
                   </div>
-                )
-              )}
+                </div>
 
-              <div
-                ref={
-                  messagesEndRef
-                }
-              />
-            </div>
+                {/* MESSAGES */}
+                <div
+                  style={{
+                    flex: 1,
 
-            {/* INPUT */}
-            <div
-              style={{
-                padding: "24px",
+                    padding:
+                      "28px",
 
-                borderTop:
-                  "1px solid rgba(255,255,255,0.08)",
+                    overflowY:
+                      "auto",
 
-                display: "flex",
+                    display:
+                      "flex",
 
-                gap: "16px",
-              }}
-            >
-              <input
-                type="text"
-                placeholder="Type your message..."
-                value={input}
-                onChange={
-                  handleTyping
-                }
-                style={{
-                  flex: 1,
+                    flexDirection:
+                      "column",
 
-                  padding: "18px",
+                    gap: "18px",
+                  }}
+                >
+                  {messages.map(
+                    (
+                      message,
+                      index
+                    ) => {
+                      const mine =
+                        message?.sender ===
+                          currentUserId ||
+                        message
+                          ?.sender
+                          ?._id ===
+                          currentUserId;
 
-                  borderRadius:
-                    "18px",
+                      return (
+                        <div
+                          key={
+                            index
+                          }
+                          style={{
+                            display:
+                              "flex",
 
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
+                            justifyContent:
+                              mine
+                                ? "flex-end"
+                                : "flex-start",
+                          }}
+                        >
+                          <div
+                            style={{
+                              maxWidth:
+                                "70%",
 
-                  background:
-                    "rgba(255,255,255,0.04)",
+                              padding:
+                                "16px 20px",
 
-                  color: "white",
+                              borderRadius:
+                                mine
+                                  ? "22px 22px 0 22px"
+                                  : "22px 22px 22px 0",
 
-                  outline:
-                    "none",
+                              background:
+                                mine
+                                  ? "linear-gradient(135deg, #8B5CF6, #EC4899)"
+                                  : "rgba(255,255,255,0.08)",
 
-                  fontSize:
-                    "15px",
-                }}
-              />
+                              color:
+                                "white",
+                            }}
+                          >
+                            <p
+                              style={{
+                                lineHeight:
+                                  "1.7",
+                              }}
+                            >
+                              {message?.text}
+                            </p>
 
-              <button
-                onClick={
-                  handleSendMessage
-                }
-                style={{
-                  padding:
-                    "18px 28px",
+                            <div
+                              style={{
+                                marginTop:
+                                  "10px",
 
-                  borderRadius:
-                    "18px",
+                                fontSize:
+                                  "11px",
 
-                  border: "none",
+                                opacity:
+                                  0.7,
+                              }}
+                            >
+                              {message?.createdAt
+                                ? new Date(
+                                    message.createdAt
+                                  ).toLocaleTimeString()
+                                : ""}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                  )}
 
-                  background:
-                    "linear-gradient(135deg, #2563EB, #7C3AED)",
+                  {/* TYPING */}
+                  {typing && (
+                    <p
+                      style={{
+                        color:
+                          "#CBD5E1",
+                      }}
+                    >
+                      Typing...
+                    </p>
+                  )}
 
-                  color:
-                    "white",
+                  <div
+                    ref={
+                      messagesEndRef
+                    }
+                  />
+                </div>
 
-                  fontWeight:
-                    "600",
+                {/* INPUT */}
+                <div
+                  style={{
+                    padding:
+                      "24px",
 
-                  fontSize:
-                    "15px",
+                    borderTop:
+                      "1px solid rgba(255,255,255,0.08)",
 
-                  cursor:
-                    "pointer",
-                }}
-              >
-                Send
-              </button>
-            </div>
+                    display:
+                      "flex",
+
+                    gap: "16px",
+                  }}
+                >
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) =>
+                      setInput(
+                        e.target
+                          .value
+                      )
+                    }
+                    onKeyDown={
+                      handleKeyDown
+                    }
+                    placeholder="Type your message..."
+                    style={{
+                      flex: 1,
+
+                      padding:
+                        "18px 22px",
+
+                      borderRadius:
+                        "18px",
+
+                      border:
+                        "1px solid rgba(255,255,255,0.08)",
+
+                      background:
+                        "rgba(255,255,255,0.05)",
+
+                      color:
+                        "white",
+
+                      outline:
+                        "none",
+
+                      fontSize:
+                        "15px",
+                    }}
+                  />
+
+                  <button
+                    onClick={
+                      sendMessage
+                    }
+                    style={{
+                      padding:
+                        "18px 28px",
+
+                      borderRadius:
+                        "18px",
+
+                      border:
+                        "none",
+
+                      cursor:
+                        "pointer",
+
+                      fontWeight:
+                        "700",
+
+                      background:
+                        "linear-gradient(135deg, #8B5CF6, #EC4899)",
+
+                      color:
+                        "white",
+                    }}
+                  >
+                    Send 🚀
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -1,95 +1,195 @@
-const Project = require("../models/Project");
-const Task = require("../models/Task");
+const Project =
+  require("../models/Project");
 
+const Task =
+  require("../models/Task");
+
+const Idea =
+  require("../models/Idea");
+
+//
 // CREATE PROJECT
-exports.createProject = async (
-  req,
-  res
-) => {
-  try {
-    const {
-      title,
-      description,
-      linkedIdea,
-    } = req.body;
-
-    const project =
-      await Project.create({
+//
+exports.createProject =
+  async (req, res) => {
+    try {
+      const {
         title,
-
         description,
-
-        owner: req.user,
-
-        members: [req.user],
-
         linkedIdea,
+        priority,
+        visibility,
+        deadline,
+        tags,
+      } = req.body;
 
-        status: "Pending",
+      //
+      // VALIDATION
+      //
+      if (!title) {
+        return res
+          .status(400)
+          .json({
+            success: false,
 
-        completionPercentage: 0,
+            message:
+              "Project title is required",
+          });
+      }
 
-        totalTasks: 0,
+      //
+      // SAFE TAGS
+      //
+      let safeTags =
+        [];
 
-        completedTasks: 0,
-      });
+      if (
+        Array.isArray(tags)
+      ) {
+        safeTags = tags;
+      } else if (
+        typeof tags ===
+        "string"
+      ) {
+        safeTags =
+          tags
+            .split(",")
+            .map((tag) =>
+              tag.trim()
+            );
+      }
 
-    res.status(201).json({
-      success: true,
+      //
+      // CREATE PROJECT
+      //
+      const project =
+        await Project.create({
+          title,
 
-      project,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
+          description,
 
-      error: error.message,
-    });
-  }
-};
+          owner:
+            req.user._id,
 
-// GET ALL PROJECTS
-exports.getProjects = async (
-  req,
-  res
-) => {
-  try {
-    const projects =
-      await Project.find()
+          members: [
+            req.user._id,
+          ],
 
-        .populate(
-          "owner",
-          "name email"
-        )
+          linkedIdea,
 
-        .populate(
-          "members",
-          "name email"
-        )
+          priority:
+            priority ||
+            "Medium",
 
-        .populate(
-          "linkedIdea"
-        )
+          visibility:
+            visibility ||
+            "Public",
 
-        .sort({
-          createdAt: -1,
+          deadline,
+
+          tags: safeTags,
+
+          status:
+            "Pending",
+
+          completionPercentage: 0,
+
+          totalTasks: 0,
+
+          completedTasks: 0,
         });
 
-    res.json({
-      success: true,
+      //
+      // LINK PROJECT TO IDEA
+      //
+      if (
+        linkedIdea
+      ) {
+        const idea =
+          await Idea.findById(
+            linkedIdea
+          );
 
-      projects,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
+        if (idea) {
+          idea.linkedProject =
+            project._id;
 
-      error: error.message,
-    });
-  }
-};
+          await idea.save();
+        }
+      }
 
+      res.status(201).json({
+        success: true,
+
+        message:
+          "Project created successfully 🚀",
+
+        project,
+      });
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        success: false,
+
+        message:
+          error.message,
+      });
+    }
+  };
+
+//
+// GET ALL PROJECTS
+//
+exports.getProjects =
+  async (req, res) => {
+    try {
+      const projects =
+        await Project.find()
+
+          .populate(
+            "owner",
+            "name email role profilePicture"
+          )
+
+          .populate(
+            "members",
+            "name email role profilePicture"
+          )
+
+          .populate(
+            "linkedIdea"
+          )
+
+          .sort({
+            createdAt: -1,
+          });
+
+      res.json({
+        success: true,
+
+        projects:
+          Array.isArray(
+            projects
+          )
+            ? projects
+            : [],
+      });
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        success: false,
+
+        message:
+          error.message,
+      });
+    }
+  };
+
+//
 // GET SINGLE PROJECT
+//
 exports.getProjectById =
   async (req, res) => {
     try {
@@ -100,12 +200,12 @@ exports.getProjectById =
 
           .populate(
             "owner",
-            "name email"
+            "name email role profilePicture"
           )
 
           .populate(
             "members",
-            "name email"
+            "name email role profilePicture"
           )
 
           .populate(
@@ -123,33 +223,82 @@ exports.getProjectById =
           });
       }
 
-      // Get Tasks
+      //
+      // GET TASKS
+      //
       const tasks =
         await Task.find({
           project:
             project._id,
         }).populate(
           "assignedTo",
-          "name email"
+          "name email role"
         );
+
+      //
+      // AUTO TASK COUNTS
+      //
+      const totalTasks =
+        tasks.length;
+
+      const completedTasks =
+        tasks.filter(
+          (task) =>
+            task.status ===
+            "Completed"
+        ).length;
+
+      //
+      // UPDATE COUNTS
+      //
+      project.totalTasks =
+        totalTasks;
+
+      project.completedTasks =
+        completedTasks;
+
+      if (
+        totalTasks > 0
+      ) {
+        project.completionPercentage =
+          Math.round(
+            (completedTasks /
+              totalTasks) *
+              100
+          );
+      } else {
+        project.completionPercentage = 0;
+      }
+
+      await project.save();
 
       res.json({
         success: true,
 
         project,
 
-        tasks,
+        tasks:
+          Array.isArray(
+            tasks
+          )
+            ? tasks
+            : [],
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         success: false,
 
-        error: error.message,
+        message:
+          error.message,
       });
     }
   };
 
+//
 // UPDATE PROJECT STATUS
+//
 exports.updateProjectStatus =
   async (req, res) => {
     try {
@@ -173,6 +322,31 @@ exports.updateProjectStatus =
           });
       }
 
+      //
+      // VALID STATUS
+      //
+      const validStatuses =
+        [
+          "Pending",
+          "In Progress",
+          "Completed",
+        ];
+
+      if (
+        !validStatuses.includes(
+          status
+        )
+      ) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+
+            message:
+              "Invalid project status",
+          });
+      }
+
       project.status =
         status;
 
@@ -182,20 +356,25 @@ exports.updateProjectStatus =
         success: true,
 
         message:
-          "Project status updated",
+          "Project status updated successfully 🚀",
 
         project,
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         success: false,
 
-        error: error.message,
+        message:
+          error.message,
       });
     }
   };
 
+//
 // ADD MEMBER TO PROJECT
+//
 exports.addMember =
   async (req, res) => {
     try {
@@ -219,39 +398,73 @@ exports.addMember =
           });
       }
 
+      //
+      // SAFE MEMBERS ARRAY
+      //
+      if (
+        !Array.isArray(
+          project.members
+        )
+      ) {
+        project.members =
+          [];
+      }
+
+      //
+      // CHECK MEMBER
+      //
       const alreadyMember =
-        project.members.includes(
-          userId
+        project.members.some(
+          (member) =>
+            member.toString() ===
+            userId.toString()
         );
 
       if (
-        !alreadyMember
+        alreadyMember
       ) {
-        project.members.push(
-          userId
-        );
+        return res
+          .status(400)
+          .json({
+            success: false,
 
-        await project.save();
+            message:
+              "User is already a project member",
+          });
       }
+
+      //
+      // ADD MEMBER
+      //
+      project.members.push(
+        userId
+      );
+
+      await project.save();
 
       res.json({
         success: true,
 
         message:
-          "Member added successfully",
+          "Member added successfully 🚀",
 
         project,
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         success: false,
 
-        error: error.message,
+        message:
+          error.message,
       });
     }
   };
 
+//
 // DELETE PROJECT
+//
 exports.deleteProject =
   async (req, res) => {
     try {
@@ -271,26 +484,71 @@ exports.deleteProject =
           });
       }
 
-      // Delete Tasks
-      await Task.deleteMany({
-        project:
-          project._id,
-      });
+      //
+      // OWNER CHECK
+      //
+      if (
+        project.owner.toString() !==
+        req.user._id.toString()
+      ) {
+        return res
+          .status(403)
+          .json({
+            success: false,
 
-      // Delete Project
+            message:
+              "Only owner can delete project",
+          });
+      }
+
+      //
+      // DELETE ALL TASKS
+      //
+      await Task.deleteMany(
+        {
+          project:
+            project._id,
+        }
+      );
+
+      //
+      // REMOVE LINK FROM IDEA
+      //
+      if (
+        project.linkedIdea
+      ) {
+        const idea =
+          await Idea.findById(
+            project.linkedIdea
+          );
+
+        if (idea) {
+          idea.linkedProject =
+            null;
+
+          await idea.save();
+        }
+      }
+
+      //
+      // DELETE PROJECT
+      //
       await project.deleteOne();
 
       res.json({
         success: true,
 
         message:
-          "Project deleted successfully",
+          "Project deleted successfully 🚀",
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         success: false,
 
-        error: error.message,
+        message:
+          error.message,
       });
     }
   };

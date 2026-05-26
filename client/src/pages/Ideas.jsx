@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 
 import {
   Link,
@@ -26,6 +30,14 @@ function Ideas() {
     ) || {};
 
   //
+  // TOKEN
+  //
+  const token =
+    localStorage.getItem(
+      "token"
+    );
+
+  //
   // STATES
   //
   const [ideas, setIdeas] =
@@ -48,90 +60,111 @@ function Ideas() {
   // FETCH IDEAS
   //
   const fetchIdeas =
-    async () => {
-      try {
-        setLoading(true);
+    useCallback(
+      async () => {
+        try {
+          setLoading(true);
 
-        const response =
-          await API.get(
-            "/ideas"
-          );
+          const response =
+            await API.get(
+              "/ideas"
+            );
 
-        if (
-          response?.data
-            ?.success
-        ) {
-          setIdeas(
-            Array.isArray(
-              response?.data
-                ?.ideas
-            )
-              ? response
-                  .data
+          if (
+            response?.data
+              ?.success
+          ) {
+            setIdeas(
+              Array.isArray(
+                response.data
                   .ideas
-              : []
+              )
+                ? response.data
+                    .ideas
+                : []
+            );
+          } else {
+            setIdeas([]);
+          }
+        } catch (error) {
+          console.log(
+            "FETCH IDEAS ERROR:",
+            error
+              ?.response
+              ?.data ||
+              error.message
           );
-        } else {
-          setIdeas([]);
-        }
-      } catch (error) {
-        console.log(
-          "Error fetching ideas:",
-          error
-        );
 
-        setIdeas([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+          setIdeas([]);
+        } finally {
+          setLoading(false);
+        }
+      },
+      []
+    );
 
   //
   // FETCH SENT REQUESTS
   //
   const fetchSentRequests =
-    async () => {
-      try {
-        const response =
-          await API.get(
-            "/collaborations/sent"
+    useCallback(
+      async () => {
+        try {
+          const response =
+            await API.get(
+              "/collaborations/sent",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+          if (
+            response?.data
+              ?.success
+          ) {
+            setSentRequests(
+              Array.isArray(
+                response.data
+                  .requests
+              )
+                ? response.data
+                    .requests
+                : []
+            );
+          } else {
+            setSentRequests([]);
+          }
+        } catch (error) {
+          console.log(
+            "REQUEST FETCH ERROR:",
+            error
+              ?.response
+              ?.data ||
+              error.message
           );
 
-        if (
-          response?.data
-            ?.success
-        ) {
-          setSentRequests(
-            Array.isArray(
-              response?.data
-                ?.requests
-            )
-              ? response
-                  .data
-                  .requests
-              : []
-          );
-        } else {
           setSentRequests([]);
         }
-      } catch (error) {
-        console.log(
-          "Request Fetch Error:",
-          error
-        );
-
-        setSentRequests([]);
-      }
-    };
+      },
+      [token]
+    );
 
   //
-  // LOAD DATA
+  // INITIAL LOAD
   //
   useEffect(() => {
     fetchIdeas();
 
-    fetchSentRequests();
-  }, []);
+    if (token) {
+      fetchSentRequests();
+    }
+  }, [
+    fetchIdeas,
+    fetchSentRequests,
+    token,
+  ]);
 
   //
   // SEND REQUEST
@@ -164,6 +197,12 @@ function Ideas() {
             ideaId:
               idea?._id,
 
+            projectId:
+              idea
+                ?.linkedProject
+                ?._id ||
+              idea?.linkedProject,
+
             title:
               idea?.title,
 
@@ -172,16 +211,27 @@ function Ideas() {
 
             message:
               "I'd like to collaborate on this project.",
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
 
-        fetchSentRequests();
+        await fetchSentRequests();
 
         alert(
           "Collaboration request sent successfully 🚀"
         );
       } catch (error) {
-        console.log(error);
+        console.log(
+          "SEND REQUEST ERROR:",
+          error
+            ?.response
+            ?.data ||
+            error.message
+        );
 
         alert(
           error?.response
@@ -212,16 +262,27 @@ function Ideas() {
         }
 
         await API.delete(
-          `/ideas/${ideaId}`
+          `/ideas/${ideaId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
-        fetchIdeas();
+        await fetchIdeas();
 
         alert(
           "Idea deleted successfully 🚀"
         );
       } catch (error) {
-        console.log(error);
+        console.log(
+          "DELETE IDEA ERROR:",
+          error
+            ?.response
+            ?.data ||
+            error.message
+        );
 
         alert(
           error?.response
@@ -235,21 +296,50 @@ function Ideas() {
   //
   // CHECK REQUEST STATUS
   //
-  const hasRequested =
+  const getRequestStatus =
     (ideaId) => {
-      return (
-        Array.isArray(
+      if (
+        !Array.isArray(
           sentRequests
-        ) &&
-        sentRequests.some(
-          (request) =>
-            request?.idea
-              ?._id ===
-              ideaId &&
-            request?.status ===
-              "Pending"
         )
+      ) {
+        return null;
+      }
+
+      return sentRequests.find(
+        (request) =>
+          request?.idea
+            ?._id ===
+          ideaId
       );
+    };
+
+  //
+  // LIKE IDEA
+  //
+  const likeIdea =
+    async (ideaId) => {
+      try {
+        await API.put(
+          `/ideas/like/${ideaId}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        fetchIdeas();
+      } catch (error) {
+        console.log(
+          "LIKE ERROR:",
+          error
+            ?.response
+            ?.data ||
+            error.message
+        );
+      }
     };
 
   //
@@ -420,9 +510,6 @@ function Ideas() {
 
                     lineHeight:
                       "1.3",
-
-                    color:
-                      "white",
                   }}
                 >
                   EXPLORE IDEAS
@@ -443,16 +530,15 @@ function Ideas() {
                       "760px",
                   }}
                 >
-                  Discover innovative
+                  Discover futuristic
                   startup concepts,
                   AI-powered
                   workflows,
-                  futuristic
-                  solutions,
-                  and next-generation
-                  collaboration ideas
-                  from creators and
-                  modern teams.
+                  modern innovation
+                  systems,
+                  and collaborate
+                  with builders
+                  across BuildX.
                 </p>
               </div>
 
@@ -477,14 +563,11 @@ function Ideas() {
                   fontWeight:
                     "600",
 
-                  boxShadow:
-                    "0 0 24px rgba(124,58,237,0.28)",
-
-                  whiteSpace:
-                    "nowrap",
-
                   textDecoration:
                     "none",
+
+                  boxShadow:
+                    "0 0 24px rgba(124,58,237,0.28)",
                 }}
               >
                 Post New Idea
@@ -493,7 +576,7 @@ function Ideas() {
           </div>
 
           {/* EMPTY */}
-          {ideas?.length ===
+          {ideas.length ===
           0 ? (
             <div
               className="glass-card"
@@ -546,124 +629,131 @@ function Ideas() {
                 gap: "28px",
               }}
             >
-              {ideas?.map(
-                (idea) => (
-                  <div
-                    key={
+              {ideas.map(
+                (idea) => {
+                  const request =
+                    getRequestStatus(
                       idea?._id
-                    }
-                    className="glass-card"
-                    style={{
-                      padding:
-                        "34px",
+                    );
 
-                      position:
-                        "relative",
-
-                      overflow:
-                        "hidden",
-                    }}
-                  >
-                    {/* Glow */}
+                  return (
                     <div
+                      key={
+                        idea?._id
+                      }
+                      className="glass-card"
                       style={{
-                        position:
-                          "absolute",
-
-                        width:
-                          "220px",
-
-                        height:
-                          "220px",
-
-                        background:
-                          "rgba(124,58,237,0.08)",
-
-                        borderRadius:
-                          "50%",
-
-                        filter:
-                          "blur(80px)",
-
-                        top: "-80px",
-
-                        right:
-                          "-60px",
-                      }}
-                    />
-
-                    {/* TITLE */}
-                    <h2
-                      className="card-title"
-                      style={{
-                        fontSize:
-                          "38px",
-
-                        marginBottom:
-                          "22px",
-
-                        color:
-                          "white",
+                        padding:
+                          "34px",
 
                         position:
                           "relative",
 
-                        zIndex: 2,
+                        overflow:
+                          "hidden",
                       }}
                     >
-                      {idea?.title ||
-                        "Untitled Idea"}
-                    </h2>
+                      {/* Glow */}
+                      <div
+                        style={{
+                          position:
+                            "absolute",
 
-                    {/* DESCRIPTION */}
-                    <p
-                      style={{
-                        color:
-                          "#CBD5E1",
+                          width:
+                            "220px",
 
-                        fontSize:
-                          "17px",
+                          height:
+                            "220px",
 
-                        lineHeight:
-                          "2",
+                          background:
+                            "rgba(124,58,237,0.08)",
 
-                        marginBottom:
-                          "30px",
+                          borderRadius:
+                            "50%",
 
-                        position:
-                          "relative",
+                          filter:
+                            "blur(80px)",
 
-                        zIndex: 2,
-                      }}
-                    >
-                      {idea?.description ||
-                        "No description"}
-                    </p>
+                          top: "-80px",
 
-                    {/* TECH STACK */}
-                    <div
-                      style={{
-                        display:
-                          "flex",
+                          right:
+                            "-60px",
+                        }}
+                      />
 
-                        flexWrap:
-                          "wrap",
+                      {/* TITLE */}
+                      <h2
+                        className="card-title"
+                        style={{
+                          fontSize:
+                            "38px",
 
-                        gap: "12px",
+                          marginBottom:
+                            "22px",
 
-                        marginBottom:
-                          "28px",
+                          position:
+                            "relative",
 
-                        position:
-                          "relative",
+                          zIndex: 2,
+                        }}
+                      >
+                        {idea?.title ||
+                          "Untitled Idea"}
+                      </h2>
 
-                        zIndex: 2,
-                      }}
-                    >
-                      {Array.isArray(
-                        idea?.techStack
-                      )
-                        ? idea.techStack.map(
+                      {/* DESCRIPTION */}
+                      <p
+                        style={{
+                          color:
+                            "#CBD5E1",
+
+                          fontSize:
+                            "17px",
+
+                          lineHeight:
+                            "2",
+
+                          marginBottom:
+                            "30px",
+
+                          position:
+                            "relative",
+
+                          zIndex: 2,
+                        }}
+                      >
+                        {idea?.description ||
+                          "No description available"}
+                      </p>
+
+                      {/* TECH STACK */}
+                      <div
+                        style={{
+                          display:
+                            "flex",
+
+                          flexWrap:
+                            "wrap",
+
+                          gap: "12px",
+
+                          marginBottom:
+                            "26px",
+
+                          position:
+                            "relative",
+
+                          zIndex: 2,
+                        }}
+                      >
+                        {Array.isArray(
+                          idea?.techStack
+                        ) &&
+                        idea
+                          ?.techStack
+                          .length >
+                          0 ? (
+                          idea.techStack.map(
                             (
                               tech,
                               index
@@ -685,9 +775,6 @@ function Ideas() {
                                   border:
                                     "1px solid rgba(255,255,255,0.06)",
 
-                                  color:
-                                    "white",
-
                                   fontSize:
                                     "13px",
                                 }}
@@ -696,274 +783,316 @@ function Ideas() {
                               </span>
                             )
                           )
-                        : typeof idea?.techStack ===
-                            "string" && (
-                            <span
-                              style={{
-                                padding:
-                                  "10px 16px",
-
-                                borderRadius:
-                                  "24px",
-
-                                background:
-                                  "rgba(79,70,229,0.16)",
-
-                                border:
-                                  "1px solid rgba(255,255,255,0.06)",
-
-                                color:
-                                  "white",
-
-                                fontSize:
-                                  "13px",
-                              }}
-                            >
-                              {
-                                idea.techStack
-                              }
-                            </span>
-                          )}
-                    </div>
-
-                    {/* FOOTER */}
-                    <div
-                      style={{
-                        display:
-                          "flex",
-
-                        justifyContent:
-                          "space-between",
-
-                        alignItems:
-                          "center",
-
-                        flexWrap:
-                          "wrap",
-
-                        gap: "18px",
-
-                        position:
-                          "relative",
-
-                        zIndex: 2,
-                      }}
-                    >
-                      {/* USER */}
-                      <div>
-                        <p
-                          style={{
-                            color:
-                              "#CBD5E1",
-
-                            fontSize:
-                              "15px",
-
-                            marginBottom:
-                              "8px",
-                          }}
-                        >
-                          Posted by{" "}
+                        ) : (
                           <span
                             style={{
                               color:
-                                "white",
-
-                              fontWeight:
-                                "600",
+                                "#94A3B8",
                             }}
                           >
-                            {idea
-                              ?.createdBy
-                              ?.name ||
-                              "Anonymous"}
+                            No tech stack
                           </span>
-                        </p>
-
-                        <p
-                          style={{
-                            color:
-                              "#94A3B8",
-
-                            fontSize:
-                              "13px",
-                          }}
-                        >
-                          Status:{" "}
-                          {idea?.status ||
-                            "Open"}
-                        </p>
+                        )}
                       </div>
 
-                      {/* ACTIONS */}
+                      {/* FOOTER */}
                       <div
                         style={{
                           display:
                             "flex",
 
-                          gap: "14px",
+                          justifyContent:
+                            "space-between",
+
+                          alignItems:
+                            "center",
 
                           flexWrap:
                             "wrap",
+
+                          gap: "18px",
+
+                          position:
+                            "relative",
+
+                          zIndex: 2,
                         }}
                       >
-                        {/* WORKSPACE */}
-                        {idea?.linkedProject && (
-                          <button
-                            onClick={() =>
-                              navigate(
-                                `/projects/${idea.linkedProject}`
-                              )
-                            }
+                        {/* LEFT */}
+                        <div>
+                          <p
                             style={{
-                              padding:
-                                "13px 22px",
-
-                              borderRadius:
-                                "16px",
-
-                              background:
-                                "linear-gradient(135deg, #2563EB, #7C3AED)",
-
                               color:
-                                "white",
+                                "#CBD5E1",
 
-                              fontSize:
-                                "14px",
-
-                              fontWeight:
-                                "600",
-
-                              border:
-                                "none",
-
-                              cursor:
-                                "pointer",
-
-                              boxShadow:
-                                "0 0 22px rgba(124,58,237,0.24)",
+                              marginBottom:
+                                "8px",
                             }}
                           >
-                            Open Workspace
-                          </button>
-                        )}
+                            Posted by{" "}
+                            <span
+                              style={{
+                                fontWeight:
+                                  "600",
+                              }}
+                            >
+                              {idea
+                                ?.createdBy
+                                ?.name ||
+                                "Anonymous"}
+                            </span>
+                          </p>
 
-                        {/* DELETE */}
-                        {idea
-                          ?.createdBy
-                          ?._id ===
-                        (currentUser?.userId ||
-                          currentUser?._id) ? (
+                          <p
+                            style={{
+                              color:
+                                "#94A3B8",
+
+                              fontSize:
+                                "13px",
+                            }}
+                          >
+                            Status:{" "}
+                            {idea?.status ||
+                              "Open"}
+                          </p>
+                        </div>
+
+                        {/* RIGHT */}
+                        <div
+                          style={{
+                            display:
+                              "flex",
+
+                            gap: "14px",
+
+                            flexWrap:
+                              "wrap",
+                          }}
+                        >
+                          {/* LIKE */}
                           <button
                             onClick={() =>
-                              deleteIdea(
+                              likeIdea(
                                 idea?._id
                               )
                             }
                             style={{
                               padding:
-                                "13px 22px",
+                                "13px 18px",
 
                               borderRadius:
                                 "16px",
 
                               background:
-                                "linear-gradient(135deg, #EF4444, #DC2626)",
-
-                              color:
-                                "white",
-
-                              fontSize:
-                                "14px",
-
-                              fontWeight:
-                                "600",
-
-                              border:
-                                "none",
-
-                              cursor:
-                                "pointer",
-
-                              boxShadow:
-                                "0 0 20px rgba(239,68,68,0.28)",
-                            }}
-                          >
-                            Delete Idea
-                          </button>
-                        ) : hasRequested(
-                            idea?._id
-                          ) ? (
-                          <button
-                            style={{
-                              padding:
-                                "13px 22px",
-
-                              borderRadius:
-                                "16px",
-
-                              background:
-                                "rgba(255,255,255,0.08)",
-
-                              color:
-                                "#CBD5E1",
+                                "rgba(255,255,255,0.06)",
 
                               border:
                                 "1px solid rgba(255,255,255,0.08)",
-                            }}
-                          >
-                            Request Sent
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() =>
-                              sendRequest(
-                                idea
-                              )
-                            }
-                            disabled={
-                              requestLoading ===
-                              idea?._id
-                            }
-                            style={{
-                              padding:
-                                "13px 22px",
-
-                              borderRadius:
-                                "16px",
-
-                              background:
-                                "linear-gradient(135deg, #06B6D4, #3B82F6)",
 
                               color:
                                 "white",
 
-                              fontSize:
-                                "14px",
-
-                              fontWeight:
-                                "600",
-
-                              border:
-                                "none",
-
                               cursor:
                                 "pointer",
-
-                              boxShadow:
-                                "0 0 20px rgba(59,130,246,0.24)",
                             }}
                           >
-                            {requestLoading ===
-                            idea?._id
-                              ? "Sending..."
-                              : "Collaborate"}
+                            ❤️{" "}
+                            {Array.isArray(
+                              idea?.likes
+                            )
+                              ? idea
+                                  .likes
+                                  .length
+                              : 0}
                           </button>
-                        )}
+
+                          {/* WORKSPACE */}
+                          {idea?.linkedProject && (
+                            <button
+                              onClick={() =>
+                                navigate(
+                                  `/projects`
+                                )
+                              }
+                              style={{
+                                padding:
+                                  "13px 22px",
+
+                                borderRadius:
+                                  "16px",
+
+                                background:
+                                  "linear-gradient(135deg, #2563EB, #7C3AED)",
+
+                                color:
+                                  "white",
+
+                                border:
+                                  "none",
+
+                                cursor:
+                                  "pointer",
+
+                                fontWeight:
+                                  "600",
+                              }}
+                            >
+                              Open Workspace
+                            </button>
+                          )}
+
+                          {/* OWNER */}
+                          {idea
+                            ?.createdBy
+                            ?._id ===
+                          (currentUser?.userId ||
+                            currentUser?._id) ? (
+                            <button
+                              onClick={() =>
+                                deleteIdea(
+                                  idea?._id
+                                )
+                              }
+                              style={{
+                                padding:
+                                  "13px 22px",
+
+                                borderRadius:
+                                  "16px",
+
+                                background:
+                                  "linear-gradient(135deg, #EF4444, #DC2626)",
+
+                                color:
+                                  "white",
+
+                                border:
+                                  "none",
+
+                                cursor:
+                                  "pointer",
+
+                                fontWeight:
+                                  "600",
+                              }}
+                            >
+                              Delete
+                            </button>
+                          ) : request
+                              ?.status ===
+                            "Accepted" ? (
+                            <button
+                              style={{
+                                padding:
+                                  "13px 22px",
+
+                                borderRadius:
+                                  "16px",
+
+                                background:
+                                  "rgba(34,197,94,0.16)",
+
+                                color:
+                                  "#4ADE80",
+
+                                border:
+                                  "1px solid rgba(34,197,94,0.20)",
+                              }}
+                            >
+                              Accepted
+                            </button>
+                          ) : request
+                              ?.status ===
+                            "Rejected" ? (
+                            <button
+                              style={{
+                                padding:
+                                  "13px 22px",
+
+                                borderRadius:
+                                  "16px",
+
+                                background:
+                                  "rgba(239,68,68,0.16)",
+
+                                color:
+                                  "#F87171",
+
+                                border:
+                                  "1px solid rgba(239,68,68,0.20)",
+                              }}
+                            >
+                              Rejected
+                            </button>
+                          ) : request
+                              ?.status ===
+                            "Pending" ? (
+                            <button
+                              style={{
+                                padding:
+                                  "13px 22px",
+
+                                borderRadius:
+                                  "16px",
+
+                                background:
+                                  "rgba(255,255,255,0.08)",
+
+                                color:
+                                  "#CBD5E1",
+
+                                border:
+                                  "1px solid rgba(255,255,255,0.08)",
+                              }}
+                            >
+                              Request Sent
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() =>
+                                sendRequest(
+                                  idea
+                                )
+                              }
+                              disabled={
+                                requestLoading ===
+                                idea?._id
+                              }
+                              style={{
+                                padding:
+                                  "13px 22px",
+
+                                borderRadius:
+                                  "16px",
+
+                                background:
+                                  "linear-gradient(135deg, #06B6D4, #3B82F6)",
+
+                                color:
+                                  "white",
+
+                                border:
+                                  "none",
+
+                                cursor:
+                                  "pointer",
+
+                                fontWeight:
+                                  "600",
+                              }}
+                            >
+                              {requestLoading ===
+                              idea?._id
+                                ? "Sending..."
+                                : "Collaborate"}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )
+                  );
+                }
               )}
             </div>
           )}

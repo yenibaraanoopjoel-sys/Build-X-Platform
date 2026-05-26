@@ -5,66 +5,229 @@ import {
   useLocation,
 } from "react-router-dom";
 
+import {
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+
+import API from "../services/api";
+
 function Sidebar() {
   const location =
     useLocation();
+
+  //
+  // TOKEN
+  //
+  const token =
+    localStorage.getItem(
+      "token"
+    );
+
+  //
+  // BADGES
+  //
+  const [
+    unreadNotifications,
+    setUnreadNotifications,
+  ] = useState(0);
+
+  const [
+    pendingRequests,
+    setPendingRequests,
+  ] = useState(0);
+
+  //
+  // FETCH COUNTS
+  //
+  const fetchCounts =
+    useCallback(
+      async () => {
+        try {
+          if (!token)
+            return;
+
+          //
+          // NOTIFICATIONS
+          //
+          const notificationRes =
+            await API.get(
+              "/notifications/unread-count",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+          if (
+            notificationRes
+              ?.data
+              ?.success
+          ) {
+            setUnreadNotifications(
+              notificationRes
+                .data
+                .unreadCount || 0
+            );
+          }
+
+          //
+          // REQUESTS
+          //
+          const requestRes =
+            await API.get(
+              "/collaborations/received",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+          if (
+            requestRes?.data
+              ?.success
+          ) {
+            const pending =
+              Array.isArray(
+                requestRes
+                  .data
+                  .requests
+              )
+                ? requestRes.data.requests.filter(
+                    (
+                      request
+                    ) =>
+                      request?.status ===
+                      "Pending"
+                  ).length
+                : 0;
+
+            setPendingRequests(
+              pending
+            );
+          }
+        } catch (error) {
+          console.log(
+            "SIDEBAR ERROR:",
+            error
+              ?.response
+              ?.data ||
+              error.message
+          );
+
+          setUnreadNotifications(
+            0
+          );
+
+          setPendingRequests(
+            0
+          );
+        }
+      },
+      [token]
+    );
+
+  //
+  // LOAD COUNTS
+  //
+  useEffect(() => {
+    fetchCounts();
+  }, [fetchCounts]);
 
   //
   // MENU ITEMS
   //
   const menuItems = [
     {
-      name: "Dashboard",
-      path: "/dashboard",
+      name:
+        "Dashboard",
+
+      path:
+        "/dashboard",
+
       icon: "🏠",
     },
 
     {
       name: "Ideas",
-      path: "/ideas",
+
+      path:
+        "/ideas",
+
       icon: "💡",
     },
 
     {
-      name: "Skill Swap",
-      path: "/skill-swap",
+      name:
+        "Skill Swap",
+
+      path:
+        "/skill-swap",
+
       icon: "🔄",
     },
 
     {
-      name: "Projects",
-      path: "/projects",
+      name:
+        "Projects",
+
+      path:
+        "/projects",
+
       icon: "🛠️",
     },
 
     {
       name: "Tasks",
-      path: "/tasks",
+
+      path:
+        "/tasks",
+
       icon: "✅",
     },
 
     {
-      name: "Requests",
+      name:
+        "Requests",
+
       path:
         "/collaboration-requests",
+
       icon: "📨",
+
+      badge:
+        pendingRequests,
     },
 
     {
       name: "Chat",
-      path: "/chat",
+
+      path:
+        "/chat",
+
       icon: "💬",
     },
 
     {
-      name: "Profile",
-      path: "/profile",
+      name:
+        "Profile",
+
+      path:
+        "/profile",
+
       icon: "👤",
     },
 
     {
-      name: "Settings",
-      path: "/settings",
+      name:
+        "Settings",
+
+      path:
+        "/settings",
+
       icon: "⚙️",
     },
   ];
@@ -72,16 +235,19 @@ function Sidebar() {
   return (
     <div
       style={{
-        width: "270px",
+        width: "290px",
 
-        minHeight: "100vh",
+        minHeight:
+          "100vh",
 
         background:
           "linear-gradient(to bottom, #12071F, #1E0B36, #0F172A)",
 
-        color: "white",
+        color:
+          "white",
 
-        padding: "30px 22px",
+        padding:
+          "30px 22px",
 
         borderRight:
           "1px solid rgba(255,255,255,0.08)",
@@ -89,32 +255,72 @@ function Sidebar() {
         backdropFilter:
           "blur(18px)",
 
-        position: "sticky",
+        position:
+          "sticky",
 
         top: 0,
 
         boxShadow:
           "8px 0 40px rgba(168,85,247,0.15)",
 
-        overflowY: "auto",
+        overflowY:
+          "auto",
+
+        overflowX:
+          "hidden",
       }}
     >
+      {/* GLOW */}
+      <div
+        style={{
+          position:
+            "absolute",
+
+          width: "220px",
+
+          height: "220px",
+
+          background:
+            "rgba(168,85,247,0.10)",
+
+          borderRadius:
+            "50%",
+
+          filter:
+            "blur(100px)",
+
+          top: "-60px",
+
+          left: "-60px",
+
+          zIndex: 0,
+        }}
+      />
+
       {/* LOGO */}
       <div
         style={{
-          marginBottom: "45px",
+          marginBottom:
+            "48px",
+
+          position:
+            "relative",
+
+          zIndex: 2,
         }}
       >
         <h2
           style={{
-            fontSize: "40px",
+            fontSize: "42px",
 
             fontFamily:
               "'Cinzel', serif",
 
-            fontWeight: "700",
+            fontWeight:
+              "700",
 
-            letterSpacing: "3px",
+            letterSpacing:
+              "3px",
 
             background:
               "linear-gradient(to right, #C084FC, #F472B6)",
@@ -134,21 +340,27 @@ function Sidebar() {
 
         <p
           style={{
-            color: "#D8B4FE",
+            color:
+              "#D8B4FE",
 
-            marginTop: "12px",
+            marginTop:
+              "12px",
 
-            fontSize: "13px",
+            fontSize:
+              "13px",
 
-            lineHeight: "1.8",
+            lineHeight:
+              "1.8",
 
             fontFamily:
               "'Cinzel', serif",
 
-            letterSpacing: "1px",
+            letterSpacing:
+              "1px",
           }}
         >
-          Luxury AI Productivity
+          Luxury AI
+          Productivity
           Platform
         </p>
       </div>
@@ -162,6 +374,11 @@ function Sidebar() {
             "column",
 
           gap: "16px",
+
+          position:
+            "relative",
+
+          zIndex: 2,
         }}
       >
         {menuItems.map(
@@ -185,13 +402,16 @@ function Sidebar() {
                   alignItems:
                     "center",
 
+                  justifyContent:
+                    "space-between",
+
                   gap: "15px",
 
                   padding:
                     "16px 20px",
 
                   borderRadius:
-                    "18px",
+                    "20px",
 
                   textDecoration:
                     "none",
@@ -232,32 +452,97 @@ function Sidebar() {
                       : "scale(1)",
                 }}
               >
-                <span
+                {/* LEFT */}
+                <div
                   style={{
-                    fontSize:
-                      "21px",
+                    display:
+                      "flex",
+
+                    alignItems:
+                      "center",
+
+                    gap: "14px",
                   }}
                 >
-                  {
-                    item?.icon
-                  }
-                </span>
+                  <span
+                    style={{
+                      fontSize:
+                        "21px",
+                    }}
+                  >
+                    {
+                      item?.icon
+                    }
+                  </span>
 
-                {
-                  item?.name
-                }
+                  <span>
+                    {
+                      item?.name
+                    }
+                  </span>
+                </div>
+
+                {/* BADGE */}
+                {item?.badge >
+                  0 && (
+                  <div
+                    style={{
+                      minWidth:
+                        "24px",
+
+                      height:
+                        "24px",
+
+                      padding:
+                        "0 8px",
+
+                      borderRadius:
+                        "50px",
+
+                      background:
+                        "#EC4899",
+
+                      display:
+                        "flex",
+
+                      alignItems:
+                        "center",
+
+                      justifyContent:
+                        "center",
+
+                      fontSize:
+                        "12px",
+
+                      fontWeight:
+                        "bold",
+
+                      color:
+                        "white",
+
+                      boxShadow:
+                        "0 0 20px rgba(236,72,153,0.35)",
+                    }}
+                  >
+                    {
+                      item.badge
+                    }
+                  </div>
+                )}
               </Link>
             );
           }
         )}
       </div>
 
-      {/* AI CARD */}
+      {/* NOTIFICATION CARD */}
       <div
         style={{
-          marginTop: "45px",
+          marginTop:
+            "38px",
 
-          padding: "24px",
+          padding:
+            "20px",
 
           borderRadius:
             "24px",
@@ -270,12 +555,17 @@ function Sidebar() {
 
           boxShadow:
             "0 10px 35px rgba(168,85,247,0.12)",
+
+          position:
+            "relative",
+
+          zIndex: 2,
         }}
       >
         <h3
           style={{
             marginBottom:
-              "14px",
+              "12px",
 
             fontSize:
               "22px",
@@ -290,16 +580,100 @@ function Sidebar() {
               "1px",
           }}
         >
+          🔔 Notifications
+        </h3>
+
+        <p
+          style={{
+            color:
+              "#E9D5FF",
+
+            fontSize:
+              "14px",
+
+            lineHeight:
+              "1.8",
+
+            fontFamily:
+              "'Cinzel', serif",
+          }}
+        >
+          You currently have{" "}
+          <strong>
+            {
+              unreadNotifications
+            }
+          </strong>{" "}
+          unread notifications
+          and{" "}
+          <strong>
+            {
+              pendingRequests
+            }
+          </strong>{" "}
+          pending collaboration
+          requests.
+        </p>
+      </div>
+
+      {/* AI CARD */}
+      <div
+        style={{
+          marginTop:
+            "28px",
+
+          padding:
+            "24px",
+
+          borderRadius:
+            "24px",
+
+          background:
+            "linear-gradient(to right, rgba(59,130,246,0.14), rgba(124,58,237,0.14))",
+
+          border:
+            "1px solid rgba(255,255,255,0.08)",
+
+          boxShadow:
+            "0 10px 35px rgba(59,130,246,0.12)",
+
+          position:
+            "relative",
+
+          zIndex: 2,
+        }}
+      >
+        <h3
+          style={{
+            marginBottom:
+              "14px",
+
+            fontSize:
+              "22px",
+
+            color:
+              "#BFDBFE",
+
+            fontFamily:
+              "'Cinzel', serif",
+
+            letterSpacing:
+              "1px",
+          }}
+        >
           🤖 JARVIS AI
         </h3>
 
         <p
           style={{
-            color: "#E9D5FF",
+            color:
+              "#DBEAFE",
 
-            fontSize: "14px",
+            fontSize:
+              "14px",
 
-            lineHeight: "1.8",
+            lineHeight:
+              "1.8",
 
             fontFamily:
               "'Cinzel', serif",
@@ -308,10 +682,13 @@ function Sidebar() {
               "0.5px",
           }}
         >
-          Your luxury AI-powered
+          Your futuristic AI
           productivity assistant
-          for futuristic BuildX
-          collaboration.
+          helping you manage
+          collaboration,
+          analytics, workflow,
+          and innovation inside
+          BuildX.
         </p>
       </div>
     </div>

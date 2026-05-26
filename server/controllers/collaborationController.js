@@ -119,7 +119,8 @@ exports.sendRequest = async (
             requestType ||
             "Idea Collaboration",
 
-          message,
+          message:
+            message || "",
 
           status:
             "Pending",
@@ -145,6 +146,9 @@ exports.sendRequest = async (
       project:
         idea.linkedProject,
 
+      requestId:
+        request._id,
+
       collaborationRequest:
         request._id,
     });
@@ -158,10 +162,12 @@ exports.sendRequest = async (
       request,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
 
-      error:
+      message:
         error.message,
     });
   }
@@ -180,22 +186,18 @@ exports.getMyRequests =
               req.user._id,
           }
         )
-
           .populate(
             "sender",
             "name email profilePicture role skillsHave"
           )
-
           .populate(
             "idea",
             "title description"
           )
-
           .populate(
             "project",
             "title"
           )
-
           .sort({
             createdAt: -1,
           });
@@ -203,13 +205,20 @@ exports.getMyRequests =
       res.json({
         success: true,
 
-        requests,
+        requests:
+          Array.isArray(
+            requests
+          )
+            ? requests
+            : [],
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         success: false,
 
-        error:
+        message:
           error.message,
       });
     }
@@ -271,6 +280,15 @@ exports.acceptRequest =
         );
 
       if (idea) {
+        if (
+          !Array.isArray(
+            idea.collaborators
+          )
+        ) {
+          idea.collaborators =
+            [];
+        }
+
         const alreadyExists =
           idea.collaborators.some(
             (
@@ -300,6 +318,15 @@ exports.acceptRequest =
         );
 
       if (project) {
+        if (
+          !Array.isArray(
+            project.members
+          )
+        ) {
+          project.members =
+            [];
+        }
+
         const alreadyMember =
           project.members.some(
             (member) =>
@@ -340,6 +367,9 @@ exports.acceptRequest =
         project:
           request.project,
 
+        requestId:
+          request._id,
+
         collaborationRequest:
           request._id,
       });
@@ -353,10 +383,12 @@ exports.acceptRequest =
         request,
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         success: false,
 
-        error:
+        message:
           error.message,
       });
     }
@@ -414,6 +446,9 @@ exports.rejectRequest =
         project:
           request.project,
 
+        requestId:
+          request._id,
+
         collaborationRequest:
           request._id,
       });
@@ -427,10 +462,12 @@ exports.rejectRequest =
         request,
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         success: false,
 
-        error:
+        message:
           error.message,
       });
     }
@@ -449,22 +486,18 @@ exports.getSentRequests =
               req.user._id,
           }
         )
-
           .populate(
             "receiver",
             "name email profilePicture role"
           )
-
           .populate(
             "idea",
             "title"
           )
-
           .populate(
             "project",
             "title"
           )
-
           .sort({
             createdAt: -1,
           });
@@ -472,13 +505,20 @@ exports.getSentRequests =
       res.json({
         success: true,
 
-        requests,
+        requests:
+          Array.isArray(
+            requests
+          )
+            ? requests
+            : [],
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         success: false,
 
-        error:
+        message:
           error.message,
       });
     }

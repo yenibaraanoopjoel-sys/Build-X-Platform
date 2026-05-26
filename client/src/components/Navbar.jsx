@@ -3,11 +3,13 @@ import "@fontsource/cinzel";
 import {
   Link,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 
 import {
   useEffect,
   useState,
+  useCallback,
 } from "react";
 
 import API from "../services/api";
@@ -15,8 +17,37 @@ import API from "../services/api";
 import socket from "../socket";
 
 function Navbar() {
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
+  const location =
+    useLocation();
+
+  //
+  // USER
+  //
+  const [user] =
+    useState(() => {
+      return (
+        JSON.parse(
+          localStorage.getItem(
+            "user"
+          )
+        ) || {}
+      );
+    });
+
+  //
+  // TOKEN
+  //
+  const token =
+    localStorage.getItem(
+      "token"
+    );
+
+  //
+  // STATES
+  //
   const [
     unreadCount,
     setUnreadCount,
@@ -32,96 +63,144 @@ function Navbar() {
     setShowNotifications,
   ] = useState(false);
 
+  const [
+    loadingNotifications,
+    setLoadingNotifications,
+  ] = useState(false);
+
   //
   // LOGOUT
   //
-  const logoutHandler = () => {
-    localStorage.removeItem("token");
+  const logoutHandler =
+    () => {
+      localStorage.removeItem(
+        "token"
+      );
 
-    localStorage.removeItem("user");
+      localStorage.removeItem(
+        "user"
+      );
 
-    navigate("/login");
-  };
+      navigate("/login");
+    };
 
   //
   // FETCH UNREAD COUNT
   //
   const fetchUnreadCount =
-    async () => {
-      try {
-        const token =
-          localStorage.getItem(
-            "token"
+    useCallback(
+      async () => {
+        try {
+          if (!token)
+            return;
+
+          const response =
+            await API.get(
+              "/notifications/unread-count",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+          if (
+            response?.data
+              ?.success
+          ) {
+            setUnreadCount(
+              response.data
+                .unreadCount ||
+                0
+            );
+          }
+        } catch (error) {
+          console.log(
+            "UNREAD ERROR:",
+            error
+              ?.response
+              ?.data ||
+              error.message
           );
 
-        const response =
-          await API.get(
-            "/notifications/unread-count",
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-        if (
-          response.data.success
-        ) {
           setUnreadCount(
-            response.data
-              .unreadCount
+            0
           );
         }
-      } catch (error) {
-        console.log(error);
-      }
-    };
+      },
+      [token]
+    );
 
   //
   // FETCH NOTIFICATIONS
   //
   const fetchNotifications =
-    async () => {
-      try {
-        const token =
-          localStorage.getItem(
-            "token"
+    useCallback(
+      async () => {
+        try {
+          if (!token)
+            return;
+
+          setLoadingNotifications(
+            true
           );
 
-        const response =
-          await API.get(
-            "/notifications",
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
+          const response =
+            await API.get(
+              "/notifications",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+          if (
+            response?.data
+              ?.success
+          ) {
+            setNotifications(
+              Array.isArray(
+                response.data
+                  .notifications
+              )
+                ? response
+                    .data
+                    .notifications
+                : []
+            );
+          } else {
+            setNotifications(
+              []
+            );
+          }
+        } catch (error) {
+          console.log(
+            "NOTIFICATION ERROR:",
+            error
+              ?.response
+              ?.data ||
+              error.message
           );
 
-        if (
-          response.data.success
-        ) {
           setNotifications(
-            response.data
-              .notifications
+            []
+          );
+        } finally {
+          setLoadingNotifications(
+            false
           );
         }
-      } catch (error) {
-        console.log(error);
-      }
-    };
+      },
+      [token]
+    );
 
   //
-  // MARK AS READ
+  // MARK READ
   //
   const markAsRead =
     async (id) => {
       try {
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
         await API.put(
           `/notifications/read/${id}`,
           {},
@@ -136,7 +215,9 @@ function Navbar() {
 
         fetchUnreadCount();
       } catch (error) {
-        console.log(error);
+        console.log(
+          error
+        );
       }
     };
 
@@ -146,13 +227,43 @@ function Navbar() {
   const deleteNotification =
     async (id) => {
       try {
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
         await API.delete(
           `/notifications/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setNotifications(
+          (prev) =>
+            prev.filter(
+              (
+                notification
+              ) =>
+                notification._id !==
+                id
+            )
+        );
+
+        fetchUnreadCount();
+      } catch (error) {
+        console.log(
+          error
+        );
+      }
+    };
+
+  //
+  // ACCEPT REQUEST
+  //
+  const acceptRequest =
+    async (id) => {
+      try {
+        await API.put(
+          `/collaborations/accept/${id}`,
+          {},
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -163,29 +274,71 @@ function Navbar() {
         fetchNotifications();
 
         fetchUnreadCount();
+
+        alert(
+          "Request Accepted 🚀"
+        );
       } catch (error) {
-        console.log(error);
+        console.log(
+          error
+        );
+
+        alert(
+          "Failed to accept request"
+        );
       }
     };
 
   //
-  // SOCKET + NOTIFICATIONS
+  // REJECT REQUEST
+  //
+  const rejectRequest =
+    async (id) => {
+      try {
+        await API.put(
+          `/collaborations/reject/${id}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        fetchNotifications();
+
+        fetchUnreadCount();
+
+        alert(
+          "Request Rejected ❌"
+        );
+      } catch (error) {
+        console.log(
+          error
+        );
+
+        alert(
+          "Failed to reject request"
+        );
+      }
+    };
+
+  //
+  // INITIAL LOAD
   //
   useEffect(() => {
     fetchUnreadCount();
 
     fetchNotifications();
+  }, [
+    fetchUnreadCount,
+    fetchNotifications,
+  ]);
 
-    const user =
-      JSON.parse(
-        localStorage.getItem(
-          "user"
-        )
-      );
-
-    //
-    // JOIN USER ROOM
-    //
+  //
+  // SOCKET CONNECTION
+  //
+  useEffect(() => {
     if (
       user?._id ||
       user?.userId
@@ -197,9 +350,6 @@ function Navbar() {
       );
     }
 
-    //
-    // RECEIVE LIVE NOTIFICATIONS
-    //
     socket.on(
       "receive_notification",
       (data) => {
@@ -211,27 +361,67 @@ function Navbar() {
         );
 
         setUnreadCount(
-          (prev) => prev + 1
+          (prev) =>
+            prev + 1
         );
-
-        //
-        // REFRESH
-        //
-        fetchNotifications();
-
-        fetchUnreadCount();
       }
     );
 
-    //
-    // CLEANUP
-    //
     return () => {
       socket.off(
         "receive_notification"
       );
     };
-  }, []);
+  }, [user]);
+
+  //
+  // NAVIGATION ITEMS
+  //
+  const navItems = [
+    {
+      name:
+        "Dashboard",
+
+      path:
+        "/dashboard",
+    },
+
+    {
+      name: "Ideas",
+
+      path:
+        "/ideas",
+    },
+
+    {
+      name:
+        "Projects",
+
+      path:
+        "/projects",
+    },
+
+    {
+      name: "Tasks",
+
+      path:
+        "/tasks",
+    },
+
+    {
+      name:
+        "Requests",
+
+      path:
+        "/collaboration-requests",
+    },
+
+    {
+      name: "Chat",
+
+      path: "/chat",
+    },
+  ];
 
   return (
     <nav
@@ -241,43 +431,41 @@ function Navbar() {
         justifyContent:
           "space-between",
 
-        alignItems: "center",
+        alignItems:
+          "center",
 
-        padding: "18px 35px",
+        padding:
+          "18px 34px",
 
         background:
           "linear-gradient(to right, rgba(18,7,31,0.96), rgba(30,11,54,0.96), rgba(15,23,42,0.96))",
 
-        color: "white",
-
         borderBottom:
           "1px solid rgba(255,255,255,0.08)",
 
-        backdropFilter:
-          "blur(16px)",
-
-        position: "sticky",
+        position:
+          "sticky",
 
         top: 0,
 
         zIndex: 1000,
 
+        backdropFilter:
+          "blur(18px)",
+
         boxShadow:
-          "0 8px 35px rgba(168,85,247,0.12)",
+          "0 10px 35px rgba(168,85,247,0.10)",
       }}
     >
       {/* LOGO */}
       <div>
-        <h2
+        <h1
           style={{
             fontFamily:
               "'Cinzel', serif",
 
-            fontSize: "36px",
-
-            fontWeight: "700",
-
-            letterSpacing: "3px",
+            fontSize:
+              "34px",
 
             background:
               "linear-gradient(to right, #C084FC, #F472B6)",
@@ -288,30 +476,27 @@ function Navbar() {
             WebkitTextFillColor:
               "transparent",
 
-            textShadow:
-              "0 0 30px rgba(244,114,182,0.3)",
-
-            marginBottom: "4px",
+            marginBottom:
+              "4px",
           }}
         >
           BuildX ✨
-        </h2>
+        </h1>
 
         <p
           style={{
-            color: "#D8B4FE",
+            color:
+              "#D8B4FE",
 
-            fontSize: "12px",
+            fontSize:
+              "12px",
 
-            fontFamily:
-              "'Cinzel', serif",
-
-            letterSpacing: "1.5px",
-
-            lineHeight: "1.7",
+            letterSpacing:
+              "1px",
           }}
         >
-          AI Collaboration Platform
+          AI Collaboration
+          Platform
         </p>
       </div>
 
@@ -320,81 +505,56 @@ function Navbar() {
         style={{
           display: "flex",
 
-          gap: "18px",
+          alignItems:
+            "center",
 
-          alignItems: "center",
+          gap: "14px",
 
-          position: "relative",
+          flexWrap:
+            "wrap",
         }}
       >
-        {[
-          {
-            name: "Dashboard",
-            path: "/dashboard",
-          },
+        {navItems.map(
+          (item) => (
+            <Link
+              key={
+                item.path
+              }
+              to={
+                item.path
+              }
+              style={{
+                textDecoration:
+                  "none",
 
-          {
-            name: "Ideas",
-            path: "/ideas",
-          },
+                padding:
+                  "10px 18px",
 
-          {
-            name: "Projects",
-            path: "/projects",
-          },
+                borderRadius:
+                  "14px",
 
-          {
-            name: "Requests",
-            path:
-              "/collaboration-requests",
-          },
+                color:
+                  "white",
 
-          {
-            name: "Chat",
-            path: "/chat",
-          },
-        ].map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            style={{
-              color: "white",
+                fontWeight:
+                  "600",
 
-              textDecoration:
-                "none",
+                background:
+                  location.pathname ===
+                  item.path
+                    ? "linear-gradient(to right, #8B5CF6, #EC4899)"
+                    : "rgba(255,255,255,0.05)",
 
-              padding:
-                "10px 18px",
-
-              borderRadius:
-                "14px",
-
-              fontWeight: "600",
-
-              fontFamily:
-                "'Cinzel', serif",
-
-              letterSpacing: "1px",
-
-              transition:
-                "all 0.3s ease",
-
-              background:
-                "rgba(255,255,255,0.05)",
-
-              border:
-                "1px solid rgba(255,255,255,0.06)",
-
-              backdropFilter:
-                "blur(10px)",
-
-              boxShadow:
-                "0 4px 18px rgba(168,85,247,0.08)",
-            }}
-          >
-            {item.name}
-          </Link>
-        ))}
+                border:
+                  "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              {
+                item.name
+              }
+            </Link>
+          )
+        )}
 
         {/* NOTIFICATIONS */}
         <div
@@ -406,7 +566,9 @@ function Navbar() {
           <button
             onClick={() =>
               setShowNotifications(
-                (prev) => !prev
+                (
+                  prev
+                ) => !prev
               )
             }
             style={{
@@ -417,7 +579,7 @@ function Navbar() {
                 "12px 16px",
 
               borderRadius:
-                "16px",
+                "14px",
 
               border:
                 "1px solid rgba(255,255,255,0.08)",
@@ -425,15 +587,14 @@ function Navbar() {
               background:
                 "rgba(255,255,255,0.05)",
 
-              color: "white",
+              color:
+                "white",
 
               cursor:
                 "pointer",
 
-              fontSize: "20px",
-
-              backdropFilter:
-                "blur(10px)",
+              fontSize:
+                "18px",
             }}
           >
             🔔
@@ -445,25 +606,22 @@ function Navbar() {
                   position:
                     "absolute",
 
-                  top: "-8px",
+                  top: "-6px",
 
                   right:
-                    "-8px",
+                    "-6px",
 
                   background:
                     "#EC4899",
-
-                  color:
-                    "white",
 
                   borderRadius:
                     "50%",
 
                   width:
-                    "22px",
+                    "20px",
 
                   height:
-                    "22px",
+                    "20px",
 
                   display:
                     "flex",
@@ -479,6 +637,9 @@ function Navbar() {
 
                   fontWeight:
                     "bold",
+
+                  color:
+                    "white",
                 }}
               >
                 {
@@ -495,20 +656,21 @@ function Navbar() {
                 position:
                   "absolute",
 
-                top: "70px",
+                top: "65px",
 
                 right: 0,
 
-                width: "380px",
+                width:
+                  "380px",
 
                 maxHeight:
-                  "500px",
+                  "520px",
 
                 overflowY:
                   "auto",
 
                 background:
-                  "rgba(10,10,25,0.96)",
+                  "rgba(10,10,25,0.97)",
 
                 border:
                   "1px solid rgba(255,255,255,0.08)",
@@ -519,22 +681,14 @@ function Navbar() {
                 padding:
                   "20px",
 
-                backdropFilter:
-                  "blur(20px)",
-
-                boxShadow:
-                  "0 20px 60px rgba(0,0,0,0.45)",
-
-                zIndex: 9999,
+                zIndex:
+                  9999,
               }}
             >
               <h2
                 style={{
                   marginBottom:
-                    "20px",
-
-                  fontFamily:
-                    "'Cinzel', serif",
+                    "18px",
 
                   fontSize:
                     "24px",
@@ -543,8 +697,12 @@ function Navbar() {
                 Notifications
               </h2>
 
-              {notifications.length ===
-              0 ? (
+              {loadingNotifications ? (
+                <p>
+                  Loading...
+                </p>
+              ) : notifications.length ===
+                0 ? (
                 <p
                   style={{
                     color:
@@ -560,59 +718,36 @@ function Navbar() {
                   ) => (
                     <div
                       key={
-                        notification._id
+                        notification?._id
                       }
                       style={{
                         padding:
                           "16px",
 
-                        borderRadius:
-                          "18px",
-
                         marginBottom:
                           "14px",
 
+                        borderRadius:
+                          "18px",
+
                         background:
-                          notification.isRead
+                          notification?.isRead
                             ? "rgba(255,255,255,0.03)"
                             : "rgba(124,58,237,0.14)",
-
-                        border:
-                          "1px solid rgba(255,255,255,0.06)",
                       }}
                     >
                       <p
                         style={{
-                          lineHeight:
-                            "1.8",
-
                           marginBottom:
                             "10px",
 
-                          color:
-                            "white",
+                          lineHeight:
+                            "1.8",
                         }}
                       >
                         {
-                          notification.message
+                          notification?.message
                         }
-                      </p>
-
-                      <p
-                        style={{
-                          color:
-                            "#A5B4FC",
-
-                          fontSize:
-                            "13px",
-
-                          marginBottom:
-                            "12px",
-                        }}
-                      >
-                        {new Date(
-                          notification.createdAt
-                        ).toLocaleString()}
                       </p>
 
                       <div
@@ -620,37 +755,102 @@ function Navbar() {
                           display:
                             "flex",
 
-                          gap: "10px",
+                          gap:
+                            "10px",
+
+                          flexWrap:
+                            "wrap",
                         }}
                       >
-                        {!notification.isRead && (
+                        {notification?.type ===
+                          "COLLAB_REQUEST" &&
+                          notification?.collaborationRequest && (
+                            <>
+                              <button
+                                onClick={() =>
+                                  acceptRequest(
+                                    notification?.collaborationRequest
+                                  )
+                                }
+                                style={{
+                                  padding:
+                                    "8px 14px",
+
+                                  border:
+                                    "none",
+
+                                  borderRadius:
+                                    "12px",
+
+                                  background:
+                                    "#22C55E",
+
+                                  color:
+                                    "white",
+
+                                  cursor:
+                                    "pointer",
+                                }}
+                              >
+                                Accept
+                              </button>
+
+                              <button
+                                onClick={() =>
+                                  rejectRequest(
+                                    notification?.collaborationRequest
+                                  )
+                                }
+                                style={{
+                                  padding:
+                                    "8px 14px",
+
+                                  border:
+                                    "none",
+
+                                  borderRadius:
+                                    "12px",
+
+                                  background:
+                                    "#EF4444",
+
+                                  color:
+                                    "white",
+
+                                  cursor:
+                                    "pointer",
+                                }}
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+
+                        {!notification?.isRead && (
                           <button
                             onClick={() =>
                               markAsRead(
-                                notification._id
+                                notification?._id
                               )
                             }
                             style={{
                               padding:
                                 "8px 14px",
 
-                              borderRadius:
-                                "12px",
-
                               border:
                                 "none",
 
+                              borderRadius:
+                                "12px",
+
                               background:
-                                "linear-gradient(to right, #8B5CF6, #EC4899)",
+                                "#8B5CF6",
 
                               color:
                                 "white",
 
                               cursor:
                                 "pointer",
-
-                              fontSize:
-                                "12px",
                             }}
                           >
                             Mark Read
@@ -660,30 +860,27 @@ function Navbar() {
                         <button
                           onClick={() =>
                             deleteNotification(
-                              notification._id
+                              notification?._id
                             )
                           }
                           style={{
                             padding:
                               "8px 14px",
 
-                            borderRadius:
-                              "12px",
-
                             border:
                               "none",
 
+                            borderRadius:
+                              "12px",
+
                             background:
-                              "rgba(239,68,68,0.18)",
+                              "rgba(239,68,68,0.16)",
 
                             color:
                               "#FCA5A5",
 
                             cursor:
                               "pointer",
-
-                            fontSize:
-                              "12px",
                           }}
                         >
                           Delete
@@ -709,22 +906,14 @@ function Navbar() {
             background:
               "linear-gradient(to right, rgba(147,51,234,0.18), rgba(236,72,153,0.18))",
 
-            border:
-              "1px solid rgba(255,255,255,0.08)",
+            color:
+              "#F9A8D4",
 
-            color: "#F9A8D4",
+            fontWeight:
+              "bold",
 
-            fontWeight: "bold",
-
-            fontFamily:
-              "'Cinzel', serif",
-
-            letterSpacing: "1px",
-
-            fontSize: "13px",
-
-            boxShadow:
-              "0 6px 20px rgba(236,72,153,0.12)",
+            fontSize:
+              "13px",
           }}
         >
           🤖 JARVIS ONLINE
@@ -732,12 +921,15 @@ function Navbar() {
 
         {/* LOGOUT */}
         <button
-          onClick={logoutHandler}
+          onClick={
+            logoutHandler
+          }
           style={{
             padding:
               "12px 22px",
 
-            border: "none",
+            border:
+              "none",
 
             borderRadius:
               "16px",
@@ -748,22 +940,11 @@ function Navbar() {
             background:
               "linear-gradient(to right, #9333EA, #EC4899)",
 
-            color: "white",
+            color:
+              "white",
 
-            fontWeight: "700",
-
-            fontFamily:
-              "'Cinzel', serif",
-
-            letterSpacing: "1px",
-
-            fontSize: "13px",
-
-            boxShadow:
-              "0 8px 25px rgba(236,72,153,0.25)",
-
-            transition:
-              "all 0.3s ease",
+            fontWeight:
+              "700",
           }}
         >
           Logout

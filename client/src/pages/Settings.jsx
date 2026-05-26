@@ -9,7 +9,9 @@ import Sidebar from "../components/Sidebar";
 import API from "../services/api";
 
 function Settings() {
-  // User State
+  //
+  // USER STATE
+  //
   const [user, setUser] =
     useState({
       name: "",
@@ -19,7 +21,9 @@ function Settings() {
       password: "",
     });
 
-  // Settings State
+  //
+  // SETTINGS STATE
+  //
   const [settings, setSettings] =
     useState({
       darkMode: true,
@@ -33,9 +37,29 @@ function Settings() {
       aiAssistant: true,
 
       futuristicMode: true,
+
+      focusMode: false,
+
+      soundEffects: true,
+
+      onlineStatus: true,
+
+      autoAcceptSkillSwap: false,
+
+      productivityInsights: true,
+
+      collaborationAlerts: true,
     });
 
-  // Fetch Logged In User
+  //
+  // THEME
+  //
+  const [theme, setTheme] =
+    useState("Luxury Purple");
+
+  //
+  // FETCH USER
+  //
   useEffect(() => {
     const fetchProfile =
       async () => {
@@ -57,11 +81,11 @@ function Settings() {
 
           setUser({
             name:
-              response.data.name ||
+              response.data?.name ||
               "",
 
             email:
-              response.data.email ||
+              response.data?.email ||
               "",
 
             password: "",
@@ -78,7 +102,9 @@ function Settings() {
     fetchProfile();
   }, []);
 
-  // Toggle Settings
+  //
+  // TOGGLE SETTINGS
+  //
   const toggleSetting = (
     key
   ) => {
@@ -89,7 +115,9 @@ function Settings() {
     }));
   };
 
-  // Input Change
+  //
+  // INPUT CHANGE
+  //
   const handleChange = (
     e
   ) => {
@@ -101,7 +129,9 @@ function Settings() {
     });
   };
 
-  // Save Changes
+  //
+  // SAVE PROFILE
+  //
   const handleSave =
     async () => {
       try {
@@ -114,6 +144,9 @@ function Settings() {
           "/user/profile",
           {
             name: user.name,
+
+            password:
+              user.password,
           },
           {
             headers: {
@@ -123,7 +156,7 @@ function Settings() {
         );
 
         alert(
-          "Profile Updated Successfully"
+          "Settings Updated Successfully 🚀"
         );
       } catch (error) {
         console.log(
@@ -133,10 +166,178 @@ function Settings() {
         );
 
         alert(
-          "Failed To Update Profile"
+          "Failed To Update Settings"
         );
       }
     };
+
+  //
+  // TOGGLE SWITCH
+  //
+  const ToggleSwitch = ({
+    enabled,
+    onClick,
+  }) => (
+    <div
+      onClick={onClick}
+      style={{
+        width: "58px",
+
+        height: "30px",
+
+        borderRadius:
+          "999px",
+
+        background: enabled
+          ? "linear-gradient(135deg, #8B5CF6, #EC4899)"
+          : "rgba(255,255,255,0.12)",
+
+        position:
+          "relative",
+
+        cursor: "pointer",
+
+        transition:
+          "0.3s",
+      }}
+    >
+      <div
+        style={{
+          width: "24px",
+
+          height: "24px",
+
+          borderRadius:
+            "50%",
+
+          background:
+            "white",
+
+          position:
+            "absolute",
+
+          top: "3px",
+
+          left: enabled
+            ? "31px"
+            : "3px",
+
+          transition:
+            "0.3s",
+        }}
+      />
+    </div>
+  );
+
+  //
+  // SETTINGS OPTIONS
+  //
+  const appearanceSettings =
+    [
+      {
+        label:
+          "Dark Mode",
+
+        key: "darkMode",
+      },
+
+      {
+        label:
+          "Futuristic Mode",
+
+        key:
+          "futuristicMode",
+      },
+
+      {
+        label:
+          "Sound Effects",
+
+        key:
+          "soundEffects",
+      },
+    ];
+
+  const notificationSettings =
+    [
+      {
+        label:
+          "Email Notifications",
+
+        key:
+          "emailNotifications",
+      },
+
+      {
+        label:
+          "Team Invites",
+
+        key:
+          "teamInvites",
+      },
+
+      {
+        label:
+          "Collaboration Alerts",
+
+        key:
+          "collaborationAlerts",
+      },
+    ];
+
+  const productivitySettings =
+    [
+      {
+        label:
+          "Focus Mode",
+
+        key:
+          "focusMode",
+      },
+
+      {
+        label:
+          "AI Assistant",
+
+        key:
+          "aiAssistant",
+      },
+
+      {
+        label:
+          "Productivity Insights",
+
+        key:
+          "productivityInsights",
+      },
+    ];
+
+  const privacySettings =
+    [
+      {
+        label:
+          "Public Profile",
+
+        key:
+          "publicProfile",
+      },
+
+      {
+        label:
+          "Online Status",
+
+        key:
+          "onlineStatus",
+      },
+
+      {
+        label:
+          "Auto Accept Skill Swap",
+
+        key:
+          "autoAcceptSkillSwap",
+      },
+    ];
 
   return (
     <div
@@ -149,66 +350,17 @@ function Settings() {
         color: "white",
 
         overflow: "hidden",
-
-        position: "relative",
       }}
     >
-      {/* Glow */}
-      <div
-        style={{
-          position: "absolute",
-
-          width: "500px",
-
-          height: "500px",
-
-          background:
-            "rgba(59,130,246,0.10)",
-
-          borderRadius: "50%",
-
-          filter: "blur(140px)",
-
-          top: "-180px",
-
-          left: "-120px",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-
-          width: "450px",
-
-          height: "450px",
-
-          background:
-            "rgba(124,58,237,0.12)",
-
-          borderRadius: "50%",
-
-          filter: "blur(130px)",
-
-          bottom: "-150px",
-
-          right: "-100px",
-        }}
-      />
-
-      {/* Navbar */}
+      {/* NAVBAR */}
       <Navbar />
 
       <div
         style={{
           display: "flex",
-
-          position: "relative",
-
-          zIndex: 2,
         }}
       >
-        {/* Sidebar */}
+        {/* SIDEBAR */}
         <Sidebar />
 
         {/* MAIN */}
@@ -221,78 +373,62 @@ function Settings() {
         >
           {/* HERO */}
           <div
-            className="glass-card"
             style={{
               padding: "48px",
 
-              marginBottom: "38px",
+              marginBottom:
+                "38px",
 
-              position: "relative",
+              borderRadius:
+                "28px",
 
-              overflow: "hidden",
+              background:
+                "rgba(255,255,255,0.05)",
+
+              border:
+                "1px solid rgba(255,255,255,0.08)",
+
+              backdropFilter:
+                "blur(18px)",
             }}
           >
-            {/* Glow */}
-            <div
+            <h1
               style={{
-                position: "absolute",
+                fontSize:
+                  "54px",
 
-                width: "260px",
-
-                height: "260px",
-
-                background:
-                  "rgba(91,95,255,0.10)",
-
-                borderRadius: "50%",
-
-                filter: "blur(90px)",
-
-                top: "-70px",
-
-                right: "-50px",
-              }}
-            />
-
-            <div
-              style={{
-                position: "relative",
-
-                zIndex: 2,
+                marginBottom:
+                  "18px",
               }}
             >
-              <h1
-                className="welcome-title"
-                style={{
-                  fontSize: "54px",
+              SETTINGS CENTER ⚙️
+            </h1>
 
-                  marginBottom: "22px",
+            <p
+              style={{
+                color:
+                  "#CBD5E1",
 
-                  lineHeight: "1.3",
-                }}
-              >
-                SETTINGS CENTER
-              </h1>
+                fontSize:
+                  "18px",
 
-              <p
-                style={{
-                  color: "#CBD5E1",
+                lineHeight:
+                  "1.9",
 
-                  fontSize: "18px",
-
-                  lineHeight: "2",
-
-                  maxWidth: "850px",
-                }}
-              >
-                Customize your BuildX
-                AI workspace, privacy,
-                notifications,
-                collaboration systems,
-                and futuristic
-                productivity ecosystem.
-              </p>
-            </div>
+                maxWidth:
+                  "850px",
+              }}
+            >
+              Customize your
+              futuristic BuildX
+              experience with AI
+              preferences,
+              collaboration
+              settings, security
+              controls, and
+              premium appearance
+              customization.
+            </p>
           </div>
 
           {/* GRID */}
@@ -301,175 +437,134 @@ function Settings() {
               display: "grid",
 
               gridTemplateColumns:
-                "repeat(auto-fit, minmax(340px, 1fr))",
+                "repeat(auto-fit, minmax(360px, 1fr))",
 
               gap: "28px",
-
-              marginBottom: "32px",
             }}
           >
             {/* ACCOUNT */}
             <div
-              className="glass-card"
               style={{
                 padding: "34px",
+
+                borderRadius:
+                  "28px",
+
+                background:
+                  "rgba(255,255,255,0.05)",
+
+                border:
+                  "1px solid rgba(255,255,255,0.08)",
+
+                backdropFilter:
+                  "blur(18px)",
               }}
             >
               <h2
-                className="section-title"
                 style={{
-                  marginBottom: "28px",
+                  marginBottom:
+                    "28px",
 
-                  fontSize: "40px",
+                  fontSize:
+                    "34px",
                 }}
               >
-                Account
+                Account Settings
               </h2>
 
-              {/* NAME */}
-              <div
+              <input
+                type="text"
+                name="name"
+                value={user.name}
+                onChange={
+                  handleChange
+                }
+                placeholder="Your Name"
                 style={{
-                  marginBottom: "22px",
+                  width: "100%",
+
+                  padding: "16px",
+
+                  borderRadius:
+                    "16px",
+
+                  marginBottom:
+                    "18px",
+
+                  background:
+                    "rgba(255,255,255,0.05)",
+
+                  border:
+                    "1px solid rgba(255,255,255,0.08)",
+
+                  color: "white",
+
+                  outline:
+                    "none",
                 }}
-              >
-                <label
-                  style={{
-                    color:
-                      "#E2E8F0",
+              />
 
-                    fontSize: "15px",
-
-                    fontWeight:
-                      "600",
-                  }}
-                >
-                  Name
-                </label>
-
-                <input
-                  type="text"
-
-                  name="name"
-
-                  value={user.name}
-
-                  onChange={
-                    handleChange
-                  }
-
-                  style={{
-                    width: "100%",
-
-                    marginTop: "10px",
-
-                    padding: "16px",
-
-                    borderRadius:
-                      "16px",
-
-                    fontSize:
-                      "15px",
-                  }}
-                />
-              </div>
-
-              {/* EMAIL */}
-              <div
+              <input
+                type="email"
+                value={user.email}
+                disabled
                 style={{
-                  marginBottom: "22px",
+                  width: "100%",
+
+                  padding: "16px",
+
+                  borderRadius:
+                    "16px",
+
+                  marginBottom:
+                    "18px",
+
+                  background:
+                    "rgba(255,255,255,0.05)",
+
+                  border:
+                    "1px solid rgba(255,255,255,0.08)",
+
+                  color: "white",
+
+                  opacity: 0.7,
                 }}
-              >
-                <label
-                  style={{
-                    color:
-                      "#E2E8F0",
+              />
 
-                    fontSize: "15px",
-
-                    fontWeight:
-                      "600",
-                  }}
-                >
-                  Email
-                </label>
-
-                <input
-                  type="email"
-
-                  value={user.email}
-
-                  disabled
-
-                  style={{
-                    width: "100%",
-
-                    marginTop: "10px",
-
-                    padding: "16px",
-
-                    borderRadius:
-                      "16px",
-
-                    fontSize:
-                      "15px",
-
-                    opacity: 0.7,
-                  }}
-                />
-              </div>
-
-              {/* PASSWORD */}
-              <div
+              <input
+                type="password"
+                name="password"
+                value={
+                  user.password
+                }
+                onChange={
+                  handleChange
+                }
+                placeholder="New Password"
                 style={{
-                  marginBottom: "28px",
+                  width: "100%",
+
+                  padding: "16px",
+
+                  borderRadius:
+                    "16px",
+
+                  marginBottom:
+                    "24px",
+
+                  background:
+                    "rgba(255,255,255,0.05)",
+
+                  border:
+                    "1px solid rgba(255,255,255,0.08)",
+
+                  color: "white",
+
+                  outline:
+                    "none",
                 }}
-              >
-                <label
-                  style={{
-                    color:
-                      "#E2E8F0",
+              />
 
-                    fontSize: "15px",
-
-                    fontWeight:
-                      "600",
-                  }}
-                >
-                  New Password
-                </label>
-
-                <input
-                  type="password"
-
-                  name="password"
-
-                  value={
-                    user.password
-                  }
-
-                  onChange={
-                    handleChange
-                  }
-
-                  placeholder="Enter new password"
-
-                  style={{
-                    width: "100%",
-
-                    marginTop: "10px",
-
-                    padding: "16px",
-
-                    borderRadius:
-                      "16px",
-
-                    fontSize:
-                      "15px",
-                  }}
-                />
-              </div>
-
-              {/* BUTTON */}
               <button
                 onClick={
                   handleSave
@@ -484,199 +579,377 @@ function Settings() {
 
                   border: "none",
 
-                  background:
-                    "linear-gradient(135deg, #2563EB, #7C3AED)",
-
-                  color:
-                    "white",
-
-                  fontWeight:
-                    "600",
-
-                  fontSize:
-                    "15px",
-
                   cursor:
                     "pointer",
 
-                  boxShadow:
-                    "0 0 24px rgba(124,58,237,0.22)",
+                  background:
+                    "linear-gradient(135deg, #8B5CF6, #EC4899)",
+
+                  color: "white",
+
+                  fontWeight:
+                    "700",
+
+                  fontSize:
+                    "15px",
                 }}
               >
-                Save Changes
+                Save Changes 🚀
               </button>
             </div>
 
-            {/* PREFERENCES */}
+            {/* APPEARANCE */}
             <div
-              className="glass-card"
               style={{
                 padding: "34px",
+
+                borderRadius:
+                  "28px",
+
+                background:
+                  "rgba(255,255,255,0.05)",
+
+                border:
+                  "1px solid rgba(255,255,255,0.08)",
+
+                backdropFilter:
+                  "blur(18px)",
               }}
             >
               <h2
-                className="section-title"
                 style={{
-                  marginBottom: "28px",
+                  marginBottom:
+                    "28px",
 
-                  fontSize: "40px",
+                  fontSize:
+                    "34px",
                 }}
               >
-                Preferences
+                Appearance
               </h2>
 
-              {[
-                {
-                  label:
-                    "Dark Mode",
+              <p
+                style={{
+                  marginBottom:
+                    "14px",
 
-                  key:
-                    "darkMode",
-                },
+                  color:
+                    "#CBD5E1",
+                }}
+              >
+                Theme Selection
+              </p>
 
-                {
-                  label:
-                    "Email Notifications",
+              <select
+                value={theme}
+                onChange={(e) =>
+                  setTheme(
+                    e.target
+                      .value
+                  )
+                }
+                style={{
+                  width: "100%",
 
-                  key:
-                    "emailNotifications",
-                },
+                  padding: "16px",
 
-                {
-                  label:
-                    "Team Invites",
+                  borderRadius:
+                    "16px",
 
-                  key:
-                    "teamInvites",
-                },
+                  marginBottom:
+                    "28px",
 
-                {
-                  label:
-                    "Public Profile",
+                  background:
+                    "rgba(255,255,255,0.05)",
 
-                  key:
-                    "publicProfile",
-                },
+                  border:
+                    "1px solid rgba(255,255,255,0.08)",
 
-                {
-                  label:
-                    "AI Assistant",
+                  color: "white",
+                }}
+              >
+                <option>
+                  Luxury Purple
+                </option>
 
-                  key:
-                    "aiAssistant",
-                },
+                <option>
+                  Neon Pink
+                </option>
 
-                {
-                  label:
-                    "Futuristic Mode",
+                <option>
+                  AI Futuristic
+                </option>
 
-                  key:
-                    "futuristicMode",
-                },
-              ].map((item) => (
-                <div
-                  key={item.key}
-                  style={{
-                    display:
-                      "flex",
+                <option>
+                  Cyber Blue
+                </option>
+              </select>
 
-                    justifyContent:
-                      "space-between",
-
-                    alignItems:
-                      "center",
-
-                    marginBottom:
-                      "24px",
-
-                    paddingBottom:
-                      "18px",
-
-                    borderBottom:
-                      "1px solid rgba(255,255,255,0.08)",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize:
-                        "16px",
-
-                      color:
-                        "#CBD5E1",
-                    }}
-                  >
-                    {item.label}
-                  </span>
-
-                  <button
-                    onClick={() =>
-                      toggleSetting(
-                        item.key
-                      )
+              {appearanceSettings.map(
+                (item) => (
+                  <div
+                    key={
+                      item.key
                     }
                     style={{
-                      width:
-                        "62px",
+                      display:
+                        "flex",
 
-                      height:
-                        "32px",
+                      justifyContent:
+                        "space-between",
 
-                      borderRadius:
-                        "30px",
+                      alignItems:
+                        "center",
 
-                      border:
-                        "none",
-
-                      cursor:
-                        "pointer",
-
-                      background:
-                        settings[
-                          item.key
-                        ]
-                          ? "linear-gradient(135deg, #2563EB, #7C3AED)"
-                          : "#374151",
-
-                      position:
-                        "relative",
-
-                      transition:
-                        "0.3s ease",
+                      marginBottom:
+                        "24px",
                     }}
                   >
-                    <div
-                      style={{
-                        width:
-                          "24px",
+                    <span>
+                      {
+                        item.label
+                      }
+                    </span>
 
-                        height:
-                          "24px",
-
-                        borderRadius:
-                          "50%",
-
-                        background:
-                          "white",
-
-                        position:
-                          "absolute",
-
-                        top: "4px",
-
-                        left:
-                          settings[
-                            item.key
-                          ]
-                            ? "34px"
-                            : "4px",
-
-                        transition:
-                          "0.3s ease",
-                      }}
+                    <ToggleSwitch
+                      enabled={
+                        settings[
+                          item
+                            .key
+                        ]
+                      }
+                      onClick={() =>
+                        toggleSetting(
+                          item.key
+                        )
+                      }
                     />
-                  </button>
-                </div>
-              ))}
+                  </div>
+                )
+              )}
+            </div>
+
+            {/* NOTIFICATIONS */}
+            <div
+              style={{
+                padding: "34px",
+
+                borderRadius:
+                  "28px",
+
+                background:
+                  "rgba(255,255,255,0.05)",
+
+                border:
+                  "1px solid rgba(255,255,255,0.08)",
+
+                backdropFilter:
+                  "blur(18px)",
+              }}
+            >
+              <h2
+                style={{
+                  marginBottom:
+                    "28px",
+
+                  fontSize:
+                    "34px",
+                }}
+              >
+                Notifications
+              </h2>
+
+              {notificationSettings.map(
+                (item) => (
+                  <div
+                    key={
+                      item.key
+                    }
+                    style={{
+                      display:
+                        "flex",
+
+                      justifyContent:
+                        "space-between",
+
+                      alignItems:
+                        "center",
+
+                      marginBottom:
+                        "24px",
+                    }}
+                  >
+                    <span>
+                      {
+                        item.label
+                      }
+                    </span>
+
+                    <ToggleSwitch
+                      enabled={
+                        settings[
+                          item
+                            .key
+                        ]
+                      }
+                      onClick={() =>
+                        toggleSetting(
+                          item.key
+                        )
+                      }
+                    />
+                  </div>
+                )
+              )}
+            </div>
+
+            {/* PRODUCTIVITY */}
+            <div
+              style={{
+                padding: "34px",
+
+                borderRadius:
+                  "28px",
+
+                background:
+                  "rgba(255,255,255,0.05)",
+
+                border:
+                  "1px solid rgba(255,255,255,0.08)",
+
+                backdropFilter:
+                  "blur(18px)",
+              }}
+            >
+              <h2
+                style={{
+                  marginBottom:
+                    "28px",
+
+                  fontSize:
+                    "34px",
+                }}
+              >
+                Productivity
+              </h2>
+
+              {productivitySettings.map(
+                (item) => (
+                  <div
+                    key={
+                      item.key
+                    }
+                    style={{
+                      display:
+                        "flex",
+
+                      justifyContent:
+                        "space-between",
+
+                      alignItems:
+                        "center",
+
+                      marginBottom:
+                        "24px",
+                    }}
+                  >
+                    <span>
+                      {
+                        item.label
+                      }
+                    </span>
+
+                    <ToggleSwitch
+                      enabled={
+                        settings[
+                          item
+                            .key
+                        ]
+                      }
+                      onClick={() =>
+                        toggleSetting(
+                          item.key
+                        )
+                      }
+                    />
+                  </div>
+                )
+              )}
+            </div>
+
+            {/* PRIVACY */}
+            <div
+              style={{
+                padding: "34px",
+
+                borderRadius:
+                  "28px",
+
+                background:
+                  "rgba(255,255,255,0.05)",
+
+                border:
+                  "1px solid rgba(255,255,255,0.08)",
+
+                backdropFilter:
+                  "blur(18px)",
+              }}
+            >
+              <h2
+                style={{
+                  marginBottom:
+                    "28px",
+
+                  fontSize:
+                    "34px",
+                }}
+              >
+                Privacy &
+                Security
+              </h2>
+
+              {privacySettings.map(
+                (item) => (
+                  <div
+                    key={
+                      item.key
+                    }
+                    style={{
+                      display:
+                        "flex",
+
+                      justifyContent:
+                        "space-between",
+
+                      alignItems:
+                        "center",
+
+                      marginBottom:
+                        "24px",
+                    }}
+                  >
+                    <span>
+                      {
+                        item.label
+                      }
+                    </span>
+
+                    <ToggleSwitch
+                      enabled={
+                        settings[
+                          item
+                            .key
+                        ]
+                      }
+                      onClick={() =>
+                        toggleSetting(
+                          item.key
+                        )
+                      }
+                    />
+                  </div>
+                )
+              )}
             </div>
           </div>
         </div>

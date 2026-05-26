@@ -1,8 +1,11 @@
-const Task = require("../models/Task");
+const Task =
+  require("../models/Task");
 
-const Project = require("../models/Project");
+const Project =
+  require("../models/Project");
 
-const User = require("../models/User");
+const User =
+  require("../models/User");
 
 //
 // AUTO ASSIGN TASK
@@ -13,124 +16,163 @@ const autoAssignTask =
     description,
     projectId
   ) => {
-    // FIND PROJECT
-    const project =
-      await Project.findById(
-        projectId
-      ).populate("members");
+    try {
+      //
+      // FIND PROJECT
+      //
+      const project =
+        await Project.findById(
+          projectId
+        ).populate(
+          "members"
+        );
 
-    if (!project) {
-      return null;
-    }
+      if (!project) {
+        return null;
+      }
 
-    // COMBINE TEXT
-    const taskText = `
-${title}
-${description}
+      //
+      // SAFE TEXT
+      //
+      const taskText = `
+${title || ""}
+${description || ""}
 `
-      .toLowerCase();
+        .toLowerCase();
 
-    // PRIORITY ROLE MATCHING
-    let preferredRole = "";
+      //
+      // ROLE DETECTION
+      //
+      let preferredRole =
+        "";
 
-    if (
-      taskText.includes(
-        "frontend"
-      ) ||
-      taskText.includes(
-        "react"
-      ) ||
-      taskText.includes("ui")
-    ) {
-      preferredRole =
-        "Frontend Developer";
-    }
+      if (
+        taskText.includes(
+          "frontend"
+        ) ||
+        taskText.includes(
+          "react"
+        ) ||
+        taskText.includes(
+          "ui"
+        )
+      ) {
+        preferredRole =
+          "Frontend Developer";
+      } else if (
+        taskText.includes(
+          "backend"
+        ) ||
+        taskText.includes(
+          "api"
+        ) ||
+        taskText.includes(
+          "database"
+        ) ||
+        taskText.includes(
+          "server"
+        )
+      ) {
+        preferredRole =
+          "Backend Developer";
+      } else if (
+        taskText.includes(
+          "ai"
+        ) ||
+        taskText.includes(
+          "machine learning"
+        ) ||
+        taskText.includes(
+          "openai"
+        )
+      ) {
+        preferredRole =
+          "AI Engineer";
+      } else if (
+        taskText.includes(
+          "design"
+        ) ||
+        taskText.includes(
+          "figma"
+        ) ||
+        taskText.includes(
+          "ux"
+        )
+      ) {
+        preferredRole =
+          "UI/UX Designer";
+      }
 
-    else if (
-      taskText.includes(
-        "backend"
-      ) ||
-      taskText.includes(
-        "api"
-      ) ||
-      taskText.includes(
-        "database"
-      ) ||
-      taskText.includes(
-        "server"
-      )
-    ) {
-      preferredRole =
-        "Backend Developer";
-    }
+      //
+      // SAFE MEMBERS
+      //
+      const members =
+        Array.isArray(
+          project.members
+        )
+          ? project.members
+          : [];
 
-    else if (
-      taskText.includes("ai") ||
-      taskText.includes(
-        "machine learning"
-      ) ||
-      taskText.includes(
-        "openai"
-      )
-    ) {
-      preferredRole =
-        "AI Engineer";
-    }
+      //
+      // AVAILABLE USERS
+      //
+      const eligibleUsers =
+        members.filter(
+          (member) =>
+            member &&
+            member.availability !==
+              "Busy"
+        );
 
-    else if (
-      taskText.includes(
-        "design"
-      ) ||
-      taskText.includes(
-        "figma"
-      ) ||
-      taskText.includes(
-        "ux"
-      )
-    ) {
-      preferredRole =
-        "UI/UX Designer";
-    }
+      if (
+        eligibleUsers.length ===
+        0
+      ) {
+        return null;
+      }
 
-    // FILTER AVAILABLE USERS
-    const eligibleUsers =
-      project.members.filter(
-        (member) =>
-          member.availability ===
-          "Available"
+      //
+      // MATCH ROLE
+      //
+      let matchedUsers =
+        eligibleUsers.filter(
+          (user) =>
+            user.role ===
+            preferredRole
+        );
+
+      //
+      // FALLBACK
+      //
+      if (
+        matchedUsers.length ===
+        0
+      ) {
+        matchedUsers =
+          eligibleUsers;
+      }
+
+      //
+      // SORT PRODUCTIVITY
+      //
+      matchedUsers.sort(
+        (a, b) =>
+          (b.productivityScore ||
+            0) -
+          (a.productivityScore ||
+            0)
       );
 
-    if (
-      eligibleUsers.length === 0
-    ) {
+      //
+      // RETURN BEST USER
+      //
+      return matchedUsers[0]
+        ?._id;
+    } catch (error) {
+      console.log(error);
+
       return null;
     }
-
-    // ROLE MATCHING
-    let matchedUsers =
-      eligibleUsers.filter(
-        (user) =>
-          user.role ===
-          preferredRole
-      );
-
-    // FALLBACK
-    if (
-      matchedUsers.length === 0
-    ) {
-      matchedUsers =
-        eligibleUsers;
-    }
-
-    // SORT BY PRODUCTIVITY
-    matchedUsers.sort(
-      (a, b) =>
-        b.productivityScore -
-        a.productivityScore
-    );
-
-    // RETURN BEST USER
-    return matchedUsers[0]._id;
   };
 
 //
@@ -138,60 +180,69 @@ ${description}
 //
 const updateProjectProgress =
   async (projectId) => {
-    const tasks =
-      await Task.find({
-        project: projectId,
-      });
+    try {
+      const tasks =
+        await Task.find({
+          project:
+            projectId,
+        });
 
-    const totalTasks =
-      tasks.length;
+      const totalTasks =
+        tasks.length;
 
-    const completedTasks =
-      tasks.filter(
-        (task) =>
-          task.status ===
-          "Completed"
-      ).length;
+      const completedTasks =
+        tasks.filter(
+          (task) =>
+            task.status ===
+            "Completed"
+        ).length;
 
-    const completionPercentage =
-      totalTasks === 0
-        ? 0
-        : Math.round(
-            (completedTasks /
-              totalTasks) *
-              100
-          );
+      const completionPercentage =
+        totalTasks === 0
+          ? 0
+          : Math.round(
+              (completedTasks /
+                totalTasks) *
+                100
+            );
 
-    let projectStatus =
-      "Pending";
+      let projectStatus =
+        "Pending";
 
-    if (
-      completionPercentage > 0 &&
-      completionPercentage < 100
-    ) {
-      projectStatus =
-        "In Progress";
-    }
-
-    if (
-      completionPercentage === 100
-    ) {
-      projectStatus =
-        "Completed";
-    }
-
-    await Project.findByIdAndUpdate(
-      projectId,
-      {
-        totalTasks,
-
-        completedTasks,
-
-        completionPercentage,
-
-        status: projectStatus,
+      if (
+        completionPercentage >
+          0 &&
+        completionPercentage <
+          100
+      ) {
+        projectStatus =
+          "In Progress";
       }
-    );
+
+      if (
+        completionPercentage ===
+        100
+      ) {
+        projectStatus =
+          "Completed";
+      }
+
+      await Project.findByIdAndUpdate(
+        projectId,
+        {
+          totalTasks,
+
+          completedTasks,
+
+          completionPercentage,
+
+          status:
+            projectStatus,
+        }
+      );
+    } catch (error) {
+      console.log(error);
+    }
   };
 
 //
@@ -199,164 +250,213 @@ const updateProjectProgress =
 //
 const updateUserProductivity =
   async (userId) => {
-    const completedTasks =
-      await Task.countDocuments(
-        {
-          assignedTo: userId,
+    try {
+      const completedTasks =
+        await Task.countDocuments(
+          {
+            assignedTo:
+              userId,
 
-          status:
-            "Completed",
+            status:
+              "Completed",
+          }
+        );
+
+      const totalTasks =
+        await Task.countDocuments(
+          {
+            assignedTo:
+              userId,
+          }
+        );
+
+      const productivityScore =
+        totalTasks === 0
+          ? 0
+          : Math.round(
+              (completedTasks /
+                totalTasks) *
+                100
+            );
+
+      await User.findByIdAndUpdate(
+        userId,
+        {
+          completedTasks,
+
+          productivityScore,
         }
       );
-
-    const totalTasks =
-      await Task.countDocuments(
-        {
-          assignedTo: userId,
-        }
-      );
-
-    const productivityScore =
-      totalTasks === 0
-        ? 0
-        : Math.round(
-            (completedTasks /
-              totalTasks) *
-              100
-          );
-
-    await User.findByIdAndUpdate(
-      userId,
-      {
-        completedTasks,
-
-        productivityScore,
-      }
-    );
+    } catch (error) {
+      console.log(error);
+    }
   };
 
 //
 // CREATE TASK
 //
-exports.createTask = async (
-  req,
-  res
-) => {
-  try {
-    const {
-      title,
-      description,
-      project,
-      assignedTo,
-      deadline,
-    } = req.body;
-
-    // AUTO ASSIGN
-    let assignedUser =
-      assignedTo;
-
-    if (!assignedUser) {
-      assignedUser =
-        await autoAssignTask(
-          title,
-          description,
-          project
-        );
-    }
-
-    const task =
-      await Task.create({
+exports.createTask =
+  async (req, res) => {
+    try {
+      const {
         title,
-
         description,
-
         project,
-
-        assignedTo:
-          assignedUser,
-
+        assignedTo,
         deadline,
+        priority,
+      } = req.body;
 
-        status: "Pending",
+      //
+      // VALIDATION
+      //
+      if (
+        !title ||
+        !project
+      ) {
+        return res
+          .status(400)
+          .json({
+            success: false,
 
-        progress: 0,
-      });
+            message:
+              "Title and project are required",
+          });
+      }
 
-    // ADD TASK TO USER
-    if (assignedUser) {
-      await User.findByIdAndUpdate(
-        assignedUser,
-        {
-          $push: {
-            assignedTasks:
-              task._id,
-          },
-        }
-      );
-    }
+      //
+      // AUTO ASSIGN
+      //
+      let assignedUser =
+        assignedTo;
 
-    // UPDATE PROJECT
-    await updateProjectProgress(
-      project
-    );
+      if (
+        !assignedUser
+      ) {
+        assignedUser =
+          await autoAssignTask(
+            title,
+            description,
+            project
+          );
+      }
 
-    res.status(201).json({
-      success: true,
+      //
+      // CREATE TASK
+      //
+      const task =
+        await Task.create({
+          title,
 
-      message:
+          description,
+
+          project,
+
+          assignedTo:
+            assignedUser,
+
+          deadline,
+
+          priority:
+            priority ||
+            "Medium",
+
+          status:
+            "Pending",
+
+          progress: 0,
+        });
+
+      //
+      // ADD TO USER
+      //
+      if (
         assignedUser
-          ? "Task auto-assigned successfully"
-          : "Task created successfully",
+      ) {
+        await User.findByIdAndUpdate(
+          assignedUser,
+          {
+            $push: {
+              assignedTasks:
+                task._id,
+            },
+          }
+        );
+      }
 
-      task,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
+      //
+      // UPDATE PROJECT
+      //
+      await updateProjectProgress(
+        project
+      );
 
-      error: error.message,
-    });
-  }
-};
+      res.status(201).json({
+        success: true,
+
+        message:
+          assignedUser
+            ? "Task auto-assigned successfully 🚀"
+            : "Task created successfully 🚀",
+
+        task,
+      });
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        success: false,
+
+        message:
+          error.message,
+      });
+    }
+  };
 
 //
 // GET ALL TASKS
 //
-exports.getTasks = async (
-  req,
-  res
-) => {
-  try {
-    const tasks =
-      await Task.find()
+exports.getTasks =
+  async (req, res) => {
+    try {
+      const tasks =
+        await Task.find()
 
-        .populate(
-          "project",
-          "title"
-        )
+          .populate(
+            "project",
+            "title"
+          )
 
-        .populate(
-          "assignedTo",
-          "name email role productivityScore"
-        )
+          .populate(
+            "assignedTo",
+            "name email role productivityScore"
+          )
 
-        .sort({
-          createdAt: -1,
-        });
+          .sort({
+            createdAt: -1,
+          });
 
-    res.json({
-      success: true,
+      res.json({
+        success: true,
 
-      tasks,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
+        tasks:
+          Array.isArray(
+            tasks
+          )
+            ? tasks
+            : [],
+      });
+    } catch (error) {
+      console.log(error);
 
-      error: error.message,
-    });
-  }
-};
+      res.status(500).json({
+        success: false,
+
+        message:
+          error.message,
+      });
+    }
+  };
 
 //
 // GET TASKS BY PROJECT
@@ -367,7 +467,8 @@ exports.getTasksByProject =
       const tasks =
         await Task.find({
           project:
-            req.params.projectId,
+            req.params
+              .projectId,
         })
 
           .populate(
@@ -382,13 +483,21 @@ exports.getTasksByProject =
       res.json({
         success: true,
 
-        tasks,
+        tasks:
+          Array.isArray(
+            tasks
+          )
+            ? tasks
+            : [],
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         success: false,
 
-        error: error.message,
+        message:
+          error.message,
       });
     }
   };
@@ -420,20 +529,71 @@ exports.updateTaskStatus =
           });
       }
 
-      task.status =
-        status;
+      //
+      // VALID STATUS
+      //
+      const validStatuses =
+        [
+          "Pending",
+          "In Progress",
+          "Completed",
+        ];
 
-      task.progress =
-        progress;
+      if (
+        status &&
+        !validStatuses.includes(
+          status
+        )
+      ) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+
+            message:
+              "Invalid task status",
+          });
+      }
+
+      //
+      // UPDATE
+      //
+      if (status) {
+        task.status =
+          status;
+      }
+
+      if (
+        progress !==
+        undefined
+      ) {
+        task.progress =
+          progress;
+      }
+
+      //
+      // AUTO COMPLETE
+      //
+      if (
+        task.progress ===
+        100
+      ) {
+        task.status =
+          "Completed";
+      }
 
       await task.save();
 
+      //
       // UPDATE PROJECT
+      //
       await updateProjectProgress(
         task.project
       );
 
-      // UPDATE USER PRODUCTIVITY
+      //
+      // UPDATE PRODUCTIVITY
+      //
       if (
         task.assignedTo
       ) {
@@ -445,13 +605,19 @@ exports.updateTaskStatus =
       res.json({
         success: true,
 
+        message:
+          "Task updated successfully 🚀",
+
         task,
       });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({
         success: false,
 
-        error: error.message,
+        message:
+          error.message,
       });
     }
   };
@@ -459,69 +625,78 @@ exports.updateTaskStatus =
 //
 // DELETE TASK
 //
-exports.deleteTask = async (
-  req,
-  res
-) => {
-  try {
-    const task =
-      await Task.findById(
-        req.params.id
-      );
+exports.deleteTask =
+  async (req, res) => {
+    try {
+      const task =
+        await Task.findById(
+          req.params.id
+        );
 
-    if (!task) {
-      return res
-        .status(404)
-        .json({
-          success: false,
+      if (!task) {
+        return res
+          .status(404)
+          .json({
+            success: false,
 
-          message:
-            "Task not found",
-        });
-    }
+            message:
+              "Task not found",
+          });
+      }
 
-    const projectId =
-      task.project;
+      const projectId =
+        task.project;
 
-    const assignedUser =
-      task.assignedTo;
+      const assignedUser =
+        task.assignedTo;
 
-    // DELETE TASK
-    await task.deleteOne();
+      //
+      // DELETE TASK
+      //
+      await task.deleteOne();
 
-    // REMOVE FROM USER
-    if (assignedUser) {
-      await User.findByIdAndUpdate(
-        assignedUser,
-        {
-          $pull: {
-            assignedTasks:
-              task._id,
-          },
-        }
-      );
-
-      await updateUserProductivity(
+      //
+      // REMOVE FROM USER
+      //
+      if (
         assignedUser
+      ) {
+        await User.findByIdAndUpdate(
+          assignedUser,
+          {
+            $pull: {
+              assignedTasks:
+                task._id,
+            },
+          }
+        );
+
+        await updateUserProductivity(
+          assignedUser
+        );
+      }
+
+      //
+      // UPDATE PROJECT
+      //
+      await updateProjectProgress(
+        projectId
       );
+
+      res.json({
+        success: true,
+
+        message:
+          "Task deleted successfully 🚀",
+      });
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        success: false,
+
+        message:
+          error.message,
+      });
     }
-
-    // UPDATE PROJECT
-    await updateProjectProgress(
-      projectId
-    );
-
-    res.json({
-      success: true,
-
-      message:
-        "Task deleted successfully",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-
-      error: error.message,
-    });
-  }
-};
+  };

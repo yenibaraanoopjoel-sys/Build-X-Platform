@@ -1,16 +1,29 @@
-const express = require("express");
+const express =
+  require("express");
 
-const router = express.Router();
+const router =
+  express.Router();
 
-const protect = require("../middleware/authMiddleware");
+//
+// MIDDLEWARE
+//
+const protect =
+  require(
+    "../middleware/authMiddleware"
+  );
 
+//
+// CONTROLLERS
+//
 const {
   getNotifications,
   markAsRead,
   markAllAsRead,
   deleteNotification,
   getUnreadCount,
-} = require("../controllers/notificationController");
+} = require(
+  "../controllers/notificationController"
+);
 
 //
 // GET ALL NOTIFICATIONS
@@ -31,7 +44,7 @@ router.get(
 );
 
 //
-// MARK AS READ
+// MARK SINGLE NOTIFICATION AS READ
 //
 router.put(
   "/read/:id",
@@ -40,7 +53,7 @@ router.put(
 );
 
 //
-// MARK ALL AS READ
+// MARK ALL NOTIFICATIONS AS READ
 //
 router.put(
   "/read-all",
@@ -55,6 +68,21 @@ router.delete(
   "/:id",
   protect,
   deleteNotification
+);
+
+//
+// HEALTH CHECK
+//
+router.get(
+  "/health",
+  (req, res) => {
+    res.json({
+      success: true,
+
+      message:
+        "Notification routes working 🚀",
+    });
+  }
 );
 
 module.exports = router;

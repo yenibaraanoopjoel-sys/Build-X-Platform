@@ -1,230 +1,265 @@
-import { useState } from "react";
-
-import axios from "axios";
-
-import { useNavigate } from "react-router-dom";
+import {
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
+import Loader from "../components/Loader";
+
+import API from "../services/api";
 
 function SkillSwap() {
-  const navigate = useNavigate();
+  //
+  // TOKEN
+  //
+  const token =
+    localStorage.getItem(
+      "token"
+    );
 
-  // Modal
-  const [showForm, setShowForm] =
-    useState(false);
+  //
+  // USER
+  //
+  const storedUser =
+    localStorage.getItem(
+      "user"
+    );
 
-  // Inputs
-  const [skillsHave, setSkillsHave] =
-    useState("");
+  const parsedUser =
+    storedUser
+      ? JSON.parse(
+          storedUser
+        )
+      : {};
 
-  const [skillsWant, setSkillsWant] =
-    useState("");
+  //
+  // CURRENT USER IDS
+  //
+  const currentUserId =
+    parsedUser?._id ||
+    parsedUser?.userId ||
+    "";
 
-  // AI Suggestion
-  const [aiSuggestion, setAiSuggestion] =
-    useState("");
-
-  const [aiLoading, setAiLoading] =
-    useState(false);
-
-  // Matches
-  const [matchedUsers, setMatchedUsers] =
+  //
+  // STATES
+  //
+  const [users, setUsers] =
     useState([]);
 
-  // Request Status
-  const [requestStatus, setRequestStatus] =
-    useState({});
+  const [loading, setLoading] =
+    useState(true);
 
-  // Demo Users
-  const users = [
-    {
-      name: "Rahul Sharma",
-      role: "Full Stack Developer",
+  const [
+    requestLoading,
+    setRequestLoading,
+  ] = useState("");
 
-      skillsHave: [
-        "React",
-        "Node.js",
-        "MongoDB",
-      ],
-    },
+  const [
+    sentRequests,
+    setSentRequests,
+  ] = useState([]);
 
-    {
-      name: "Priya Verma",
-      role: "UI UX Designer",
+  //
+  // FETCH USERS
+  //
+  const fetchUsers =
+    useCallback(
+      async () => {
+        try {
+          setLoading(true);
 
-      skillsHave: [
-        "UI UX",
-        "Figma",
-        "Frontend",
-      ],
-    },
+          const response =
+            await API.get(
+              "/users/all",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
 
-    {
-      name: "Arjun Patel",
-      role: "AI Engineer",
+          if (
+            response?.data
+              ?.success
+          ) {
+            const filteredUsers =
+              Array.isArray(
+                response.data
+                  .users
+              )
+                ? response.data.users.filter(
+                    (
+                      user
+                    ) =>
+                      user?._id !==
+                      currentUserId
+                  )
+                : [];
 
-      skillsHave: [
-        "AI",
-        "Python",
-        "Machine Learning",
-      ],
-    },
-
-    {
-      name: "Sneha Reddy",
-      role: "Backend Developer",
-
-      skillsHave: [
-        "Node.js",
-        "Express",
-        "MongoDB",
-      ],
-    },
-
-    {
-      name: "Karthik Sai",
-      role: "DevOps Engineer",
-
-      skillsHave: [
-        "AWS",
-        "Docker",
-        "DevOps",
-      ],
-    },
-
-    {
-      name: "Aditi Kapoor",
-      role: "Data Scientist",
-
-      skillsHave: [
-        "Python",
-        "AI",
-        "Data Science",
-      ],
-    },
-
-    {
-      name: "Vikram Singh",
-      role: "Cloud Engineer",
-
-      skillsHave: [
-        "Cloud",
-        "AWS",
-        "Linux",
-      ],
-    },
-
-    {
-      name: "Ananya Iyer",
-      role: "Frontend Developer",
-
-      skillsHave: [
-        "React",
-        "JavaScript",
-        "CSS",
-      ],
-    },
-  ];
-
-  // AI MATCH
-  const handleFindMatches =
-    async () => {
-      const matches =
-        users.filter((user) =>
-          user.skillsHave.some(
-            (skill) =>
-              skill
-                .toLowerCase()
-                .includes(
-                  skillsWant.toLowerCase()
-                ) ||
-              skill
-                .toLowerCase()
-                .includes(
-                  skillsHave.toLowerCase()
-                ) ||
-
-              user.role
-                .toLowerCase()
-                .includes(
-                  skillsWant.toLowerCase()
-                ) ||
-
-              user.role
-                .toLowerCase()
-                .includes(
-                  skillsHave.toLowerCase()
-                )
-          )
-        );
-
-      setMatchedUsers(matches);
-
-      setShowForm(false);
-
-      try {
-        setAiLoading(true);
-
-        const response =
-          await axios.post(
-            "https://build-x-platform.onrender.com/api/ai",
-            {
-              message: `
-Suggest the best collaboration strategy.
-
-Skills I Have:
-${skillsHave}
-
-Skills I Want:
-${skillsWant}
-
-Provide:
-1. Best collaborator type
-2. Suggested project ideas
-3. Team role suggestions
-4. Collaboration advice
-`,
-            }
+            setUsers(
+              filteredUsers
+            );
+          } else {
+            setUsers([]);
+          }
+        } catch (error) {
+          console.log(
+            "USER FETCH ERROR:",
+            error
+              ?.response
+              ?.data ||
+              error.message
           );
 
-        setAiSuggestion(
-          response.data.reply
+          setUsers([]);
+        } finally {
+          setLoading(false);
+        }
+      },
+      [
+        token,
+        currentUserId,
+      ]
+    );
+
+  //
+  // FETCH SENT REQUESTS
+  //
+  const fetchSentRequests =
+    useCallback(
+      async () => {
+        try {
+          const response =
+            await API.get(
+              "/collaborations/sent",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+          if (
+            response?.data
+              ?.success
+          ) {
+            setSentRequests(
+              Array.isArray(
+                response.data
+                  .requests
+              )
+                ? response.data
+                    .requests
+                : []
+            );
+          } else {
+            setSentRequests([]);
+          }
+        } catch (error) {
+          console.log(
+            "REQUEST ERROR:",
+            error
+              ?.response
+              ?.data ||
+              error.message
+          );
+
+          setSentRequests([]);
+        }
+      },
+      [token]
+    );
+
+  //
+  // LOAD
+  //
+  useEffect(() => {
+    fetchUsers();
+
+    fetchSentRequests();
+  }, [
+    fetchUsers,
+    fetchSentRequests,
+  ]);
+
+  //
+  // SEND SKILL REQUEST
+  //
+  const sendSkillRequest =
+    async (user) => {
+      try {
+        setRequestLoading(
+          user?._id
+        );
+
+        await API.post(
+          "/collaborations/send",
+          {
+            receiver:
+              user?._id,
+
+            title:
+              "Skill Swap Request",
+
+            requestType:
+              "Skill Swap",
+
+            message:
+              "I'd like to collaborate through a futuristic skill swap partnership inside BuildX.",
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        fetchSentRequests();
+
+        alert(
+          "Skill Swap Request Sent 🚀"
         );
       } catch (error) {
-        console.log(error);
+        console.log(
+          error
+        );
+
+        alert(
+          error?.response
+            ?.data
+            ?.message ||
+            "Failed to send request"
+        );
       } finally {
-        setAiLoading(false);
+        setRequestLoading(
+          ""
+        );
       }
     };
 
-  // Request
-  const handleSendRequest = (
-    userName
-  ) => {
-    setRequestStatus((prev) => ({
-      ...prev,
-      [userName]: "Pending",
-    }));
+  //
+  // GET REQUEST STATUS
+  //
+  const getRequestStatus =
+    (receiverId) => {
+      return sentRequests.find(
+        (request) =>
+          request?.receiver
+            ?._id ===
+            receiverId &&
+          request?.requestType ===
+            "Skill Swap"
+      );
+    };
 
-    setTimeout(() => {
-      setRequestStatus((prev) => ({
-        ...prev,
-        [userName]: "Accepted",
-      }));
-    }, 3000);
-  };
-
-  // Chat
-  const handleStartChat = (
-    user
-  ) => {
-    navigate("/chat", {
-      state: {
-        collaborator: user,
-      },
-    });
-  };
+  //
+  // LOADING
+  //
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div
@@ -237,66 +272,17 @@ Provide:
         color: "white",
 
         overflow: "hidden",
-
-        position: "relative",
       }}
     >
-      {/* Glow */}
-      <div
-        style={{
-          position: "absolute",
-
-          width: "500px",
-
-          height: "500px",
-
-          background:
-            "rgba(59,130,246,0.10)",
-
-          borderRadius: "50%",
-
-          filter: "blur(140px)",
-
-          top: "-180px",
-
-          left: "-120px",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-
-          width: "450px",
-
-          height: "450px",
-
-          background:
-            "rgba(124,58,237,0.12)",
-
-          borderRadius: "50%",
-
-          filter: "blur(130px)",
-
-          bottom: "-150px",
-
-          right: "-100px",
-        }}
-      />
-
-      {/* Navbar */}
+      {/* NAVBAR */}
       <Navbar />
 
       <div
         style={{
           display: "flex",
-
-          position: "relative",
-
-          zIndex: 2,
         }}
       >
-        {/* Sidebar */}
+        {/* SIDEBAR */}
         <Sidebar />
 
         {/* MAIN */}
@@ -304,490 +290,443 @@ Provide:
           style={{
             flex: 1,
 
-            padding: "42px",
+            padding: "40px",
           }}
         >
-          {/* HERO */}
+          {/* HEADER */}
           <div
-            className="glass-card"
             style={{
-              padding: "48px",
-
-              marginBottom: "38px",
-
-              position: "relative",
-
-              overflow: "hidden",
+              marginBottom:
+                "40px",
             }}
           >
-            {/* Glow */}
-            <div
+            <h1
               style={{
-                position: "absolute",
+                fontSize: "52px",
 
-                width: "260px",
-
-                height: "260px",
-
-                background:
-                  "rgba(91,95,255,0.10)",
-
-                borderRadius: "50%",
-
-                filter: "blur(90px)",
-
-                top: "-70px",
-
-                right: "-50px",
-              }}
-            />
-
-            <div
-              style={{
-                position: "relative",
-
-                zIndex: 2,
+                marginBottom:
+                  "16px",
               }}
             >
-              <h1
-                className="welcome-title"
+              Skill Swap Hub 🚀
+            </h1>
+
+            <p
+              style={{
+                color: "#CBD5E1",
+
+                lineHeight:
+                  "1.9",
+
+                fontSize: "17px",
+
+                maxWidth:
+                  "820px",
+              }}
+            >
+              Connect with
+              developers,
+              designers,
+              creators, and
+              innovators to
+              exchange skills
+              and build amazing
+              futuristic
+              collaborations.
+            </p>
+          </div>
+
+          {/* EMPTY */}
+          {users.length ===
+          0 ? (
+            <div
+              style={{
+                padding: "60px",
+
+                borderRadius:
+                  "24px",
+
+                background:
+                  "rgba(255,255,255,0.05)",
+
+                border:
+                  "1px solid rgba(255,255,255,0.08)",
+
+                textAlign:
+                  "center",
+              }}
+            >
+              <h2
                 style={{
-                  fontSize: "54px",
+                  fontSize:
+                    "38px",
 
-                  marginBottom: "22px",
-
-                  lineHeight: "1.3",
+                  marginBottom:
+                    "16px",
                 }}
               >
-                AI SKILL SWAP
-              </h1>
+                No Users Found
+              </h2>
 
               <p
                 style={{
-                  color: "#CBD5E1",
-
-                  fontSize: "18px",
-
-                  lineHeight: "2",
-
-                  maxWidth: "850px",
+                  color:
+                    "#CBD5E1",
                 }}
               >
-                Discover AI-powered
-                collaboration matches,
-                connect with creators,
-                developers, designers,
-                and innovators inside
-                the futuristic BuildX
-                ecosystem.
+                No available
+                users for skill
+                swapping right
+                now.
               </p>
             </div>
-          </div>
-
-          {/* ACTION */}
-          <button
-            onClick={() =>
-              setShowForm(true)
-            }
-            style={{
-              width: "82px",
-
-              height: "82px",
-
-              borderRadius: "50%",
-
-              border: "none",
-
-              cursor: "pointer",
-
-              fontSize: "42px",
-
-              color: "white",
-
-              marginBottom: "38px",
-
-              background:
-                "linear-gradient(135deg, #2563EB, #7C3AED)",
-
-              boxShadow:
-                "0 0 28px rgba(124,58,237,0.24)",
-            }}
-          >
-            +
-          </button>
-
-          {/* FORM */}
-          {showForm && (
+          ) : (
             <div
-              className="glass-card"
               style={{
-                padding: "36px",
+                display: "grid",
 
-                marginBottom: "38px",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(340px, 1fr))",
+
+                gap: "28px",
               }}
             >
-              <h2
-                className="section-title"
-                style={{
-                  marginBottom: "28px",
+              {users.map(
+                (user) => {
+                  const request =
+                    getRequestStatus(
+                      user?._id
+                    );
 
-                  fontSize: "42px",
-                }}
-              >
-                AI Collaboration Match
-              </h2>
+                  return (
+                    <div
+                      key={
+                        user?._id
+                      }
+                      style={{
+                        padding:
+                          "34px",
 
-              <input
-                type="text"
-                placeholder="Skills you have"
-                value={skillsHave}
-                onChange={(e) =>
-                  setSkillsHave(
-                    e.target.value
-                  )
-                }
-                style={{
-                  width: "100%",
+                        borderRadius:
+                          "28px",
 
-                  padding: "18px",
+                        background:
+                          "rgba(255,255,255,0.05)",
 
-                  marginBottom: "22px",
+                        border:
+                          "1px solid rgba(255,255,255,0.08)",
 
-                  borderRadius:
-                    "16px",
+                        backdropFilter:
+                          "blur(18px)",
 
-                  fontSize:
-                    "15px",
-                }}
-              />
+                        boxShadow:
+                          "0 0 30px rgba(124,58,237,0.12)",
+                      }}
+                    >
+                      {/* PROFILE */}
+                      <div
+                        style={{
+                          display:
+                            "flex",
 
-              <input
-                type="text"
-                placeholder="Skills you want to learn"
-                value={skillsWant}
-                onChange={(e) =>
-                  setSkillsWant(
-                    e.target.value
-                  )
-                }
-                style={{
-                  width: "100%",
+                          flexDirection:
+                            "column",
 
-                  padding: "18px",
+                          alignItems:
+                            "center",
 
-                  marginBottom: "28px",
-
-                  borderRadius:
-                    "16px",
-
-                  fontSize:
-                    "15px",
-                }}
-              />
-
-              <button
-                onClick={
-                  handleFindMatches
-                }
-                style={{
-                  padding:
-                    "16px 30px",
-
-                  borderRadius:
-                    "18px",
-
-                  background:
-                    "linear-gradient(135deg, #2563EB, #7C3AED)",
-
-                  color:
-                    "white",
-
-                  fontWeight:
-                    "600",
-
-                  fontSize:
-                    "15px",
-
-                  boxShadow:
-                    "0 0 24px rgba(124,58,237,0.22)",
-                }}
-              >
-                Find AI Matches
-              </button>
-            </div>
-          )}
-
-          {/* AI INSIGHTS */}
-          {aiSuggestion && (
-            <div
-              className="glass-card"
-              style={{
-                padding: "36px",
-
-                marginBottom: "40px",
-
-                whiteSpace:
-                  "pre-wrap",
-
-                lineHeight: "2",
-              }}
-            >
-              <h2
-                className="section-title"
-                style={{
-                  marginBottom: "24px",
-
-                  fontSize: "42px",
-                }}
-              >
-                AI Collaboration Insights
-              </h2>
-
-              <div
-                style={{
-                  color: "#CBD5E1",
-
-                  fontSize: "16px",
-                }}
-              >
-                {aiLoading
-                  ? "Analyzing futuristic collaboration opportunities..."
-                  : aiSuggestion}
-              </div>
-            </div>
-          )}
-
-          {/* MATCHES */}
-          <div
-            style={{
-              display: "grid",
-
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(320px, 1fr))",
-
-              gap: "28px",
-            }}
-          >
-            {matchedUsers.map(
-              (user, index) => (
-                <div
-                  key={index}
-                  className="glass-card"
-                  style={{
-                    padding: "30px",
-                  }}
-                >
-                  {/* Avatar */}
-                  <div
-                    style={{
-                      width: "88px",
-
-                      height: "88px",
-
-                      borderRadius:
-                        "50%",
-
-                      background:
-                        "linear-gradient(135deg, #2563EB, #7C3AED)",
-
-                      display: "flex",
-
-                      justifyContent:
-                        "center",
-
-                      alignItems:
-                        "center",
-
-                      fontSize: "32px",
-
-                      marginBottom: "24px",
-
-                      boxShadow:
-                        "0 0 24px rgba(124,58,237,0.22)",
-                    }}
-                  >
-                    {user.name.charAt(0)}
-                  </div>
-
-                  {/* NAME */}
-                  <h2
-                    className="card-title"
-                    style={{
-                      fontSize: "34px",
-
-                      marginBottom:
-                        "10px",
-                    }}
-                  >
-                    {user.name}
-                  </h2>
-
-                  <p
-                    style={{
-                      color: "#CBD5E1",
-
-                      marginBottom:
-                        "24px",
-
-                      fontSize: "16px",
-                    }}
-                  >
-                    {user.role}
-                  </p>
-
-                  {/* SKILLS */}
-                  <div
-                    style={{
-                      display: "flex",
-
-                      flexWrap:
-                        "wrap",
-
-                      gap: "12px",
-
-                      marginBottom:
-                        "28px",
-                    }}
-                  >
-                    {user.skillsHave.map(
-                      (skill, i) => (
-                        <span
-                          key={i}
+                          textAlign:
+                            "center",
+                        }}
+                      >
+                        {/* AVATAR */}
+                        <div
                           style={{
-                            padding:
-                              "10px 16px",
+                            width:
+                              "100px",
+
+                            height:
+                              "100px",
 
                             borderRadius:
-                              "24px",
+                              "50%",
 
                             background:
-                              "rgba(79,70,229,0.16)",
+                              "linear-gradient(135deg, #8B5CF6, #EC4899)",
 
-                            border:
-                              "1px solid rgba(255,255,255,0.06)",
+                            display:
+                              "flex",
 
-                            color:
-                              "white",
+                            alignItems:
+                              "center",
+
+                            justifyContent:
+                              "center",
 
                             fontSize:
-                              "14px",
+                              "40px",
+
+                            fontWeight:
+                              "bold",
+
+                            marginBottom:
+                              "22px",
                           }}
                         >
-                          ✨ {skill}
-                        </span>
-                      )
-                    )}
-                  </div>
+                          {user?.name
+                            ?.charAt(
+                              0
+                            )
+                            ?.toUpperCase() ||
+                            "U"}
+                        </div>
 
-                  {/* BUTTONS */}
-                  {!requestStatus[
-                    user.name
-                  ] && (
-                    <button
-                      onClick={() =>
-                        handleSendRequest(
-                          user.name
-                        )
-                      }
-                      style={{
-                        width: "100%",
+                        {/* NAME */}
+                        <h2
+                          style={{
+                            fontSize:
+                              "30px",
 
-                        padding: "15px",
+                            marginBottom:
+                              "12px",
+                          }}
+                        >
+                          {user?.name ||
+                            "Unknown User"}
+                        </h2>
 
-                        borderRadius:
-                          "18px",
+                        {/* EMAIL */}
+                        <p
+                          style={{
+                            color:
+                              "#CBD5E1",
 
-                        background:
-                          "linear-gradient(135deg, #2563EB, #7C3AED)",
+                            marginBottom:
+                              "18px",
+                          }}
+                        >
+                          {user?.email ||
+                            "No Email"}
+                        </p>
 
-                        color:
-                          "white",
+                        {/* BIO */}
+                        <p
+                          style={{
+                            color:
+                              "#CBD5E1",
 
-                        fontWeight:
-                          "600",
+                            lineHeight:
+                              "1.9",
 
-                        fontSize:
-                          "15px",
+                            marginBottom:
+                              "24px",
+                          }}
+                        >
+                          {user?.bio ||
+                            "Creative innovator building futuristic products inside BuildX."}
+                        </p>
 
-                        boxShadow:
-                          "0 0 22px rgba(124,58,237,0.22)",
-                      }}
-                    >
-                      Send Request
-                    </button>
-                  )}
+                        {/* SKILLS */}
+                        <div
+                          style={{
+                            display:
+                              "flex",
 
-                  {requestStatus[
-                    user.name
-                  ] === "Pending" && (
-                    <button
-                      disabled
-                      style={{
-                        width: "100%",
+                            flexWrap:
+                              "wrap",
 
-                        padding: "15px",
+                            justifyContent:
+                              "center",
 
-                        borderRadius:
-                          "18px",
+                            gap: "12px",
 
-                        background:
-                          "#F59E0B",
+                            marginBottom:
+                              "28px",
+                          }}
+                        >
+                          {Array.isArray(
+                            user?.skills
+                          ) &&
+                          user.skills
+                            .length >
+                            0 ? (
+                            user.skills.map(
+                              (
+                                skill,
+                                index
+                              ) => (
+                                <span
+                                  key={
+                                    index
+                                  }
+                                  style={{
+                                    padding:
+                                      "10px 16px",
 
-                        color:
-                          "white",
+                                    borderRadius:
+                                      "18px",
 
-                        fontWeight:
-                          "600",
+                                    background:
+                                      "rgba(255,255,255,0.06)",
 
-                        fontSize:
-                          "15px",
-                      }}
-                    >
-                      Request Pending...
-                    </button>
-                  )}
+                                    border:
+                                      "1px solid rgba(255,255,255,0.08)",
 
-                  {requestStatus[
-                    user.name
-                  ] ===
-                    "Accepted" && (
-                    <button
-                      onClick={() =>
-                        handleStartChat(
-                          user
-                        )
-                      }
-                      style={{
-                        width: "100%",
+                                    fontSize:
+                                      "13px",
+                                  }}
+                                >
+                                  {skill}
+                                </span>
+                              )
+                            )
+                          ) : (
+                            <span
+                              style={{
+                                color:
+                                  "#94A3B8",
+                              }}
+                            >
+                              No skills added
+                            </span>
+                          )}
+                        </div>
 
-                        padding: "15px",
+                        {/* ACTION */}
+                        {request?.status ===
+                        "Accepted" ? (
+                          <button
+                            style={{
+                              width:
+                                "100%",
 
-                        borderRadius:
-                          "18px",
+                              padding:
+                                "16px",
 
-                        background:
-                          "#10B981",
+                              borderRadius:
+                                "18px",
 
-                        color:
-                          "white",
+                              border:
+                                "none",
 
-                        fontWeight:
-                          "600",
+                              background:
+                                "linear-gradient(135deg, #10B981, #059669)",
 
-                        fontSize:
-                          "15px",
+                              color:
+                                "white",
 
-                        boxShadow:
-                          "0 0 20px rgba(16,185,129,0.24)",
-                      }}
-                    >
-                      Start Collaboration
-                    </button>
-                  )}
-                </div>
-              )
-            )}
-          </div>
+                              fontWeight:
+                                "700",
+                            }}
+                          >
+                            Connected ✅
+                          </button>
+                        ) : request?.status ===
+                          "Rejected" ? (
+                          <button
+                            style={{
+                              width:
+                                "100%",
+
+                              padding:
+                                "16px",
+
+                              borderRadius:
+                                "18px",
+
+                              border:
+                                "none",
+
+                              background:
+                                "linear-gradient(135deg, #EF4444, #DC2626)",
+
+                              color:
+                                "white",
+
+                              fontWeight:
+                                "700",
+                            }}
+                          >
+                            Request Rejected
+                          </button>
+                        ) : request?.status ===
+                          "Pending" ? (
+                          <button
+                            style={{
+                              width:
+                                "100%",
+
+                              padding:
+                                "16px",
+
+                              borderRadius:
+                                "18px",
+
+                              border:
+                                "none",
+
+                              background:
+                                "rgba(255,255,255,0.08)",
+
+                              color:
+                                "#CBD5E1",
+
+                              fontWeight:
+                                "700",
+                            }}
+                          >
+                            Request Sent ⏳
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              sendSkillRequest(
+                                user
+                              )
+                            }
+                            disabled={
+                              requestLoading ===
+                              user?._id
+                            }
+                            style={{
+                              width:
+                                "100%",
+
+                              padding:
+                                "16px",
+
+                              borderRadius:
+                                "18px",
+
+                              border:
+                                "none",
+
+                              cursor:
+                                "pointer",
+
+                              fontWeight:
+                                "700",
+
+                              background:
+                                "linear-gradient(135deg, #8B5CF6, #EC4899)",
+
+                              color:
+                                "white",
+                            }}
+                          >
+                            {requestLoading ===
+                            user?._id
+                              ? "Sending..."
+                              : "Start Skill Swap 🚀"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

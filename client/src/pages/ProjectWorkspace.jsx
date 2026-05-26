@@ -1,6 +1,7 @@
 import {
   useEffect,
   useState,
+  useCallback,
 } from "react";
 
 import Navbar from "../components/Navbar";
@@ -23,109 +24,188 @@ function ProjectWorkspace() {
     useState(true);
 
   //
+  // TOKEN
+  //
+  const token =
+    localStorage.getItem(
+      "token"
+    );
+
+  //
   // FETCH PROJECTS
   //
   const fetchProjects =
-    async () => {
-      try {
-        setLoading(true);
+    useCallback(
+      async () => {
+        try {
+          const response =
+            await API.get(
+              "/projects",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
 
-        const response =
-          await API.get(
-            "/projects"
-          );
-
-        if (
-          response?.data
-            ?.success
-        ) {
-          setProjects(
+          if (
             response?.data
-              ?.projects || []
+              ?.success
+          ) {
+            setProjects(
+              Array.isArray(
+                response.data
+                  .projects
+              )
+                ? response.data
+                    .projects
+                : []
+            );
+          } else {
+            setProjects(
+              []
+            );
+          }
+        } catch (error) {
+          console.log(
+            "PROJECT ERROR:",
+            error
+              ?.response
+              ?.data ||
+              error.message
           );
-        } else {
+
           setProjects([]);
         }
-      } catch (error) {
-        console.log(
-          "PROJECT ERROR:",
-          error.response?.data ||
-            error.message
-        );
-
-        setProjects([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+      },
+      [token]
+    );
 
   //
   // FETCH TASKS
   //
   const fetchTasks =
-    async () => {
-      try {
-        const response =
-          await API.get(
-            "/tasks"
+    useCallback(
+      async () => {
+        try {
+          const response =
+            await API.get(
+              "/tasks",
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+          if (
+            response?.data
+              ?.success
+          ) {
+            setTasks(
+              Array.isArray(
+                response.data
+                  .tasks
+              )
+                ? response.data
+                    .tasks
+                : []
+            );
+          } else {
+            setTasks([]);
+          }
+        } catch (error) {
+          console.log(
+            "TASK ERROR:",
+            error
+              ?.response
+              ?.data ||
+              error.message
           );
 
-        if (
-          response?.data
-            ?.success
-        ) {
-          setTasks(
-            response?.data
-              ?.tasks || []
-          );
-        } else {
           setTasks([]);
         }
-      } catch (error) {
-        console.log(
-          "TASK ERROR:",
-          error.response?.data ||
-            error.message
-        );
-
-        setTasks([]);
-      }
-    };
+      },
+      [token]
+    );
 
   //
   // INITIAL LOAD
   //
   useEffect(() => {
-    fetchProjects();
+    const loadData =
+      async () => {
+        setLoading(
+          true
+        );
 
-    fetchTasks();
-  }, []);
+        await fetchProjects();
+
+        await fetchTasks();
+
+        setLoading(
+          false
+        );
+      };
+
+    loadData();
+  }, [
+    fetchProjects,
+    fetchTasks,
+  ]);
 
   //
   // CALCULATIONS
   //
   const totalProjects =
-    projects?.length || 0;
+    Array.isArray(
+      projects
+    )
+      ? projects.length
+      : 0;
 
   const totalTasks =
-    tasks?.length || 0;
+    Array.isArray(tasks)
+      ? tasks.length
+      : 0;
 
   const completedProjects =
-    projects?.filter(
-      (project) =>
-        project?.status ===
-        "Completed"
-    )?.length || 0;
+    Array.isArray(
+      projects
+    )
+      ? projects.filter(
+          (
+            project
+          ) =>
+            project?.status ===
+            "Completed"
+        ).length
+      : 0;
 
+  //
+  // CONTRIBUTORS
+  //
   const contributors =
     new Set(
-      projects?.flatMap(
-        (project) =>
-          project?.members?.map(
-            (member) =>
-              member?._id
-          ) || []
+      Array.isArray(
+        projects
       )
+        ? projects.flatMap(
+            (
+              project
+            ) =>
+              Array.isArray(
+                project?.members
+              )
+                ? project.members.map(
+                    (
+                      member
+                    ) =>
+                      member?._id
+                  )
+                : []
+          )
+        : []
     ).size;
 
   //
@@ -138,58 +218,75 @@ function ProjectWorkspace() {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight:
+          "100vh",
 
         background:
           "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
 
-        color: "white",
+        color:
+          "white",
 
-        overflow: "hidden",
+        overflow:
+          "hidden",
 
-        position: "relative",
+        position:
+          "relative",
       }}
     >
       {/* GLOW */}
       <div
         style={{
-          position: "absolute",
+          position:
+            "absolute",
 
-          width: "500px",
+          width:
+            "500px",
 
-          height: "500px",
+          height:
+            "500px",
 
           background:
             "rgba(59,130,246,0.10)",
 
-          borderRadius: "50%",
+          borderRadius:
+            "50%",
 
-          filter: "blur(140px)",
+          filter:
+            "blur(140px)",
 
           top: "-180px",
 
-          left: "-120px",
+          left:
+            "-120px",
         }}
       />
 
       <div
         style={{
-          position: "absolute",
+          position:
+            "absolute",
 
-          width: "450px",
+          width:
+            "450px",
 
-          height: "450px",
+          height:
+            "450px",
 
           background:
             "rgba(124,58,237,0.12)",
 
-          borderRadius: "50%",
+          borderRadius:
+            "50%",
 
-          filter: "blur(130px)",
+          filter:
+            "blur(130px)",
 
-          bottom: "-150px",
+          bottom:
+            "-150px",
 
-          right: "-100px",
+          right:
+            "-100px",
         }}
       />
 
@@ -198,9 +295,11 @@ function ProjectWorkspace() {
 
       <div
         style={{
-          display: "flex",
+          display:
+            "flex",
 
-          position: "relative",
+          position:
+            "relative",
 
           zIndex: 2,
         }}
@@ -213,46 +312,58 @@ function ProjectWorkspace() {
           style={{
             flex: 1,
 
-            padding: "42px",
+            padding:
+              "42px",
           }}
         >
           {/* HERO */}
           <div
             className="glass-card"
             style={{
-              padding: "48px",
+              padding:
+                "48px",
 
-              marginBottom: "42px",
+              marginBottom:
+                "42px",
 
-              position: "relative",
+              position:
+                "relative",
 
-              overflow: "hidden",
+              overflow:
+                "hidden",
             }}
           >
             <div
               style={{
-                position: "absolute",
+                position:
+                  "absolute",
 
-                width: "260px",
+                width:
+                  "260px",
 
-                height: "260px",
+                height:
+                  "260px",
 
                 background:
                   "rgba(91,95,255,0.10)",
 
-                borderRadius: "50%",
+                borderRadius:
+                  "50%",
 
-                filter: "blur(90px)",
+                filter:
+                  "blur(90px)",
 
                 top: "-70px",
 
-                right: "-50px",
+                right:
+                  "-50px",
               }}
             />
 
             <div
               style={{
-                position: "relative",
+                position:
+                  "relative",
 
                 zIndex: 2,
               }}
@@ -260,32 +371,45 @@ function ProjectWorkspace() {
               <h1
                 className="welcome-title"
                 style={{
-                  fontSize: "52px",
+                  fontSize:
+                    "52px",
 
-                  marginBottom: "22px",
+                  marginBottom:
+                    "22px",
 
-                  lineHeight: "1.3",
+                  lineHeight:
+                    "1.3",
                 }}
               >
-                PROJECT WORKSPACE
+                PROJECT
+                WORKSPACE
               </h1>
 
               <p
                 style={{
-                  color: "#CBD5E1",
+                  color:
+                    "#CBD5E1",
 
-                  fontSize: "18px",
+                  fontSize:
+                    "18px",
 
-                  lineHeight: "2",
+                  lineHeight:
+                    "2",
 
-                  maxWidth: "820px",
+                  maxWidth:
+                    "820px",
                 }}
               >
-                Manage projects,
-                collaboration systems,
-                productivity workflows,
-                and futuristic teamwork
-                inside BuildX.
+                Manage
+                projects,
+                collaboration
+                systems,
+                productivity
+                workflows,
+                and futuristic
+                teamwork
+                inside
+                BuildX.
               </p>
             </div>
           </div>
@@ -294,23 +418,27 @@ function ProjectWorkspace() {
           <div
             className="glass-card"
             style={{
-              padding: "36px",
+              padding:
+                "36px",
 
-              marginBottom: "42px",
+              marginBottom:
+                "42px",
             }}
           >
             <h2
               className="section-title"
               style={{
-                fontSize: "42px",
+                fontSize:
+                  "42px",
 
-                marginBottom: "28px",
+                marginBottom:
+                  "28px",
               }}
             >
               Your Projects
             </h2>
 
-            {projects?.length ===
+            {projects.length ===
             0 ? (
               <div
                 style={{
@@ -351,7 +479,8 @@ function ProjectWorkspace() {
                       "14px",
                   }}
                 >
-                  No Projects Yet
+                  No Projects
+                  Yet
                 </h2>
 
                 <p
@@ -366,24 +495,29 @@ function ProjectWorkspace() {
                       "16px",
                   }}
                 >
-                  Start building your
-                  first futuristic
-                  project inside
+                  Start
+                  building your
+                  first
+                  futuristic
+                  project
+                  inside
                   BuildX.
                 </p>
               </div>
             ) : (
               <div
                 style={{
-                  display: "grid",
+                  display:
+                    "grid",
 
                   gridTemplateColumns:
                     "repeat(auto-fit, minmax(320px, 1fr))",
 
-                  gap: "24px",
+                  gap:
+                    "24px",
                 }}
               >
-                {projects?.map(
+                {projects.map(
                   (
                     project,
                     index
@@ -473,9 +607,11 @@ function ProjectWorkspace() {
                       {/* PROGRESS */}
                       <div
                         style={{
-                          width: "100%",
+                          width:
+                            "100%",
 
-                          height: "10px",
+                          height:
+                            "10px",
 
                           background:
                             "rgba(255,255,255,0.08)",
@@ -523,7 +659,8 @@ function ProjectWorkspace() {
                         }}
                       >
                         <div>
-                          Total Tasks:{" "}
+                          Total
+                          Tasks:{" "}
                           {project?.totalTasks ||
                             0}
                         </div>
@@ -533,6 +670,17 @@ function ProjectWorkspace() {
                           Tasks:{" "}
                           {project?.completedTasks ||
                             0}
+                        </div>
+
+                        <div>
+                          Members:{" "}
+                          {Array.isArray(
+                            project?.members
+                          )
+                            ? project
+                                .members
+                                .length
+                            : 0}
                         </div>
                       </div>
                     </div>
@@ -545,7 +693,8 @@ function ProjectWorkspace() {
           {/* STATS */}
           <div
             style={{
-              display: "grid",
+              display:
+                "grid",
 
               gridTemplateColumns:
                 "repeat(auto-fit, minmax(240px, 1fr))",
@@ -557,130 +706,162 @@ function ProjectWorkspace() {
               {
                 title:
                   "Projects",
+
                 value:
                   totalProjects,
-                icon: "🛠️",
+
+                icon:
+                  "🛠️",
               },
 
               {
                 title:
                   "Contributors",
+
                 value:
                   contributors,
-                icon: "👥",
+
+                icon:
+                  "👥",
               },
 
               {
                 title:
                   "Tasks",
+
                 value:
                   totalTasks,
-                icon: "📌",
+
+                icon:
+                  "📌",
               },
 
               {
                 title:
                   "Completed",
+
                 value:
                   completedProjects,
-                icon: "✅",
+
+                icon:
+                  "✅",
               },
-            ].map((item, index) => (
-              <div
-                key={index}
-                className="glass-card"
-                style={{
-                  padding: "30px",
-
-                  position:
-                    "relative",
-
-                  overflow:
-                    "hidden",
-                }}
-              >
-                {/* Glow */}
+            ].map(
+              (
+                item,
+                index
+              ) => (
                 <div
+                  key={
+                    index
+                  }
+                  className="glass-card"
                   style={{
-                    position:
-                      "absolute",
-
-                    width: "180px",
-
-                    height:
-                      "180px",
-
-                    background:
-                      "rgba(124,58,237,0.08)",
-
-                    borderRadius:
-                      "50%",
-
-                    filter:
-                      "blur(70px)",
-
-                    top: "-60px",
-
-                    right: "-60px",
-                  }}
-                />
-
-                <div
-                  style={{
-                    display: "flex",
-
-                    justifyContent:
-                      "space-between",
-
-                    alignItems:
-                      "center",
-
-                    marginBottom:
-                      "16px",
+                    padding:
+                      "30px",
 
                     position:
                       "relative",
 
-                    zIndex: 2,
+                    overflow:
+                      "hidden",
                   }}
                 >
-                  <h2
+                  <div
                     style={{
-                      fontSize: "28px",
+                      position:
+                        "absolute",
+
+                      width:
+                        "180px",
+
+                      height:
+                        "180px",
+
+                      background:
+                        "rgba(124,58,237,0.08)",
+
+                      borderRadius:
+                        "50%",
+
+                      filter:
+                        "blur(70px)",
+
+                      top:
+                        "-60px",
+
+                      right:
+                        "-60px",
+                    }}
+                  />
+
+                  <div
+                    style={{
+                      display:
+                        "flex",
+
+                      justifyContent:
+                        "space-between",
+
+                      alignItems:
+                        "center",
+
+                      marginBottom:
+                        "16px",
+
+                      position:
+                        "relative",
+
+                      zIndex: 2,
+                    }}
+                  >
+                    <h2
+                      style={{
+                        fontSize:
+                          "28px",
+
+                        color:
+                          "white",
+                      }}
+                    >
+                      {
+                        item.title
+                      }
+                    </h2>
+
+                    <span
+                      style={{
+                        fontSize:
+                          "30px",
+                      }}
+                    >
+                      {
+                        item.icon
+                      }
+                    </span>
+                  </div>
+
+                  <h1
+                    style={{
+                      fontSize:
+                        "48px",
 
                       color:
                         "white",
-                    }}
-                  >
-                    {item.title}
-                  </h2>
 
-                  <span
-                    style={{
-                      fontSize:
-                        "30px",
+                      position:
+                        "relative",
+
+                      zIndex: 2,
                     }}
                   >
-                    {item.icon}
-                  </span>
+                    {
+                      item.value
+                    }
+                  </h1>
                 </div>
-
-                <h1
-                  style={{
-                    fontSize: "48px",
-
-                    color: "white",
-
-                    position:
-                      "relative",
-
-                    zIndex: 2,
-                  }}
-                >
-                  {item.value}
-                </h1>
-              </div>
-            ))}
+              )
+            )}
           </div>
         </div>
       </div>

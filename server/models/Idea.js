@@ -1,132 +1,215 @@
-const mongoose = require("mongoose");
+const mongoose =
+  require("mongoose");
 
-const ideaSchema = new mongoose.Schema(
-  {
-    //
-    // IDEA TITLE
-    //
-    title: {
-      type: String,
-
-      required: true,
-
-      trim: true,
-    },
-
-    //
-    // IDEA DESCRIPTION
-    //
-    description: {
-      type: String,
-
-      required: true,
-
-      trim: true,
-    },
-
-    //
-    // TECH STACK
-    //
-    techStack: [
-      {
+const ideaSchema =
+  new mongoose.Schema(
+    {
+      //
+      // IDEA TITLE
+      //
+      title: {
         type: String,
+
+        required: true,
 
         trim: true,
       },
-    ],
 
-    //
-    // IDEA CATEGORY
-    //
-    category: {
-      type: String,
+      //
+      // IDEA DESCRIPTION
+      //
+      description: {
+        type: String,
 
-      enum: [
-        "AI",
-        "Web Development",
-        "Mobile App",
-        "UI/UX",
-        "Blockchain",
-        "Cybersecurity",
-        "Research",
-        "Startup",
-        "Other",
+        required: true,
+
+        trim: true,
+      },
+
+      //
+      // TECH STACK
+      //
+      techStack: [
+        {
+          type: String,
+
+          trim: true,
+        },
       ],
 
-      default: "Other",
-    },
+      //
+      // IDEA CATEGORY
+      //
+      category: {
+        type: String,
 
-    //
-    // IDEA CREATOR
-    //
-    createdBy: {
-      type:
-        mongoose.Schema.Types
-          .ObjectId,
+        enum: [
+          "AI",
+          "Web Development",
+          "Mobile App",
+          "UI/UX",
+          "Blockchain",
+          "Cybersecurity",
+          "Research",
+          "Startup",
+          "Other",
+        ],
 
-      ref: "User",
+        default:
+          "Other",
+      },
 
-      required: true,
-    },
-
-    //
-    // COLLABORATORS
-    //
-    collaborators: [
-      {
+      //
+      // IDEA CREATOR
+      //
+      createdBy: {
         type:
           mongoose.Schema.Types
             .ObjectId,
 
         ref: "User",
+
+        required: true,
       },
-    ],
 
-    //
-    // LINKED PROJECT
-    //
-    linkedProject: {
-      type:
-        mongoose.Schema.Types
-          .ObjectId,
+      //
+      // COLLABORATORS
+      //
+      collaborators: [
+        {
+          type:
+            mongoose.Schema.Types
+              .ObjectId,
 
-      ref: "Project",
-    },
+          ref: "User",
+        },
+      ],
 
-    //
-    // LIKES
-    //
-    likes: [
-      {
+      //
+      // LINKED PROJECT
+      //
+      linkedProject: {
         type:
           mongoose.Schema.Types
             .ObjectId,
 
-        ref: "User",
+        ref: "Project",
       },
-    ],
 
-    //
-    // IDEA STATUS
-    //
-    status: {
-      type: String,
+      //
+      // LIKES
+      //
+      likes: [
+        {
+          type:
+            mongoose.Schema.Types
+              .ObjectId,
 
-      enum: [
-        "Open",
-        "In Progress",
-        "Completed",
-        "Converted",
+          ref: "User",
+        },
       ],
 
-      default: "Open",
-    },
-  },
+      //
+      // IDEA STATUS
+      //
+      status: {
+        type: String,
 
-  {
-    timestamps: true,
+        enum: [
+          "Open",
+          "In Progress",
+          "Completed",
+          "Converted",
+        ],
+
+        default: "Open",
+      },
+
+      //
+      // VISIBILITY
+      //
+      visibility: {
+        type: String,
+
+        enum: [
+          "Public",
+          "Private",
+        ],
+
+        default:
+          "Public",
+      },
+
+      //
+      // FEATURED IDEA
+      //
+      featured: {
+        type: Boolean,
+
+        default: false,
+      },
+
+      //
+      // TOTAL VIEWS
+      //
+      views: {
+        type: Number,
+
+        default: 0,
+      },
+    },
+
+    {
+      timestamps: true,
+    }
+  );
+
+//
+// SAFE ARRAY HANDLING
+//
+ideaSchema.pre(
+  "save",
+  function (next) {
+    if (
+      !Array.isArray(
+        this.techStack
+      )
+    ) {
+      this.techStack =
+        [];
+    }
+
+    if (
+      !Array.isArray(
+        this.collaborators
+      )
+    ) {
+      this.collaborators =
+        [];
+    }
+
+    if (
+      !Array.isArray(
+        this.likes
+      )
+    ) {
+      this.likes = [];
+    }
+
+    next();
   }
 );
+
+//
+// INDEXES
+//
+ideaSchema.index({
+  createdBy: 1,
+});
+
+ideaSchema.index({
+  category: 1,
+});
 
 module.exports =
   mongoose.model(

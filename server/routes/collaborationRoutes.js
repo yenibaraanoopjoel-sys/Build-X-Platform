@@ -4,11 +4,17 @@ const express =
 const router =
   express.Router();
 
+//
+// MIDDLEWARE
+//
 const protect =
   require(
     "../middleware/authMiddleware"
   );
 
+//
+// CONTROLLERS
+//
 const {
   sendRequest,
   getMyRequests,
@@ -20,7 +26,7 @@ const {
 );
 
 //
-// SEND REQUEST
+// SEND COLLABORATION REQUEST
 //
 router.post(
   "/send",
@@ -62,6 +68,21 @@ router.put(
   "/reject/:id",
   protect,
   rejectRequest
+);
+
+//
+// HEALTH CHECK ROUTE
+//
+router.get(
+  "/health",
+  (req, res) => {
+    res.json({
+      success: true,
+
+      message:
+        "Collaboration routes working 🚀",
+    });
+  }
 );
 
 module.exports = router;

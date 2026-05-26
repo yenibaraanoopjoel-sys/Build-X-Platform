@@ -42,6 +42,7 @@ const notificationSchema =
           "TASK_COMPLETED",
           "PROJECT_COMPLETED",
           "NEW_MEMBER",
+          "SKILL_SWAP_REQUEST",
           "GENERAL",
         ],
 
@@ -91,6 +92,18 @@ const notificationSchema =
             .ObjectId,
 
         ref: "Task",
+      },
+
+      //
+      // REQUEST ID
+      //
+      requestId: {
+        type:
+          mongoose.Schema.Types
+            .ObjectId,
+
+        ref:
+          "CollaborationRequest",
       },
 
       //
