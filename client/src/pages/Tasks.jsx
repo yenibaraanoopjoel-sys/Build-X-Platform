@@ -35,59 +35,59 @@ function Tasks() {
   const token =
     localStorage.getItem(
       "token"
-    );
+    ) || "";
 
   //
   // FETCH TASKS
   //
   const fetchTasks =
-    useCallback(
-      async () => {
-        try {
-          setLoading(true);
+    useCallback(async () => {
+      try {
+        setLoading(true);
 
-          const response =
-            await API.get(
-              "/tasks",
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-
-          if (
-            response?.data
-              ?.success
-          ) {
-            setTasks(
-              Array.isArray(
-                response.data
-                  .tasks
-              )
-                ? response.data
-                    .tasks
-                : []
-            );
-          } else {
-            setTasks([]);
-          }
-        } catch (error) {
-          console.error(
-            "TASK FETCH ERROR:",
-            error
-              ?.response
-              ?.data ||
-              error.message
+        const response =
+          await API.get(
+            "/tasks",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
 
+        if (
+          response?.data?.success
+        ) {
+          setTasks(
+            Array.isArray(
+              response?.data?.tasks
+            )
+              ? response.data.tasks
+              : []
+          );
+        } else if (
+          Array.isArray(
+            response?.data
+          )
+        ) {
+          setTasks(
+            response.data
+          );
+        } else {
           setTasks([]);
-        } finally {
-          setLoading(false);
         }
-      },
-      [token]
-    );
+      } catch (error) {
+        console.log(
+          "TASK FETCH ERROR:",
+          error?.response?.data ||
+            error.message
+        );
+
+        setTasks([]);
+      } finally {
+        setLoading(false);
+      }
+    }, [token]);
 
   //
   // INITIAL LOAD
@@ -122,10 +122,8 @@ function Tasks() {
         fetchTasks();
       } catch (error) {
         console.log(
-          "TASK UPDATE ERROR:",
-          error
-            ?.response
-            ?.data ||
+          "UPDATE TASK ERROR:",
+          error?.response?.data ||
             error.message
         );
       }
@@ -150,9 +148,7 @@ function Tasks() {
       } catch (error) {
         console.log(
           "DELETE TASK ERROR:",
-          error
-            ?.response
-            ?.data ||
+          error?.response?.data ||
             error.message
         );
       }
@@ -165,7 +161,7 @@ function Tasks() {
     async () => {
       if (!projectIdea) {
         alert(
-          "Enter project idea first"
+          "Please enter a project idea"
         );
 
         return;
@@ -183,14 +179,12 @@ Generate professional software development tasks for this project idea:
 
 ${projectIdea}
 
-Provide:
+Include:
 - frontend tasks
 - backend tasks
 - database tasks
 - testing tasks
 - deployment tasks
-
-Keep it beginner-friendly and structured.
 `,
             }
           );
@@ -215,21 +209,21 @@ Keep it beginner-friendly and structured.
             "Medium",
         };
 
-        setTasks(
-          (prev) => [
-            aiTask,
-            ...(Array.isArray(
-              prev
-            )
-              ? prev
-              : []),
-          ]
-        );
+        setTasks((prev) => [
+          aiTask,
+          ...(Array.isArray(prev)
+            ? prev
+            : []),
+        ]);
       } catch (error) {
-        console.log(error);
+        console.log(
+          "AI TASK ERROR:",
+          error?.response?.data ||
+            error.message
+        );
 
         alert(
-          "AI task generation failed"
+          "AI Task Generation Failed"
         );
       } finally {
         setAiLoading(false);
@@ -277,373 +271,188 @@ Keep it beginner-friendly and structured.
     <div
       style={{
         minHeight: "100vh",
-
         background:
           "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
-
         color: "white",
-
-        overflow: "hidden",
-
-        position: "relative",
       }}
     >
-      {/* Glow Effects */}
-      <div
-        style={{
-          position: "absolute",
-
-          width: "500px",
-
-          height: "500px",
-
-          background:
-            "rgba(59,130,246,0.10)",
-
-          borderRadius: "50%",
-
-          filter: "blur(140px)",
-
-          top: "-180px",
-
-          left: "-120px",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-
-          width: "450px",
-
-          height: "450px",
-
-          background:
-            "rgba(124,58,237,0.12)",
-
-          borderRadius: "50%",
-
-          filter: "blur(130px)",
-
-          bottom: "-150px",
-
-          right: "-100px",
-        }}
-      />
-
-      {/* Navbar */}
+      {/* NAVBAR */}
       <Navbar />
 
       <div
         style={{
           display: "flex",
-
-          position: "relative",
-
-          zIndex: 2,
         }}
       >
-        {/* Sidebar */}
+        {/* SIDEBAR */}
         <Sidebar />
 
         {/* MAIN */}
         <div
           style={{
             flex: 1,
-
-            padding: "42px",
+            padding: "40px",
           }}
         >
           {/* HERO */}
           <div
-            className="glass-card"
             style={{
-              padding: "48px",
-
-              marginBottom: "42px",
-
-              position: "relative",
-
-              overflow: "hidden",
+              padding: "40px",
+              borderRadius:
+                "28px",
+              background:
+                "rgba(255,255,255,0.05)",
+              border:
+                "1px solid rgba(255,255,255,0.08)",
+              marginBottom:
+                "35px",
             }}
           >
-            <div
+            <h1
               style={{
-                position: "absolute",
-
-                width: "250px",
-
-                height: "250px",
-
-                background:
-                  "rgba(91,95,255,0.10)",
-
-                borderRadius: "50%",
-
-                filter: "blur(90px)",
-
-                top: "-70px",
-
-                right: "-50px",
-              }}
-            />
-
-            <div
-              style={{
-                position: "relative",
-
-                zIndex: 2,
+                fontSize: "58px",
+                fontWeight: "800",
+                marginBottom:
+                  "16px",
               }}
             >
-              <h1
-                className="welcome-title"
-                style={{
-                  fontSize: "52px",
+              AI TASK BOARD
+            </h1>
 
-                  marginBottom: "22px",
-
-                  lineHeight: "1.3",
-                }}
-              >
-                AI TASK BOARD
-              </h1>
-
-              <p
-                style={{
-                  color: "#CBD5E1",
-
-                  fontSize: "18px",
-
-                  lineHeight: "2",
-
-                  maxWidth: "820px",
-                }}
-              >
-                Generate AI-powered
-                workflows, organize
-                project execution,
-                manage productivity,
-                and streamline
-                development pipelines
-                inside BuildX.
-              </p>
-            </div>
+            <p
+              style={{
+                color: "#CBD5E1",
+                fontSize: "18px",
+                lineHeight: "1.8",
+              }}
+            >
+              Organize tasks,
+              automate workflows,
+              and manage futuristic
+              productivity systems
+              inside BuildX.
+            </p>
           </div>
 
           {/* STATS */}
           <div
             style={{
               display: "grid",
-
               gridTemplateColumns:
                 "repeat(auto-fit, minmax(240px, 1fr))",
-
               gap: "24px",
-
-              marginBottom: "42px",
+              marginBottom:
+                "40px",
             }}
           >
             {[
               {
                 title:
                   "Total Tasks",
-
                 value:
-                  Array.isArray(
-                    tasks
-                  )
-                    ? tasks.length
-                    : 0,
-
-                icon: "📌",
+                  tasks.length,
               },
-
               {
                 title:
                   "Completed",
-
                 value:
                   completedTasks,
-
-                icon: "✅",
               },
-
               {
                 title:
                   "Pending",
-
                 value:
                   pendingTasks,
-
-                icon: "⏳",
               },
-
               {
                 title:
                   "In Progress",
-
                 value:
                   inProgressTasks,
-
-                icon: "🚀",
               },
-            ].map(
-              (
-                item,
-                index
-              ) => (
-                <div
-                  key={index}
-                  className="glass-card"
+            ].map((item) => (
+              <div
+                key={item.title}
+                style={{
+                  padding: "28px",
+                  borderRadius:
+                    "24px",
+                  background:
+                    "rgba(255,255,255,0.05)",
+                }}
+              >
+                <h3
                   style={{
-                    padding:
-                      "28px",
-
-                    position:
-                      "relative",
-
-                    overflow:
-                      "hidden",
+                    fontSize:
+                      "18px",
+                    color:
+                      "#CBD5E1",
+                    marginBottom:
+                      "10px",
                   }}
                 >
-                  <div
-                    style={{
-                      position:
-                        "absolute",
+                  {item.title}
+                </h3>
 
-                      width:
-                        "180px",
-
-                      height:
-                        "180px",
-
-                      background:
-                        "rgba(124,58,237,0.08)",
-
-                      borderRadius:
-                        "50%",
-
-                      filter:
-                        "blur(70px)",
-
-                      top: "-60px",
-
-                      right: "-60px",
-                    }}
-                  />
-
-                  <div
-                    style={{
-                      display:
-                        "flex",
-
-                      justifyContent:
-                        "space-between",
-
-                      alignItems:
-                        "center",
-
-                      marginBottom:
-                        "14px",
-
-                      position:
-                        "relative",
-
-                      zIndex: 2,
-                    }}
-                  >
-                    <h2
-                      style={{
-                        fontSize:
-                          "26px",
-                      }}
-                    >
-                      {item.title}
-                    </h2>
-
-                    <span
-                      style={{
-                        fontSize:
-                          "30px",
-                      }}
-                    >
-                      {item.icon}
-                    </span>
-                  </div>
-
-                  <h1
-                    style={{
-                      fontSize:
-                        "48px",
-
-                      position:
-                        "relative",
-
-                      zIndex: 2,
-                    }}
-                  >
-                    {item.value}
-                  </h1>
-                </div>
-              )
-            )}
+                <h1
+                  style={{
+                    fontSize:
+                      "48px",
+                  }}
+                >
+                  {item.value}
+                </h1>
+              </div>
+            ))}
           </div>
 
-          {/* AI GENERATOR */}
+          {/* AI TASK GENERATOR */}
           <div
-            className="glass-card"
             style={{
-              padding: "36px",
-
-              marginBottom: "42px",
+              padding: "32px",
+              borderRadius:
+                "24px",
+              background:
+                "rgba(255,255,255,0.05)",
+              marginBottom:
+                "40px",
             }}
           >
             <h2
-              className="section-title"
               style={{
-                fontSize: "42px",
-
-                marginBottom: "26px",
+                fontSize: "34px",
+                marginBottom:
+                  "18px",
               }}
             >
               AI Task Generator
             </h2>
 
             <textarea
-              placeholder="Describe your project idea..."
               value={projectIdea}
               onChange={(e) =>
                 setProjectIdea(
                   e.target.value
                 )
               }
-              rows="6"
+              placeholder="Describe your project idea..."
               style={{
                 width: "100%",
-
-                padding: "22px",
-
+                minHeight:
+                  "140px",
                 borderRadius:
                   "18px",
-
-                resize: "none",
-
-                background:
-                  "rgba(255,255,255,0.04)",
-
+                padding:
+                  "20px",
                 border:
                   "1px solid rgba(255,255,255,0.08)",
-
+                background:
+                  "rgba(255,255,255,0.05)",
                 color: "white",
-
-                marginBottom: "24px",
-
-                lineHeight: "1.9",
-
-                fontSize: "15px",
-
-                backdropFilter:
-                  "blur(10px)",
+                outline: "none",
+                marginBottom:
+                  "20px",
+                fontSize: "16px",
               }}
             />
 
@@ -651,33 +460,23 @@ Keep it beginner-friendly and structured.
               onClick={
                 generateTasks
               }
-              disabled={aiLoading}
+              disabled={
+                aiLoading
+              }
               style={{
                 padding:
-                  "16px 30px",
-
+                  "14px 28px",
                 borderRadius:
-                  "16px",
-
-                background:
-                  "linear-gradient(135deg, #2563EB, #7C3AED)",
-
-                color:
-                  "white",
-
-                fontWeight:
-                  "600",
-
-                fontSize:
-                  "15px",
-
+                  "14px",
                 border: "none",
-
-                cursor:
-                  "pointer",
-
-                boxShadow:
-                  "0 0 24px rgba(124,58,237,0.24)",
+                cursor: "pointer",
+                background:
+                  "linear-gradient(135deg, #8B5CF6, #EC4899)",
+                color: "white",
+                fontWeight:
+                  "700",
+                fontSize:
+                  "16px",
               }}
             >
               {aiLoading
@@ -686,85 +485,135 @@ Keep it beginner-friendly and structured.
             </button>
           </div>
 
-          {/* EMPTY */}
-          {tasks.length === 0 ? (
-            <div
-              className="glass-card"
-              style={{
-                padding: "70px",
-
-                textAlign: "center",
-              }}
-            >
-              <h2
-                className="section-title"
+          {/* TASK LIST */}
+          <div>
+            {!Array.isArray(
+              tasks
+            ) ||
+            tasks.length ===
+              0 ? (
+              <div
                 style={{
-                  fontSize: "42px",
-
-                  marginBottom:
-                    "22px",
+                  padding: "50px",
+                  borderRadius:
+                    "24px",
+                  background:
+                    "rgba(255,255,255,0.05)",
+                  textAlign:
+                    "center",
                 }}
               >
-                No Tasks Yet
-              </h2>
-
-              <p
-                style={{
-                  color: "#CBD5E1",
-
-                  fontSize: "17px",
-
-                  lineHeight:
-                    "1.9",
-                }}
-              >
-                Generate AI workflows
-                or create professional
-                task pipelines inside
-                BuildX.
-              </p>
-            </div>
-          ) : (
-            <div
-              style={{
-                display: "flex",
-
-                flexDirection:
-                  "column",
-
-                gap: "26px",
-              }}
-            >
-              {tasks.map(
+                <h2>
+                  No Tasks Found 📋
+                </h2>
+              </div>
+            ) : (
+              tasks.map(
                 (task) => (
                   <div
                     key={
                       task?._id
                     }
-                    className="glass-card"
                     style={{
-                      padding:
+                      marginBottom:
                         "24px",
                     }}
                   >
                     <TaskCard
                       task={task}
-                      updateTaskStatus={
-                        updateTaskStatus
-                      }
-                      deleteTask={
-                        deleteTask
-                      }
                     />
+
+                    <div
+                      style={{
+                        display:
+                          "flex",
+                        gap: "12px",
+                        marginTop:
+                          "12px",
+                        flexWrap:
+                          "wrap",
+                      }}
+                    >
+                      <button
+                        onClick={() =>
+                          updateTaskStatus(
+                            task?._id,
+                            "Pending",
+                            0
+                          )
+                        }
+                        style={
+                          buttonStyle
+                        }
+                      >
+                        Pending
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          updateTaskStatus(
+                            task?._id,
+                            "In Progress",
+                            50
+                          )
+                        }
+                        style={
+                          buttonStyle
+                        }
+                      >
+                        In Progress
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          updateTaskStatus(
+                            task?._id,
+                            "Completed",
+                            100
+                          )
+                        }
+                        style={
+                          buttonStyle
+                        }
+                      >
+                        Completed
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          deleteTask(
+                            task?._id
+                          )
+                        }
+                        style={{
+                          ...buttonStyle,
+                          background:
+                            "linear-gradient(135deg, #DC2626, #F43F5E)",
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 )
-              )}
-            </div>
-          )}
+              )
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
+const buttonStyle = {
+  padding: "10px 18px",
+  borderRadius: "12px",
+  border: "none",
+  cursor: "pointer",
+  background:
+    "linear-gradient(135deg, #2563EB, #7C3AED)",
+  color: "white",
+  fontWeight: "700",
+};
 
 export default Tasks;

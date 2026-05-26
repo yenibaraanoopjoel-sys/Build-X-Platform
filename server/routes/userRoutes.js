@@ -4,7 +4,10 @@ const router = express.Router();
 
 const protect = require("../middleware/authMiddleware");
 
-const User = require("../models/User");
+const {
+  getUserProfile,
+  updateUserProfile,
+} = require("../controllers/userController");
 
 //
 // GET PROFILE
@@ -12,62 +15,16 @@ const User = require("../models/User");
 router.get(
   "/profile",
   protect,
-  async (req, res) => {
-    try {
-      const user =
-        await User.findById(
-          req.user
-        ).select(
-          "-password"
-        );
-
-      res.json({
-        success: true,
-
-        user,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-
-        message:
-          error.message,
-      });
-    }
-  }
+  getUserProfile
 );
 
 //
-// GET ALL USERS
+// UPDATE PROFILE
 //
-router.get(
-  "/all-users",
+router.put(
+  "/profile",
   protect,
-  async (req, res) => {
-    try {
-      const users =
-        await User.find()
-          .select(
-            "-password"
-          )
-          .sort({
-            createdAt: -1,
-          });
-
-      res.json({
-        success: true,
-
-        users,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-
-        message:
-          error.message,
-      });
-    }
-  }
+  updateUserProfile
 );
 
 module.exports = router;

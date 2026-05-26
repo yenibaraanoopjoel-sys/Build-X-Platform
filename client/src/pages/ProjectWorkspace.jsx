@@ -29,105 +29,91 @@ function ProjectWorkspace() {
   const token =
     localStorage.getItem(
       "token"
-    );
+    ) || "";
 
   //
   // FETCH PROJECTS
   //
   const fetchProjects =
-    useCallback(
-      async () => {
-        try {
-          const response =
-            await API.get(
-              "/projects",
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-
-          if (
-            response?.data
-              ?.success
-          ) {
-            setProjects(
-              Array.isArray(
-                response.data
-                  .projects
-              )
-                ? response.data
-                    .projects
-                : []
-            );
-          } else {
-            setProjects(
-              []
-            );
-          }
-        } catch (error) {
-          console.log(
-            "PROJECT ERROR:",
-            error
-              ?.response
-              ?.data ||
-              error.message
+    useCallback(async () => {
+      try {
+        const response =
+          await API.get(
+            "/projects",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
 
+        if (
+          response?.data?.success
+        ) {
+          setProjects(
+            Array.isArray(
+              response?.data
+                ?.projects
+            )
+              ? response.data
+                  .projects
+              : []
+          );
+        } else {
           setProjects([]);
         }
-      },
-      [token]
-    );
+      } catch (error) {
+        console.log(
+          "PROJECT FETCH ERROR:",
+          error?.response?.data ||
+            error.message
+        );
+
+        setProjects([]);
+      }
+    }, [token]);
 
   //
   // FETCH TASKS
   //
   const fetchTasks =
-    useCallback(
-      async () => {
-        try {
-          const response =
-            await API.get(
-              "/tasks",
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-
-          if (
-            response?.data
-              ?.success
-          ) {
-            setTasks(
-              Array.isArray(
-                response.data
-                  .tasks
-              )
-                ? response.data
-                    .tasks
-                : []
-            );
-          } else {
-            setTasks([]);
-          }
-        } catch (error) {
-          console.log(
-            "TASK ERROR:",
-            error
-              ?.response
-              ?.data ||
-              error.message
+    useCallback(async () => {
+      try {
+        const response =
+          await API.get(
+            "/tasks",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
 
+        if (
+          response?.data?.success
+        ) {
+          setTasks(
+            Array.isArray(
+              response?.data
+                ?.tasks
+            )
+              ? response.data
+                  .tasks
+              : []
+          );
+        } else {
           setTasks([]);
         }
-      },
-      [token]
-    );
+      } catch (error) {
+        console.log(
+          "TASK FETCH ERROR:",
+          error?.response?.data ||
+            error.message
+        );
+
+        setTasks([]);
+      }
+    }, [token]);
 
   //
   // INITIAL LOAD
@@ -135,17 +121,17 @@ function ProjectWorkspace() {
   useEffect(() => {
     const loadData =
       async () => {
-        setLoading(
-          true
-        );
+        try {
+          setLoading(true);
 
-        await fetchProjects();
+          await fetchProjects();
 
-        await fetchTasks();
-
-        setLoading(
-          false
-        );
+          await fetchTasks();
+        } catch (error) {
+          console.log(error);
+        } finally {
+          setLoading(false);
+        }
       };
 
     loadData();
@@ -158,9 +144,7 @@ function ProjectWorkspace() {
   // CALCULATIONS
   //
   const totalProjects =
-    Array.isArray(
-      projects
-    )
+    Array.isArray(projects)
       ? projects.length
       : 0;
 
@@ -170,13 +154,9 @@ function ProjectWorkspace() {
       : 0;
 
   const completedProjects =
-    Array.isArray(
-      projects
-    )
+    Array.isArray(projects)
       ? projects.filter(
-          (
-            project
-          ) =>
+          (project) =>
             project?.status ===
             "Completed"
         ).length
@@ -187,20 +167,14 @@ function ProjectWorkspace() {
   //
   const contributors =
     new Set(
-      Array.isArray(
-        projects
-      )
+      Array.isArray(projects)
         ? projects.flatMap(
-            (
-              project
-            ) =>
+            (project) =>
               Array.isArray(
                 project?.members
               )
                 ? project.members.map(
-                    (
-                      member
-                    ) =>
+                    (member) =>
                       member?._id
                   )
                 : []
@@ -218,90 +192,18 @@ function ProjectWorkspace() {
   return (
     <div
       style={{
-        minHeight:
-          "100vh",
-
+        minHeight: "100vh",
         background:
           "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
-
-        color:
-          "white",
-
-        overflow:
-          "hidden",
-
-        position:
-          "relative",
+        color: "white",
       }}
     >
-      {/* GLOW */}
-      <div
-        style={{
-          position:
-            "absolute",
-
-          width:
-            "500px",
-
-          height:
-            "500px",
-
-          background:
-            "rgba(59,130,246,0.10)",
-
-          borderRadius:
-            "50%",
-
-          filter:
-            "blur(140px)",
-
-          top: "-180px",
-
-          left:
-            "-120px",
-        }}
-      />
-
-      <div
-        style={{
-          position:
-            "absolute",
-
-          width:
-            "450px",
-
-          height:
-            "450px",
-
-          background:
-            "rgba(124,58,237,0.12)",
-
-          borderRadius:
-            "50%",
-
-          filter:
-            "blur(130px)",
-
-          bottom:
-            "-150px",
-
-          right:
-            "-100px",
-        }}
-      />
-
       {/* NAVBAR */}
       <Navbar />
 
       <div
         style={{
-          display:
-            "flex",
-
-          position:
-            "relative",
-
-          zIndex: 2,
+          display: "flex",
         }}
       >
         {/* SIDEBAR */}
@@ -311,126 +213,196 @@ function ProjectWorkspace() {
         <div
           style={{
             flex: 1,
-
-            padding:
-              "42px",
+            padding: "40px",
           }}
         >
           {/* HERO */}
           <div
-            className="glass-card"
             style={{
-              padding:
-                "48px",
-
+              padding: "40px",
+              borderRadius:
+                "28px",
+              background:
+                "rgba(255,255,255,0.05)",
+              border:
+                "1px solid rgba(255,255,255,0.08)",
               marginBottom:
-                "42px",
-
-              position:
-                "relative",
-
-              overflow:
-                "hidden",
+                "35px",
             }}
           >
-            <div
+            <h1
               style={{
-                position:
-                  "absolute",
-
-                width:
-                  "260px",
-
-                height:
-                  "260px",
-
-                background:
-                  "rgba(91,95,255,0.10)",
-
-                borderRadius:
-                  "50%",
-
-                filter:
-                  "blur(90px)",
-
-                top: "-70px",
-
-                right:
-                  "-50px",
-              }}
-            />
-
-            <div
-              style={{
-                position:
-                  "relative",
-
-                zIndex: 2,
+                fontSize: "58px",
+                fontWeight: "800",
+                marginBottom:
+                  "16px",
               }}
             >
-              <h1
-                className="welcome-title"
-                style={{
-                  fontSize:
-                    "52px",
+              PROJECT WORKSPACE
+            </h1>
 
+            <p
+              style={{
+                color: "#CBD5E1",
+                fontSize: "18px",
+                lineHeight: "1.8",
+              }}
+            >
+              Manage projects,
+              collaboration systems,
+              productivity workflows,
+              and futuristic teamwork
+              inside BuildX.
+            </p>
+          </div>
+
+          {/* STATS */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: "24px",
+              marginBottom:
+                "40px",
+            }}
+          >
+            {/* TOTAL PROJECTS */}
+            <div
+              style={{
+                padding: "28px",
+                borderRadius:
+                  "24px",
+                background:
+                  "rgba(255,255,255,0.05)",
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: "18px",
+                  color: "#CBD5E1",
                   marginBottom:
-                    "22px",
-
-                  lineHeight:
-                    "1.3",
+                    "10px",
                 }}
               >
-                PROJECT
-                WORKSPACE
-              </h1>
+                Total Projects
+              </h3>
 
-              <p
+              <h1
                 style={{
-                  color:
-                    "#CBD5E1",
-
-                  fontSize:
-                    "18px",
-
-                  lineHeight:
-                    "2",
-
-                  maxWidth:
-                    "820px",
+                  fontSize: "48px",
                 }}
               >
-                Manage
-                projects,
-                collaboration
-                systems,
-                productivity
-                workflows,
-                and futuristic
-                teamwork
-                inside
-                BuildX.
-              </p>
+                {totalProjects}
+              </h1>
+            </div>
+
+            {/* TOTAL TASKS */}
+            <div
+              style={{
+                padding: "28px",
+                borderRadius:
+                  "24px",
+                background:
+                  "rgba(255,255,255,0.05)",
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: "18px",
+                  color: "#CBD5E1",
+                  marginBottom:
+                    "10px",
+                }}
+              >
+                Total Tasks
+              </h3>
+
+              <h1
+                style={{
+                  fontSize: "48px",
+                }}
+              >
+                {totalTasks}
+              </h1>
+            </div>
+
+            {/* COMPLETED PROJECTS */}
+            <div
+              style={{
+                padding: "28px",
+                borderRadius:
+                  "24px",
+                background:
+                  "rgba(255,255,255,0.05)",
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: "18px",
+                  color: "#CBD5E1",
+                  marginBottom:
+                    "10px",
+                }}
+              >
+                Completed Projects
+              </h3>
+
+              <h1
+                style={{
+                  fontSize: "48px",
+                }}
+              >
+                {completedProjects}
+              </h1>
+            </div>
+
+            {/* CONTRIBUTORS */}
+            <div
+              style={{
+                padding: "28px",
+                borderRadius:
+                  "24px",
+                background:
+                  "rgba(255,255,255,0.05)",
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: "18px",
+                  color: "#CBD5E1",
+                  marginBottom:
+                    "10px",
+                }}
+              >
+                Contributors
+              </h3>
+
+              <h1
+                style={{
+                  fontSize: "48px",
+                }}
+              >
+                {contributors}
+              </h1>
             </div>
           </div>
 
           {/* PROJECTS */}
           <div
-            className="glass-card"
             style={{
-              padding:
-                "36px",
-
+              padding: "36px",
+              borderRadius:
+                "28px",
+              background:
+                "rgba(255,255,255,0.05)",
               marginBottom:
-                "42px",
+                "40px",
             }}
           >
             <h2
-              className="section-title"
               style={{
-                fontSize:
-                  "42px",
-
+                fontSize: "42px",
                 marginBottom:
                   "28px",
               }}
@@ -438,100 +410,46 @@ function ProjectWorkspace() {
               Your Projects
             </h2>
 
-            {projects.length ===
-            0 ? (
+            {!Array.isArray(
+              projects
+            ) ||
+            projects.length ===
+              0 ? (
               <div
                 style={{
                   textAlign:
                     "center",
-
                   padding:
-                    "60px 20px",
-
-                  borderRadius:
-                    "22px",
-
-                  background:
-                    "rgba(255,255,255,0.04)",
-
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
+                    "50px",
                 }}
               >
-                <div
-                  style={{
-                    fontSize:
-                      "70px",
-
-                    marginBottom:
-                      "20px",
-                  }}
-                >
+                <h2>
+                  No Projects Found
                   🚀
-                </div>
-
-                <h2
-                  style={{
-                    fontSize:
-                      "34px",
-
-                    marginBottom:
-                      "14px",
-                  }}
-                >
-                  No Projects
-                  Yet
                 </h2>
-
-                <p
-                  style={{
-                    color:
-                      "#CBD5E1",
-
-                    lineHeight:
-                      "1.9",
-
-                    fontSize:
-                      "16px",
-                  }}
-                >
-                  Start
-                  building your
-                  first
-                  futuristic
-                  project
-                  inside
-                  BuildX.
-                </p>
               </div>
             ) : (
               <div
                 style={{
-                  display:
-                    "grid",
-
+                  display: "grid",
                   gridTemplateColumns:
                     "repeat(auto-fit, minmax(320px, 1fr))",
-
-                  gap:
-                    "24px",
+                  gap: "24px",
                 }}
               >
                 {projects.map(
-                  (
-                    project,
-                    index
-                  ) => (
+                  (project) => (
                     <div
                       key={
-                        project?._id ||
-                        index
+                        project?._id
                       }
-                      className="glass-card"
                       style={{
                         padding:
-                          "28px",
-
+                          "24px",
+                        borderRadius:
+                          "22px",
+                        background:
+                          "rgba(255,255,255,0.05)",
                         border:
                           "1px solid rgba(255,255,255,0.08)",
                       }}
@@ -539,10 +457,9 @@ function ProjectWorkspace() {
                       <h2
                         style={{
                           fontSize:
-                            "28px",
-
+                            "26px",
                           marginBottom:
-                            "14px",
+                            "12px",
                         }}
                       >
                         {project?.title ||
@@ -553,136 +470,103 @@ function ProjectWorkspace() {
                         style={{
                           color:
                             "#CBD5E1",
-
                           lineHeight:
-                            "1.9",
-
+                            "1.7",
                           marginBottom:
-                            "20px",
+                            "16px",
                         }}
                       >
                         {project?.description ||
-                          "No description"}
+                          "No description available."}
                       </p>
 
-                      {/* STATUS */}
                       <div
                         style={{
                           display:
                             "flex",
-
                           justifyContent:
                             "space-between",
-
-                          alignItems:
-                            "center",
-
                           marginBottom:
-                            "18px",
+                            "14px",
                         }}
                       >
-                        <span
-                          style={{
-                            color:
-                              "#A5B4FC",
-                          }}
-                        >
-                          📅{" "}
+                        <span>
+                          Status
+                        </span>
+
+                        <span>
                           {project?.status ||
                             "Pending"}
                         </span>
+                      </div>
 
-                        <span
-                          style={{
-                            color:
-                              "#34D399",
-                          }}
-                        >
+                      <div
+                        style={{
+                          display:
+                            "flex",
+                          justifyContent:
+                            "space-between",
+                          marginBottom:
+                            "14px",
+                        }}
+                      >
+                        <span>
+                          Progress
+                        </span>
+
+                        <span>
                           {project?.completionPercentage ||
                             0}
-                          % Complete
+                          %
                         </span>
                       </div>
 
-                      {/* PROGRESS */}
+                      {/* PROGRESS BAR */}
                       <div
                         style={{
                           width:
                             "100%",
-
                           height:
                             "10px",
-
+                          borderRadius:
+                            "999px",
                           background:
                             "rgba(255,255,255,0.08)",
-
-                          borderRadius:
-                            "20px",
-
                           overflow:
                             "hidden",
+                          marginBottom:
+                            "18px",
                         }}
                       >
                         <div
                           style={{
-                            width: `${
-                              project?.completionPercentage ||
-                              0
-                            }%`,
-
+                            width:
+                              (project?.completionPercentage ||
+                                0) +
+                              "%",
                             height:
                               "100%",
-
                             background:
-                              "linear-gradient(135deg, #2563EB, #7C3AED)",
-
-                            borderRadius:
-                              "20px",
+                              "linear-gradient(135deg, #8B5CF6, #EC4899)",
                           }}
                         />
                       </div>
 
-                      {/* TASK INFO */}
-                      <div
+                      <p
                         style={{
-                          marginTop:
-                            "18px",
-
                           color:
-                            "#CBD5E1",
-
-                          fontSize:
-                            "14px",
-
-                          lineHeight:
-                            "1.8",
+                            "#94A3B8",
                         }}
                       >
-                        <div>
-                          Total
-                          Tasks:{" "}
-                          {project?.totalTasks ||
-                            0}
-                        </div>
-
-                        <div>
-                          Completed
-                          Tasks:{" "}
-                          {project?.completedTasks ||
-                            0}
-                        </div>
-
-                        <div>
-                          Members:{" "}
-                          {Array.isArray(
-                            project?.members
-                          )
-                            ? project
-                                .members
-                                .length
-                            : 0}
-                        </div>
-                      </div>
+                        👥 Members:{" "}
+                        {Array.isArray(
+                          project?.members
+                        )
+                          ? project
+                              .members
+                              .length
+                          : 0}
+                      </p>
                     </div>
                   )
                 )}
@@ -690,177 +574,121 @@ function ProjectWorkspace() {
             )}
           </div>
 
-          {/* STATS */}
+          {/* TASKS */}
           <div
             style={{
-              display:
-                "grid",
-
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(240px, 1fr))",
-
-              gap: "24px",
+              padding: "36px",
+              borderRadius:
+                "28px",
+              background:
+                "rgba(255,255,255,0.05)",
             }}
           >
-            {[
-              {
-                title:
-                  "Projects",
+            <h2
+              style={{
+                fontSize: "42px",
+                marginBottom:
+                  "28px",
+              }}
+            >
+              Recent Tasks
+            </h2>
 
-                value:
-                  totalProjects,
-
-                icon:
-                  "🛠️",
-              },
-
-              {
-                title:
-                  "Contributors",
-
-                value:
-                  contributors,
-
-                icon:
-                  "👥",
-              },
-
-              {
-                title:
-                  "Tasks",
-
-                value:
-                  totalTasks,
-
-                icon:
-                  "📌",
-              },
-
-              {
-                title:
-                  "Completed",
-
-                value:
-                  completedProjects,
-
-                icon:
-                  "✅",
-              },
-            ].map(
-              (
-                item,
-                index
-              ) => (
-                <div
-                  key={
-                    index
-                  }
-                  className="glass-card"
-                  style={{
-                    padding:
-                      "30px",
-
-                    position:
-                      "relative",
-
-                    overflow:
-                      "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      position:
-                        "absolute",
-
-                      width:
-                        "180px",
-
-                      height:
-                        "180px",
-
-                      background:
-                        "rgba(124,58,237,0.08)",
-
-                      borderRadius:
-                        "50%",
-
-                      filter:
-                        "blur(70px)",
-
-                      top:
-                        "-60px",
-
-                      right:
-                        "-60px",
-                    }}
-                  />
-
-                  <div
-                    style={{
-                      display:
-                        "flex",
-
-                      justifyContent:
-                        "space-between",
-
-                      alignItems:
-                        "center",
-
-                      marginBottom:
-                        "16px",
-
-                      position:
-                        "relative",
-
-                      zIndex: 2,
-                    }}
-                  >
-                    <h2
+            {!Array.isArray(
+              tasks
+            ) ||
+            tasks.length ===
+              0 ? (
+              <div
+                style={{
+                  textAlign:
+                    "center",
+                  padding:
+                    "50px",
+                }}
+              >
+                <h2>
+                  No Tasks Found 📋
+                </h2>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gap: "18px",
+                }}
+              >
+                {tasks.map(
+                  (task) => (
+                    <div
+                      key={
+                        task?._id
+                      }
                       style={{
-                        fontSize:
-                          "28px",
-
-                        color:
-                          "white",
+                        padding:
+                          "24px",
+                        borderRadius:
+                          "22px",
+                        background:
+                          "rgba(255,255,255,0.05)",
+                        border:
+                          "1px solid rgba(255,255,255,0.08)",
+                        display:
+                          "flex",
+                        justifyContent:
+                          "space-between",
+                        alignItems:
+                          "center",
+                        flexWrap:
+                          "wrap",
+                        gap: "16px",
                       }}
                     >
-                      {
-                        item.title
-                      }
-                    </h2>
+                      <div>
+                        <h3
+                          style={{
+                            marginBottom:
+                              "10px",
+                          }}
+                        >
+                          {task?.title ||
+                            "Untitled Task"}
+                        </h3>
 
-                    <span
-                      style={{
-                        fontSize:
-                          "30px",
-                      }}
-                    >
-                      {
-                        item.icon
-                      }
-                    </span>
-                  </div>
+                        <p
+                          style={{
+                            color:
+                              "#94A3B8",
+                          }}
+                        >
+                          {task?.description ||
+                            "No description"}
+                        </p>
+                      </div>
 
-                  <h1
-                    style={{
-                      fontSize:
-                        "48px",
-
-                      color:
-                        "white",
-
-                      position:
-                        "relative",
-
-                      zIndex: 2,
-                    }}
-                  >
-                    {
-                      item.value
-                    }
-                  </h1>
-                </div>
-              )
+                      <div
+                        style={{
+                          padding:
+                            "10px 18px",
+                          borderRadius:
+                            "999px",
+                          background:
+                            task?.status ===
+                            "Completed"
+                              ? "rgba(34,197,94,0.2)"
+                              : task?.status ===
+                                "In Progress"
+                              ? "rgba(234,179,8,0.2)"
+                              : "rgba(239,68,68,0.2)",
+                        }}
+                      >
+                        {task?.status ||
+                          "Pending"}
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
             )}
           </div>
         </div>

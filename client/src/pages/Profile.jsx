@@ -10,31 +10,38 @@ import API from "../services/api";
 
 function Profile() {
   //
-  // USER STATE
+  // USER STATES
   //
-  const [user, setUser] =
-    useState(null);
+  const [name, setName] =
+    useState("");
 
-  //
-  // EDITABLE FIELDS
-  //
+  const [email, setEmail] =
+    useState("");
+
   const [role, setRole] =
     useState("");
 
   const [bio, setBio] =
     useState("");
 
-  const [skillsHave, setSkillsHave] =
+  const [skills, setSkills] =
     useState("");
 
-  const [skillsWant, setSkillsWant] =
-    useState("");
+  const [
+    skillsToLearn,
+    setSkillsToLearn,
+  ] = useState("");
+
+  const [
+    password,
+    setPassword,
+  ] = useState("");
 
   //
-  // AVATAR
+  // LOADING
   //
-  const [selectedAvatar] =
-    useState("👨‍💻");
+  const [loading, setLoading] =
+    useState(false);
 
   //
   // FETCH PROFILE
@@ -58,31 +65,45 @@ function Profile() {
               }
             );
 
-          setUser(
-            response.data
+          const user =
+            response.data;
+
+          setName(
+            user.name || ""
+          );
+
+          setEmail(
+            user.email || ""
           );
 
           setRole(
-            response.data.role ||
-              ""
+            user.role || ""
           );
 
           setBio(
-            response.data.bio ||
-              ""
+            user.bio || ""
           );
 
-          setSkillsHave(
-            response.data.skills
-              ?.join(", ") ||
-              ""
+          setSkills(
+            Array.isArray(
+              user.skills
+            )
+              ? user.skills.join(
+                  ", "
+                )
+              : user.skills ||
+                  ""
           );
 
-          setSkillsWant(
-            response.data
-              .skillsToLearn
-              ?.join(", ") ||
-              ""
+          setSkillsToLearn(
+            Array.isArray(
+              user.skillsToLearn
+            )
+              ? user.skillsToLearn.join(
+                  ", "
+                )
+              : user.skillsToLearn ||
+                  ""
           );
         } catch (error) {
           console.log(
@@ -97,53 +118,52 @@ function Profile() {
   }, []);
 
   //
-  // SAVE PROFILE
+  // UPDATE PROFILE
   //
-  const saveProfile =
+  const updateProfile =
     async () => {
       try {
+        setLoading(true);
+
         const token =
           localStorage.getItem(
             "token"
           );
 
-        const response =
-          await API.put(
-            "/user/update-profile",
-            {
-              role,
+        await API.put(
+          "/user/profile",
+          {
+            name,
 
-              bio,
+            role,
 
-              skills:
-                skillsHave
-                  .split(",")
-                  .map((s) =>
-                    s.trim()
-                  )
-                  .filter(Boolean),
+            bio,
 
-              skillsToLearn:
-                skillsWant
-                  .split(",")
-                  .map((s) =>
-                    s.trim()
-                  )
-                  .filter(Boolean),
+            password,
+
+            skills:
+              skills
+                .split(",")
+                .map((item) =>
+                  item.trim()
+                ),
+
+            skillsToLearn:
+              skillsToLearn
+                .split(",")
+                .map((item) =>
+                  item.trim()
+                ),
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
             },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          }
+        );
 
         alert(
           "Profile Updated Successfully 🚀"
-        );
-
-        setUser(
-          response.data
         );
       } catch (error) {
         console.log(
@@ -153,152 +173,101 @@ function Profile() {
         );
 
         alert(
-          "Failed to Update Profile"
+          "Failed To Update Profile"
         );
+      } finally {
+        setLoading(false);
       }
     };
 
   //
-  // LOADING
+  // INPUT STYLE
   //
-  if (!user) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
+  const inputStyle = {
+    width: "100%",
 
-          background:
-            "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
+    padding: "16px",
 
-          display: "flex",
+    marginTop: "10px",
 
-          justifyContent:
-            "center",
+    marginBottom: "22px",
 
-          alignItems:
-            "center",
+    borderRadius: "14px",
 
-          color: "white",
+    border:
+      "1px solid rgba(255,255,255,0.08)",
 
-          fontSize: "28px",
-        }}
-      >
-        Loading Profile...
-      </div>
-    );
-  }
+    background:
+      "rgba(255,255,255,0.05)",
 
-  //
-  // DYNAMIC USER
-  //
-  const dynamicUser = {
-    name:
-      user.name ||
-      "BuildX User",
+    color: "white",
 
-    role:
-      role ||
-      "No role added",
+    outline: "none",
 
-    email:
-      user.email ||
-      "No Email",
-
-    bio:
-      bio ||
-      "No bio added yet.",
-
-    skillsHave:
-      skillsHave
-        .split(",")
-        .map((s) =>
-          s.trim()
-        )
-        .filter(Boolean),
-
-    skillsWant:
-      skillsWant
-        .split(",")
-        .map((s) =>
-          s.trim()
-        )
-        .filter(Boolean),
-
-    contributionScore: 92,
-
-    projects: 12,
-
-    ideas: 28,
-
-    tasksCompleted: 46,
+    fontSize: "15px",
   };
-
-  //
-  // DYNAMIC BADGES
-  //
-  const creatorBadges =
-    dynamicUser.skillsHave
-      .slice(0, 4)
-      .map(
-        (skill) =>
-          `⚡ ${skill}`
-      );
 
   return (
     <div
       style={{
         minHeight: "100vh",
 
+        display: "flex",
+
         background:
           "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
 
         color: "white",
-
-        overflow: "hidden",
-
-        position: "relative",
       }}
     >
-      {/* NAVBAR */}
-      <Navbar />
+      {/* SIDEBAR */}
+      <Sidebar />
 
+      {/* MAIN */}
       <div
         style={{
-          display: "flex",
-
-          position:
-            "relative",
-
-          zIndex: 2,
+          flex: 1,
         }}
       >
-        {/* SIDEBAR */}
-        <Sidebar />
+        {/* NAVBAR */}
+        <Navbar />
 
-        {/* MAIN */}
         <div
           style={{
-            flex: 1,
-
-            padding: "42px",
+            padding: "40px",
           }}
         >
           {/* HERO */}
           <div
-            className="glass-card"
             style={{
-              padding: "48px",
+              padding: "50px",
+
+              borderRadius:
+                "28px",
+
+              background:
+                "rgba(255,255,255,0.05)",
+
+              border:
+                "1px solid rgba(255,255,255,0.08)",
+
+              backdropFilter:
+                "blur(20px)",
 
               marginBottom:
-                "38px",
+                "35px",
             }}
           >
             <h1
               style={{
-                fontSize: "54px",
+                fontSize:
+                  "68px",
 
                 marginBottom:
-                  "22px",
+                  "20px",
+
+                fontWeight:
+                  "800",
               }}
             >
               CREATOR PROFILE
@@ -306,168 +275,193 @@ function Profile() {
 
             <p
               style={{
-                color: "#CBD5E1",
+                fontSize:
+                  "20px",
 
-                fontSize: "18px",
+                color:
+                  "#CBD5E1",
 
-                lineHeight: "2",
+                lineHeight:
+                  "1.8",
 
-                maxWidth: "850px",
+                maxWidth:
+                  "900px",
               }}
             >
-              Build your futuristic
-              creator identity and
-              showcase your real
-              skills inside BuildX.
+              Build your
+              futuristic creator
+              identity inside
+              BuildX and showcase
+              your skills,
+              collaboration
+              interests, and AI
+              innovation journey.
             </p>
           </div>
 
           {/* PROFILE CARD */}
           <div
-            className="glass-card"
             style={{
               padding: "40px",
 
+              borderRadius:
+                "28px",
+
+              background:
+                "rgba(255,255,255,0.05)",
+
+              border:
+                "1px solid rgba(255,255,255,0.08)",
+
+              backdropFilter:
+                "blur(20px)",
+
               marginBottom:
-                "32px",
+                "35px",
             }}
           >
             <div
               style={{
                 display: "flex",
 
-                gap: "34px",
-
-                flexWrap: "wrap",
+                gap: "40px",
 
                 alignItems:
                   "center",
+
+                flexWrap: "wrap",
               }}
             >
               {/* AVATAR */}
               <div
                 style={{
-                  width: "160px",
+                  width: "170px",
 
-                  height: "160px",
+                  height: "170px",
 
                   borderRadius:
                     "50%",
 
                   background:
-                    "linear-gradient(135deg, #2563EB, #7C3AED)",
+                    "linear-gradient(135deg, #4F46E5, #9333EA)",
 
-                  display: "flex",
-
-                  justifyContent:
-                    "center",
+                  display:
+                    "flex",
 
                   alignItems:
                     "center",
 
-                  fontSize: "68px",
+                  justifyContent:
+                    "center",
+
+                  fontSize:
+                    "70px",
+
+                  boxShadow:
+                    "0 0 40px rgba(139,92,246,0.5)",
                 }}
               >
-                {selectedAvatar}
+                👨‍💻
               </div>
 
-              {/* INFO */}
+              {/* DETAILS */}
               <div>
-                <h1
+                <h2
                   style={{
-                    fontSize: "52px",
+                    fontSize:
+                      "64px",
 
                     marginBottom:
                       "12px",
                   }}
                 >
-                  {
-                    dynamicUser.name
-                  }
-                </h1>
+                  {name ||
+                    "BuildX User"}
+                </h2>
 
                 <p
                   style={{
-                    color: "#CBD5E1",
+                    fontSize:
+                      "28px",
 
-                    fontSize: "20px",
+                    color:
+                      "#CBD5E1",
 
                     marginBottom:
-                      "10px",
+                      "12px",
                   }}
                 >
-                  {
-                    dynamicUser.role
-                  }
+                  {role ||
+                    "No Role Added"}
                 </p>
 
                 <p
                   style={{
-                    color: "#94A3B8",
+                    color:
+                      "#94A3B8",
 
-                    marginBottom:
-                      "24px",
+                    fontSize:
+                      "18px",
                   }}
                 >
-                  {
-                    dynamicUser.email
-                  }
+                  {email ||
+                    "No Email"}
                 </p>
 
-                {/* BADGES */}
+                {/* DYNAMIC ROLES */}
                 <div
                   style={{
-                    display: "flex",
+                    display:
+                      "flex",
 
-                    flexWrap: "wrap",
+                    flexWrap:
+                      "wrap",
 
-                    gap: "12px",
+                    gap: "14px",
+
+                    marginTop:
+                      "25px",
                   }}
                 >
-                  {creatorBadges
-                    .length >
-                  0 ? (
-                    creatorBadges.map(
-                      (
-                        badge,
-                        index
-                      ) => (
-                        <span
-                          key={index}
-                          style={{
-                            padding:
-                              "11px 18px",
+                  {role &&
+                    role
+                      .split(",")
+                      .map(
+                        (
+                          item,
+                          index
+                        ) => (
+                          <span
+                            key={
+                              index
+                            }
+                            style={{
+                              padding:
+                                "12px 20px",
 
-                            borderRadius:
-                              "24px",
+                              borderRadius:
+                                "999px",
 
-                            background:
-                              "rgba(79,70,229,0.16)",
+                              background:
+                                "linear-gradient(135deg, rgba(139,92,246,0.25), rgba(236,72,153,0.25))",
 
-                            border:
-                              "1px solid rgba(255,255,255,0.06)",
+                              border:
+                                "1px solid rgba(255,255,255,0.08)",
 
-                            color:
-                              "white",
+                              color:
+                                "white",
 
-                            fontSize:
-                              "14px",
-                          }}
-                        >
-                          {badge}
-                        </span>
-                      )
-                    )
-                  ) : (
-                    <span
-                      style={{
-                        color:
-                          "#94A3B8",
-                      }}
-                    >
-                      No skills added
-                    </span>
-                  )}
+                              fontWeight:
+                                "600",
+
+                              fontSize:
+                                "14px",
+                            }}
+                          >
+                            {item.trim()}
+                          </span>
+                        )
+                      )}
                 </div>
               </div>
             </div>
@@ -475,26 +469,71 @@ function Profile() {
 
           {/* EDIT PROFILE */}
           <div
-            className="glass-card"
             style={{
-              padding: "32px",
+              padding: "40px",
 
-              marginBottom:
-                "32px",
+              borderRadius:
+                "28px",
+
+              background:
+                "rgba(255,255,255,0.05)",
+
+              border:
+                "1px solid rgba(255,255,255,0.08)",
+
+              backdropFilter:
+                "blur(20px)",
             }}
           >
             <h2
               style={{
-                marginBottom:
-                  "22px",
+                fontSize:
+                  "48px",
 
-                fontSize: "38px",
+                marginBottom:
+                  "35px",
               }}
             >
-              Edit Profile
+              EDIT PROFILE
             </h2>
 
+            {/* NAME */}
+            <label>
+              Name
+            </label>
+
+            <input
+              type="text"
+              value={name}
+              onChange={(e) =>
+                setName(
+                  e.target.value
+                )
+              }
+              style={inputStyle}
+            />
+
+            {/* EMAIL */}
+            <label>
+              Email
+            </label>
+
+            <input
+              type="email"
+              value={email}
+              disabled
+              style={{
+                ...inputStyle,
+
+                opacity: 0.6,
+              }}
+            />
+
             {/* ROLE */}
+            <label>
+              Role
+            </label>
+
             <input
               type="text"
               value={role}
@@ -503,31 +542,15 @@ function Profile() {
                   e.target.value
                 )
               }
-              placeholder="Enter your role..."
-              style={{
-                width: "100%",
-
-                padding: "16px",
-
-                borderRadius:
-                  "16px",
-
-                background:
-                  "rgba(255,255,255,0.05)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                color: "white",
-
-                marginBottom:
-                  "18px",
-
-                outline: "none",
-              }}
+              placeholder="AI Engineer, UI Designer, Startup Founder"
+              style={inputStyle}
             />
 
             {/* BIO */}
+            <label>
+              Bio
+            </label>
+
             <textarea
               value={bio}
               onChange={(e) =>
@@ -535,125 +558,106 @@ function Profile() {
                   e.target.value
                 )
               }
-              placeholder="Enter your bio..."
+              rows="5"
+              style={{
+                ...inputStyle,
+
+                resize: "none",
+              }}
+            />
+
+            {/* SKILLS */}
+            <label>
+              Skills
+            </label>
+
+            <input
+              type="text"
+              value={skills}
+              onChange={(e) =>
+                setSkills(
+                  e.target.value
+                )
+              }
+              placeholder="React, Node.js, UI/UX"
+              style={inputStyle}
+            />
+
+            {/* SKILLS TO LEARN */}
+            <label>
+              Skills To Learn
+            </label>
+
+            <input
+              type="text"
+              value={
+                skillsToLearn
+              }
+              onChange={(e) =>
+                setSkillsToLearn(
+                  e.target.value
+                )
+              }
+              placeholder="AI, Blockchain, Cybersecurity"
+              style={inputStyle}
+            />
+
+            {/* PASSWORD */}
+            <label>
+              New Password
+            </label>
+
+            <input
+              type="password"
+              value={password}
+              onChange={(e) =>
+                setPassword(
+                  e.target.value
+                )
+              }
+              placeholder="Enter new password"
+              style={inputStyle}
+            />
+
+            {/* BUTTON */}
+            <button
+              onClick={
+                updateProfile
+              }
+              disabled={
+                loading
+              }
               style={{
                 width: "100%",
-
-                minHeight: "120px",
 
                 padding: "18px",
 
                 borderRadius:
                   "18px",
 
-                background:
-                  "rgba(255,255,255,0.05)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                color: "white",
-
-                marginBottom:
-                  "22px",
-
-                outline: "none",
-              }}
-            />
-
-            {/* SKILLS HAVE */}
-            <input
-              type="text"
-              value={skillsHave}
-              onChange={(e) =>
-                setSkillsHave(
-                  e.target.value
-                )
-              }
-              placeholder="Skills you have (comma separated)"
-              style={{
-                width: "100%",
-
-                padding: "16px",
-
-                borderRadius:
-                  "16px",
-
-                background:
-                  "rgba(255,255,255,0.05)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                color: "white",
-
-                marginBottom:
-                  "18px",
-
-                outline: "none",
-              }}
-            />
-
-            {/* SKILLS WANT */}
-            <input
-              type="text"
-              value={skillsWant}
-              onChange={(e) =>
-                setSkillsWant(
-                  e.target.value
-                )
-              }
-              placeholder="Skills you want to learn (comma separated)"
-              style={{
-                width: "100%",
-
-                padding: "16px",
-
-                borderRadius:
-                  "16px",
-
-                background:
-                  "rgba(255,255,255,0.05)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                color: "white",
-
-                marginBottom:
-                  "22px",
-
-                outline: "none",
-              }}
-            />
-
-            {/* SAVE BUTTON */}
-            <button
-              onClick={
-                saveProfile
-              }
-              style={{
-                padding:
-                  "16px 28px",
-
-                borderRadius:
-                  "18px",
-
                 border: "none",
-
-                cursor: "pointer",
-
-                fontWeight: "700",
 
                 background:
                   "linear-gradient(135deg, #8B5CF6, #EC4899)",
 
                 color: "white",
 
-                fontSize: "16px",
+                fontSize:
+                  "18px",
+
+                fontWeight:
+                  "700",
+
+                cursor:
+                  "pointer",
+
+                marginTop:
+                  "10px",
               }}
             >
-              Save Profile 🚀
+              {loading
+                ? "Updating..."
+                : "Save Profile 🚀"}
             </button>
           </div>
         </div>
