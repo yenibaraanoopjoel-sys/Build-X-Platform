@@ -16,7 +16,8 @@ import Loader from "../components/Loader";
 import API from "../services/api";
 
 function Ideas() {
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
   //
   // CURRENT USER
@@ -45,11 +46,15 @@ function Ideas() {
   const [loading, setLoading] =
     useState(true);
 
-  const [requestLoading, setRequestLoading] =
-    useState("");
+  const [
+    requestLoading,
+    setRequestLoading,
+  ] = useState("");
 
-  const [sentRequests, setSentRequests] =
-    useState([]);
+  const [
+    sentRequests,
+    setSentRequests,
+  ] = useState([]);
 
   //
   // FETCH IDEAS
@@ -64,23 +69,38 @@ function Ideas() {
             "/ideas"
           );
 
+        //
+        // FIXED ARRAY ISSUE
+        //
+        let fetchedIdeas =
+          [];
+
         if (
-          response?.data?.success
+          Array.isArray(
+            response?.data
+          )
         ) {
-          setIdeas(
-            Array.isArray(
-              response?.data?.ideas
-            )
-              ? response.data.ideas
-              : []
-          );
-        } else {
-          setIdeas([]);
+          fetchedIdeas =
+            response.data;
+        } else if (
+          Array.isArray(
+            response?.data
+              ?.ideas
+          )
+        ) {
+          fetchedIdeas =
+            response.data
+              .ideas;
         }
+
+        setIdeas(
+          fetchedIdeas
+        );
       } catch (error) {
         console.log(
           "FETCH IDEAS ERROR:",
-          error?.response?.data ||
+          error?.response
+            ?.data ||
             error.message
         );
 
@@ -97,7 +117,10 @@ function Ideas() {
     useCallback(async () => {
       try {
         if (!token) {
-          setSentRequests([]);
+          setSentRequests(
+            []
+          );
+
           return;
         }
 
@@ -111,27 +134,43 @@ function Ideas() {
             }
           );
 
+        //
+        // FIXED ARRAY ISSUE
+        //
+        let requests = [];
+
         if (
-          response?.data?.success
+          Array.isArray(
+            response?.data
+          )
         ) {
-          setSentRequests(
-            Array.isArray(
-              response?.data?.requests
-            )
-              ? response.data.requests
-              : []
-          );
-        } else {
-          setSentRequests([]);
+          requests =
+            response.data;
+        } else if (
+          Array.isArray(
+            response?.data
+              ?.requests
+          )
+        ) {
+          requests =
+            response.data
+              .requests;
         }
+
+        setSentRequests(
+          requests
+        );
       } catch (error) {
         console.log(
           "REQUEST FETCH ERROR:",
-          error?.response?.data ||
+          error?.response
+            ?.data ||
             error.message
         );
 
-        setSentRequests([]);
+        setSentRequests(
+          []
+        );
       }
     }, [token]);
 
@@ -161,13 +200,16 @@ function Ideas() {
             "Please login first"
           );
 
-          navigate("/login");
+          navigate(
+            "/login"
+          );
 
           return;
         }
 
         if (
-          !idea?.createdBy?._id
+          !idea?.createdBy
+            ?._id
         ) {
           alert(
             "Idea owner not found"
@@ -184,15 +226,12 @@ function Ideas() {
           "/collaborations/send",
           {
             receiver:
-              idea?.createdBy?._id,
+              idea
+                ?.createdBy
+                ?._id,
 
             ideaId:
               idea?._id,
-
-            projectId:
-              idea?.linkedProject
-                ?._id ||
-              idea?.linkedProject,
 
             title:
               idea?.title,
@@ -218,17 +257,21 @@ function Ideas() {
       } catch (error) {
         console.log(
           "SEND REQUEST ERROR:",
-          error?.response?.data ||
+          error?.response
+            ?.data ||
             error.message
         );
 
         alert(
-          error?.response?.data
+          error?.response
+            ?.data
             ?.message ||
             "Failed to send request"
         );
       } finally {
-        setRequestLoading("");
+        setRequestLoading(
+          ""
+        );
       }
     };
 
@@ -243,7 +286,9 @@ function Ideas() {
             "Delete this idea?"
           );
 
-        if (!confirmDelete) {
+        if (
+          !confirmDelete
+        ) {
           return;
         }
 
@@ -264,12 +309,14 @@ function Ideas() {
       } catch (error) {
         console.log(
           "DELETE ERROR:",
-          error?.response?.data ||
+          error?.response
+            ?.data ||
             error.message
         );
 
         alert(
-          error?.response?.data
+          error?.response
+            ?.data
             ?.message ||
             "Failed to delete idea"
         );
@@ -277,7 +324,7 @@ function Ideas() {
     };
 
   //
-  // CHECK REQUEST
+  // CHECK REQUEST STATUS
   //
   const getRequestStatus =
     (ideaId) => {
@@ -291,7 +338,8 @@ function Ideas() {
 
       return sentRequests.find(
         (request) =>
-          request?.idea?._id ===
+          request?.idea
+            ?._id ===
           ideaId
       );
     };
@@ -307,7 +355,9 @@ function Ideas() {
             "Please login first"
           );
 
-          navigate("/login");
+          navigate(
+            "/login"
+          );
 
           return;
         }
@@ -326,7 +376,8 @@ function Ideas() {
       } catch (error) {
         console.log(
           "LIKE ERROR:",
-          error?.response?.data ||
+          error?.response
+            ?.data ||
             error.message
         );
       }
@@ -342,7 +393,8 @@ function Ideas() {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight:
+          "100vh",
         background:
           "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
         color: "white",
@@ -366,19 +418,28 @@ function Ideas() {
           {/* HEADER */}
           <div
             style={{
-              display: "flex",
+              display:
+                "flex",
               justifyContent:
                 "space-between",
-              alignItems: "center",
-              marginBottom: "40px",
+              alignItems:
+                "center",
+              marginBottom:
+                "40px",
+              flexWrap:
+                "wrap",
+              gap: "20px",
             }}
           >
             <div>
               <h1
                 style={{
-                  fontSize: "58px",
-                  fontWeight: "800",
-                  marginBottom: "10px",
+                  fontSize:
+                    "58px",
+                  fontWeight:
+                    "800",
+                  marginBottom:
+                    "10px",
                 }}
               >
                 IDEAS HUB
@@ -386,8 +447,10 @@ function Ideas() {
 
               <p
                 style={{
-                  color: "#CBD5E1",
-                  fontSize: "18px",
+                  color:
+                    "#CBD5E1",
+                  fontSize:
+                    "18px",
                 }}
               >
                 Explore innovative startup ideas and collaborate with creators.
@@ -403,10 +466,12 @@ function Ideas() {
                   "16px",
                 background:
                   "linear-gradient(135deg, #8B5CF6, #EC4899)",
-                color: "white",
+                color:
+                  "white",
                 textDecoration:
                   "none",
-                fontWeight: "700",
+                fontWeight:
+                  "700",
               }}
             >
               + Post Idea
@@ -414,16 +479,21 @@ function Ideas() {
           </div>
 
           {/* EMPTY STATE */}
-          {!Array.isArray(ideas) ||
-          ideas.length === 0 ? (
+          {!Array.isArray(
+            ideas
+          ) ||
+          ideas.length ===
+            0 ? (
             <div
               style={{
-                padding: "60px",
+                padding:
+                  "60px",
                 borderRadius:
                   "24px",
                 background:
                   "rgba(255,255,255,0.05)",
-                textAlign: "center",
+                textAlign:
+                  "center",
               }}
             >
               <h2>
@@ -433,82 +503,96 @@ function Ideas() {
           ) : (
             <div
               style={{
-                display: "grid",
+                display:
+                  "grid",
                 gridTemplateColumns:
                   "repeat(auto-fit, minmax(350px, 1fr))",
                 gap: "28px",
               }}
             >
-              {ideas.map((idea) => {
-                const requestStatus =
-                  getRequestStatus(
-                    idea?._id
-                  );
+              {ideas.map(
+                (idea) => {
+                  const requestStatus =
+                    getRequestStatus(
+                      idea?._id
+                    );
 
-                const isOwner =
-                  currentUser?._id ===
-                  idea?.createdBy?._id;
+                  const isOwner =
+                    currentUser?._id ===
+                    idea
+                      ?.createdBy
+                      ?._id;
 
-                return (
-                  <div
-                    key={idea?._id}
-                    style={{
-                      padding: "28px",
-                      borderRadius:
-                        "24px",
-                      background:
-                        "rgba(255,255,255,0.05)",
-                      border:
-                        "1px solid rgba(255,255,255,0.08)",
-                    }}
-                  >
-                    {/* TITLE */}
-                    <h2
-                      style={{
-                        fontSize: "28px",
-                        marginBottom:
-                          "14px",
-                      }}
-                    >
-                      {idea?.title ||
-                        "Untitled Idea"}
-                    </h2>
-
-                    {/* DESCRIPTION */}
-                    <p
-                      style={{
-                        color:
-                          "#CBD5E1",
-                        lineHeight:
-                          "1.7",
-                        marginBottom:
-                          "18px",
-                      }}
-                    >
-                      {idea?.description ||
-                        "No description"}
-                    </p>
-
-                    {/* TECH STACK */}
+                  return (
                     <div
+                      key={
+                        idea?._id
+                      }
                       style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: "10px",
-                        marginBottom:
-                          "18px",
+                        padding:
+                          "28px",
+                        borderRadius:
+                          "24px",
+                        background:
+                          "rgba(255,255,255,0.05)",
+                        border:
+                          "1px solid rgba(255,255,255,0.08)",
                       }}
                     >
-                      {Array.isArray(
-                        idea?.techStack
-                      ) &&
-                        idea.techStack.map(
+                      {/* TITLE */}
+                      <h2
+                        style={{
+                          fontSize:
+                            "28px",
+                          marginBottom:
+                            "14px",
+                        }}
+                      >
+                        {idea?.title ||
+                          "Untitled Idea"}
+                      </h2>
+
+                      {/* DESCRIPTION */}
+                      <p
+                        style={{
+                          color:
+                            "#CBD5E1",
+                          lineHeight:
+                            "1.7",
+                          marginBottom:
+                            "18px",
+                        }}
+                      >
+                        {idea?.description ||
+                          "No description"}
+                      </p>
+
+                      {/* TECH STACK */}
+                      <div
+                        style={{
+                          display:
+                            "flex",
+                          flexWrap:
+                            "wrap",
+                          gap: "10px",
+                          marginBottom:
+                            "18px",
+                        }}
+                      >
+                        {(Array.isArray(
+                          idea?.techStack
+                        )
+                          ? idea.techStack
+                          : []
+                        ).map(
                           (
                             tech,
                             index
                           ) => (
                             <span
-                              key={index}
+                              key={
+                                index
+                              }
                               style={{
                                 padding:
                                   "8px 14px",
@@ -524,109 +608,38 @@ function Ideas() {
                             </span>
                           )
                         )}
-                    </div>
+                      </div>
 
-                    {/* CREATOR */}
-                    <p
-                      style={{
-                        marginBottom:
-                          "14px",
-                        color:
-                          "#94A3B8",
-                      }}
-                    >
-                      👤{" "}
-                      {idea?.createdBy
-                        ?.name ||
-                        "Unknown User"}
-                    </p>
-
-                    {/* BUTTONS */}
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "12px",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      {/* LIKE */}
-                      <button
-                        onClick={() =>
-                          likeIdea(
-                            idea?._id
-                          )
-                        }
+                      {/* CREATOR */}
+                      <p
                         style={{
-                          padding:
-                            "12px 18px",
-                          borderRadius:
+                          marginBottom:
                             "14px",
-                          border: "none",
-                          cursor:
-                            "pointer",
-                          background:
-                            "linear-gradient(135deg, #2563EB, #7C3AED)",
                           color:
-                            "white",
-                          fontWeight:
-                            "700",
+                            "#94A3B8",
                         }}
                       >
-                        ❤️{" "}
-                        {Array.isArray(
-                          idea?.likes
-                        )
-                          ? idea.likes
-                              .length
-                          : 0}
-                      </button>
+                        👤{" "}
+                        {idea
+                          ?.createdBy
+                          ?.name ||
+                          "Unknown User"}
+                      </p>
 
-                      {/* COLLABORATE */}
-                      {!isOwner && (
-                        <button
-                          disabled={
-                            requestLoading ===
-                              idea?._id ||
-                            requestStatus
-                          }
-                          onClick={() =>
-                            sendRequest(
-                              idea
-                            )
-                          }
-                          style={{
-                            padding:
-                              "12px 18px",
-                            borderRadius:
-                              "14px",
-                            border:
-                              "none",
-                            cursor:
-                              "pointer",
-                            background:
-                              requestStatus
-                                ? "#334155"
-                                : "linear-gradient(135deg, #8B5CF6, #EC4899)",
-                            color:
-                              "white",
-                            fontWeight:
-                              "700",
-                          }}
-                        >
-                          {requestLoading ===
-                          idea?._id
-                            ? "Sending..."
-                            : requestStatus
-                            ? "Request Sent"
-                            : "Collaborate"}
-                        </button>
-                      )}
-
-                      {/* DELETE */}
-                      {isOwner && (
+                      {/* BUTTONS */}
+                      <div
+                        style={{
+                          display:
+                            "flex",
+                          gap: "12px",
+                          flexWrap:
+                            "wrap",
+                        }}
+                      >
+                        {/* LIKE */}
                         <button
                           onClick={() =>
-                            deleteIdea(
+                            likeIdea(
                               idea?._id
                             )
                           }
@@ -640,20 +653,97 @@ function Ideas() {
                             cursor:
                               "pointer",
                             background:
-                              "linear-gradient(135deg, #DC2626, #F43F5E)",
+                              "linear-gradient(135deg, #2563EB, #7C3AED)",
                             color:
                               "white",
                             fontWeight:
                               "700",
                           }}
                         >
-                          Delete
+                          ❤️{" "}
+                          {Array.isArray(
+                            idea?.likes
+                          )
+                            ? idea
+                                .likes
+                                .length
+                            : 0}
                         </button>
-                      )}
+
+                        {/* COLLABORATE */}
+                        {!isOwner && (
+                          <button
+                            disabled={
+                              requestLoading ===
+                                idea?._id ||
+                              requestStatus
+                            }
+                            onClick={() =>
+                              sendRequest(
+                                idea
+                              )
+                            }
+                            style={{
+                              padding:
+                                "12px 18px",
+                              borderRadius:
+                                "14px",
+                              border:
+                                "none",
+                              cursor:
+                                "pointer",
+                              background:
+                                requestStatus
+                                  ? "#334155"
+                                  : "linear-gradient(135deg, #8B5CF6, #EC4899)",
+                              color:
+                                "white",
+                              fontWeight:
+                                "700",
+                            }}
+                          >
+                            {requestLoading ===
+                            idea?._id
+                              ? "Sending..."
+                              : requestStatus
+                              ? "Request Sent"
+                              : "Collaborate"}
+                          </button>
+                        )}
+
+                        {/* DELETE */}
+                        {isOwner && (
+                          <button
+                            onClick={() =>
+                              deleteIdea(
+                                idea?._id
+                              )
+                            }
+                            style={{
+                              padding:
+                                "12px 18px",
+                              borderRadius:
+                                "14px",
+                              border:
+                                "none",
+                              cursor:
+                                "pointer",
+                              background:
+                                "linear-gradient(135deg, #DC2626, #F43F5E)",
+                              color:
+                                "white",
+                              fontWeight:
+                                "700",
+                            }}
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                }
+              )}
             </div>
           )}
         </div>
