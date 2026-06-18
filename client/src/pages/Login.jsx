@@ -47,6 +47,13 @@ function Login() {
         response.data.token
       );
 
+      if (response.data.user) {
+        localStorage.setItem(
+          "user",
+          JSON.stringify(response.data.user)
+        );
+      }
+
       navigate("/dashboard");
     } catch (error) {
       alert(

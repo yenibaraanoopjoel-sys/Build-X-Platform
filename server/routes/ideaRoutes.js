@@ -26,6 +26,21 @@ const {
 );
 
 //
+// HEALTH CHECK
+//
+router.get(
+  "/health/check",
+  (req, res) => {
+    res.json({
+      success: true,
+
+      message:
+        "Idea routes working 🚀",
+    });
+  }
+);
+
+//
 // CREATE IDEA
 //
 router.post(
@@ -40,14 +55,6 @@ router.post(
 router.get(
   "/",
   getIdeas
-);
-
-//
-// GET SINGLE IDEA
-//
-router.get(
-  "/:id",
-  getIdeaById
 );
 
 //
@@ -69,18 +76,11 @@ router.delete(
 );
 
 //
-// HEALTH CHECK
+// GET SINGLE IDEA
 //
 router.get(
-  "/health/check",
-  (req, res) => {
-    res.json({
-      success: true,
-
-      message:
-        "Idea routes working 🚀",
-    });
-  }
+  "/:id",
+  getIdeaById
 );
 
 module.exports = router;

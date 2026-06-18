@@ -54,7 +54,7 @@ exports.sendRequest = async (
     //
     if (
       idea.createdBy.toString() ===
-      req.user._id.toString()
+      req.user.toString()
     ) {
       return res
         .status(400)
@@ -73,7 +73,7 @@ exports.sendRequest = async (
       await CollaborationRequest.findOne(
         {
           sender:
-            req.user._id,
+            req.user,
 
           receiver,
 
@@ -102,7 +102,7 @@ exports.sendRequest = async (
       await CollaborationRequest.create(
         {
           sender:
-            req.user._id,
+            req.user,
 
           receiver,
 
@@ -134,7 +134,7 @@ exports.sendRequest = async (
       receiver,
 
       sender:
-        req.user._id,
+        req.user,
 
       type:
         "COLLAB_REQUEST",
@@ -183,7 +183,7 @@ exports.getMyRequests =
         await CollaborationRequest.find(
           {
             receiver:
-              req.user._id,
+              req.user,
           }
         )
           .populate(
@@ -353,7 +353,7 @@ exports.acceptRequest =
           request.sender,
 
         sender:
-          req.user._id,
+          req.user,
 
         type:
           "REQUEST_ACCEPTED",
@@ -432,7 +432,7 @@ exports.rejectRequest =
           request.sender,
 
         sender:
-          req.user._id,
+          req.user,
 
         type:
           "REQUEST_REJECTED",
@@ -483,7 +483,7 @@ exports.getSentRequests =
         await CollaborationRequest.find(
           {
             sender:
-              req.user._id,
+              req.user,
           }
         )
           .populate(

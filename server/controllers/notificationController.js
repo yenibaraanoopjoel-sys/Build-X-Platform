@@ -13,7 +13,7 @@ exports.getNotifications =
         await Notification.find(
           {
             receiver:
-              req.user._id,
+              req.user,
           }
         )
           .populate(
@@ -85,7 +85,7 @@ exports.markAsRead =
       //
       if (
         notification.receiver.toString() !==
-        req.user._id.toString()
+        req.user.toString()
       ) {
         return res
           .status(403)
@@ -131,7 +131,7 @@ exports.markAllAsRead =
       await Notification.updateMany(
         {
           receiver:
-            req.user._id,
+            req.user,
 
           isRead: false,
         },
@@ -185,7 +185,7 @@ exports.deleteNotification =
       //
       if (
         notification.receiver.toString() !==
-        req.user._id.toString()
+        req.user.toString()
       ) {
         return res
           .status(403)
@@ -227,7 +227,7 @@ exports.getUnreadCount =
         await Notification.countDocuments(
           {
             receiver:
-              req.user._id,
+              req.user,
 
             isRead: false,
           }

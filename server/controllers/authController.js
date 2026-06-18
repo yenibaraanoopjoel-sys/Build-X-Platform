@@ -72,6 +72,13 @@ exports.register = async (
       token,
 
       userId: user._id,
+
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
     console.log(
@@ -142,8 +149,18 @@ exports.login = async (
     );
 
     res.status(200).json({
+      message: "Login successful",
+
       token,
+
       userId: user._id,
+
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
     console.log(

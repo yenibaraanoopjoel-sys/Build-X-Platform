@@ -69,10 +69,10 @@ exports.createProject =
           description,
 
           owner:
-            req.user._id,
+            req.user,
 
           members: [
-            req.user._id,
+            req.user,
           ],
 
           linkedIdea,
@@ -489,7 +489,7 @@ exports.deleteProject =
       //
       if (
         project.owner.toString() !==
-        req.user._id.toString()
+        req.user.toString()
       ) {
         return res
           .status(403)

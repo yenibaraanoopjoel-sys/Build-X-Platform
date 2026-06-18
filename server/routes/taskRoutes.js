@@ -26,6 +26,21 @@ const {
 );
 
 //
+// TASK ROUTES HEALTH CHECK
+//
+router.get(
+  "/health/check",
+  (req, res) => {
+    res.json({
+      success: true,
+
+      message:
+        "Task routes working 🚀",
+    });
+  }
+);
+
+//
 // CREATE TASK
 //
 router.post(
@@ -68,21 +83,6 @@ router.delete(
   "/:id",
   protect,
   deleteTask
-);
-
-//
-// TASK ROUTES HEALTH CHECK
-//
-router.get(
-  "/health/check",
-  (req, res) => {
-    res.json({
-      success: true,
-
-      message:
-        "Task routes working 🚀",
-    });
-  }
 );
 
 module.exports = router;

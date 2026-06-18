@@ -79,7 +79,7 @@ exports.createIdea =
             "Public",
 
           createdBy:
-            req.user._id,
+            req.user,
         });
 
       //
@@ -92,13 +92,13 @@ exports.createIdea =
           description,
 
           owner:
-            req.user._id,
+            req.user,
 
           linkedIdea:
             idea._id,
 
           members: [
-            req.user._id,
+            req.user,
           ],
 
           status:
@@ -279,7 +279,7 @@ exports.deleteIdea =
       //
       if (
         idea.createdBy.toString() !==
-        req.user._id.toString()
+        req.user.toString()
       ) {
         return res
           .status(403)
@@ -365,7 +365,7 @@ exports.likeIdea =
         idea.likes.some(
           (userId) =>
             userId.toString() ===
-            req.user._id.toString()
+            req.user.toString()
         );
 
       if (alreadyLiked) {
@@ -373,11 +373,11 @@ exports.likeIdea =
           idea.likes.filter(
             (userId) =>
               userId.toString() !==
-              req.user._id.toString()
+              req.user.toString()
           );
       } else {
         idea.likes.push(
-          req.user._id
+          req.user
         );
       }
 

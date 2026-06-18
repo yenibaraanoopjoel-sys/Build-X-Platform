@@ -26,6 +26,21 @@ const {
 );
 
 //
+// HEALTH CHECK
+//
+router.get(
+  "/health/check",
+  (req, res) => {
+    res.json({
+      success: true,
+
+      message:
+        "Notification routes working 🚀",
+    });
+  }
+);
+
+//
 // GET ALL NOTIFICATIONS
 //
 router.get(
@@ -68,21 +83,6 @@ router.delete(
   "/:id",
   protect,
   deleteNotification
-);
-
-//
-// HEALTH CHECK
-//
-router.get(
-  "/health",
-  (req, res) => {
-    res.json({
-      success: true,
-
-      message:
-        "Notification routes working 🚀",
-    });
-  }
 );
 
 module.exports = router;

@@ -26,6 +26,21 @@ const {
 );
 
 //
+// HEALTH CHECK ROUTE
+//
+router.get(
+  "/health/check",
+  (req, res) => {
+    res.json({
+      success: true,
+
+      message:
+        "Collaboration routes working 🚀",
+    });
+  }
+);
+
+//
 // SEND COLLABORATION REQUEST
 //
 router.post(
@@ -68,21 +83,6 @@ router.put(
   "/reject/:id",
   protect,
   rejectRequest
-);
-
-//
-// HEALTH CHECK ROUTE
-//
-router.get(
-  "/health",
-  (req, res) => {
-    res.json({
-      success: true,
-
-      message:
-        "Collaboration routes working 🚀",
-    });
-  }
 );
 
 module.exports = router;

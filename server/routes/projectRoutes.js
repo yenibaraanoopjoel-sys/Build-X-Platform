@@ -27,6 +27,21 @@ const {
 );
 
 //
+// PROJECT HEALTH CHECK
+//
+router.get(
+  "/health/check",
+  (req, res) => {
+    res.json({
+      success: true,
+
+      message:
+        "Project routes working 🚀",
+    });
+  }
+);
+
+//
 // CREATE PROJECT
 //
 router.post(
@@ -42,15 +57,6 @@ router.get(
   "/",
   protect,
   getProjects
-);
-
-//
-// GET SINGLE PROJECT
-//
-router.get(
-  "/:id",
-  protect,
-  getProjectById
 );
 
 //
@@ -81,18 +87,12 @@ router.delete(
 );
 
 //
-// PROJECT HEALTH CHECK
+// GET SINGLE PROJECT
 //
 router.get(
-  "/health/check",
-  (req, res) => {
-    res.json({
-      success: true,
-
-      message:
-        "Project routes working 🚀",
-    });
-  }
+  "/:id",
+  protect,
+  getProjectById
 );
 
 module.exports = router;
