@@ -1,4 +1,10 @@
 function IdeaCard({ idea }) {
+  const techStack = Array.isArray(
+    idea?.techStack
+  )
+    ? idea.techStack
+    : [];
+
   return (
     <div
       style={{
@@ -7,7 +13,8 @@ function IdeaCard({ idea }) {
         padding: "20px",
         marginBottom: "20px",
         backgroundColor: "white",
-        boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+        boxShadow:
+          "0 2px 5px rgba(0,0,0,0.1)",
       }}
     >
       {/* Idea Title */}
@@ -16,7 +23,8 @@ function IdeaCard({ idea }) {
           marginBottom: "10px",
         }}
       >
-        {idea.title}
+        {idea?.title ||
+          "Untitled Idea"}
       </h2>
 
       {/* Description */}
@@ -26,7 +34,8 @@ function IdeaCard({ idea }) {
           color: "#4B5563",
         }}
       >
-        {idea.description}
+        {idea?.description ||
+          "No description available"}
       </p>
 
       {/* Tech Stack */}
@@ -38,20 +47,36 @@ function IdeaCard({ idea }) {
           marginBottom: "15px",
         }}
       >
-        {idea.techStack &&
-          idea.techStack.map((tech, index) => (
-            <span
-              key={index}
-              style={{
-                padding: "5px 10px",
-                backgroundColor: "#E5E7EB",
-                borderRadius: "20px",
-                fontSize: "14px",
-              }}
-            >
-              {tech}
-            </span>
-          ))}
+        {techStack.length > 0 ? (
+          techStack.map(
+            (tech, index) => (
+              <span
+                key={index}
+                style={{
+                  padding:
+                    "5px 10px",
+                  backgroundColor:
+                    "#E5E7EB",
+                  borderRadius:
+                    "20px",
+                  fontSize:
+                    "14px",
+                }}
+              >
+                {tech}
+              </span>
+            )
+          )
+        ) : (
+          <span
+            style={{
+              color: "#9CA3AF",
+              fontSize: "14px",
+            }}
+          >
+            No Tech Stack
+          </span>
+        )}
       </div>
 
       {/* Creator Info */}
@@ -61,7 +86,9 @@ function IdeaCard({ idea }) {
         }}
       >
         Posted by:{" "}
-        {idea.createdBy?.name || "Unknown User"}
+        {idea?.createdBy
+          ?.name ||
+          "Unknown User"}
       </small>
     </div>
   );
