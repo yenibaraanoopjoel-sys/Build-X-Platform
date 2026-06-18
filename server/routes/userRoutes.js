@@ -7,7 +7,7 @@ const protect = require("../middleware/authMiddleware");
 const {
   getUserProfile,
   updateUserProfile,
-} = require("../controllers/userController");
+} = require("../controllers/userControllers");
 
 //
 // GET PROFILE
