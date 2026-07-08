@@ -12,6 +12,7 @@ import TaskCard from "../components/TaskCard";
 import Loader from "../components/Loader";
 
 import API from "../services/api";
+import { API_BASE_URL } from "../config";
 
 function Tasks() {
   //
@@ -172,7 +173,7 @@ function Tasks() {
 
         const response =
           await axios.post(
-            "https://build-x-platform.onrender.com/api/ai",
+            `${API_BASE_URL.replace(/\/api$/, "")}/api/ai`,
             {
               message: `
 Generate professional software development tasks for this project idea:

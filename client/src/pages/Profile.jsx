@@ -113,11 +113,6 @@ function Profile() {
       try {
         setLoading(true);
 
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
         await API.put("/user/profile", {
           name,
           role,

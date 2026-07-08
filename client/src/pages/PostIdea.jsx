@@ -8,6 +8,7 @@ import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
 import API from "../services/api";
+import { API_BASE_URL } from "../config";
 
 function PostIdea() {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ function PostIdea() {
 
         const response =
           await axios.post(
-            "https://build-x-platform.onrender.com/api/ai",
+            `${API_BASE_URL.replace(/\/api$/, "")}/api/ai`,
             {
               message: `
 Enhance this startup/project idea professionally.
