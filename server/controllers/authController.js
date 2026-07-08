@@ -59,7 +59,7 @@ exports.register = async (
       {
         id: user._id,
       },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "secretkey",
       {
         expiresIn: "1d",
       }
@@ -142,7 +142,7 @@ exports.login = async (
       {
         id: user._id,
       },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "secretkey",
       {
         expiresIn: "1d",
       }

@@ -69,15 +69,9 @@ function Settings() {
               "token"
             );
 
-          const response =
-            await API.get(
-              "/user/profile",
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
+          const response = await API.get(
+            "/user/profile"
+          );
 
           setUser({
             name:
@@ -135,25 +129,10 @@ function Settings() {
   const handleSave =
     async () => {
       try {
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
-        await API.put(
-          "/user/profile",
-          {
-            name: user.name,
-
-            password:
-              user.password,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await API.put("/user/profile", {
+          name: user.name,
+          password: user.password,
+        });
 
         alert(
           "Settings Updated Successfully 🚀"

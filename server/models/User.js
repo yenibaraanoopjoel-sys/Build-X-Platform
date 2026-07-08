@@ -41,20 +41,7 @@ const userSchema = new mongoose.Schema(
     // PROFESSIONAL ROLE
     role: {
       type: String,
-
-      enum: [
-        "Frontend Developer",
-        "Backend Developer",
-        "Full Stack Developer",
-        "UI/UX Designer",
-        "AI Engineer",
-        "Project Manager",
-        "Researcher",
-        "Collaborator",
-      ],
-
-      default:
-        "Collaborator",
+      default: "Collaborator",
     },
 
     // EXPERIENCE

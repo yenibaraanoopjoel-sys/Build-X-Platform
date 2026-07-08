@@ -50,20 +50,8 @@ function Profile() {
     const fetchProfile =
       async () => {
         try {
-          const token =
-            localStorage.getItem(
-              "token"
-            );
-
           const response =
-            await API.get(
-              "/user/profile",
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
+            await API.get("/user/profile");
 
           const user =
             response.data;
@@ -130,37 +118,20 @@ function Profile() {
             "token"
           );
 
-        await API.put(
-          "/user/profile",
-          {
-            name,
-
-            role,
-
-            bio,
-
-            password,
-
-            skills:
-              skills
-                .split(",")
-                .map((item) =>
-                  item.trim()
-                ),
-
-            skillsToLearn:
-              skillsToLearn
-                .split(",")
-                .map((item) =>
-                  item.trim()
-                ),
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await API.put("/user/profile", {
+          name,
+          role,
+          bio,
+          password,
+          skills: skills
+            .split(",")
+            .map((item) => item.trim())
+            .filter((item) => item),
+          skillsToLearn: skillsToLearn
+            .split(",")
+            .map((item) => item.trim())
+            .filter((item) => item),
+        });
 
         alert(
           "Profile Updated Successfully 🚀"
