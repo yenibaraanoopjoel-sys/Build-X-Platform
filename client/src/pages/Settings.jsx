@@ -64,11 +64,6 @@ function Settings() {
     const fetchProfile =
       async () => {
         try {
-          const token =
-            localStorage.getItem(
-              "token"
-            );
-
           const response = await API.get(
             "/user/profile"
           );
