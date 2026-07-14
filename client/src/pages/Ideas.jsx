@@ -69,29 +69,32 @@ function Ideas() {
             "/ideas"
           );
 
+
         //
         // FIXED ARRAY ISSUE
         //
         let fetchedIdeas =
           [];
 
-        if (
-          Array.isArray(
-            response?.data
-          )
-        ) {
-          fetchedIdeas =
-            response.data;
+        // support multiple response shapes commonly returned by APIs
+        if (Array.isArray(response?.data)) {
+          fetchedIdeas = response.data;
         } else if (
-          Array.isArray(
-            response?.data
-              ?.ideas
-          )
+          Array.isArray(response?.data?.ideas)
         ) {
-          fetchedIdeas =
-            response.data
-              .ideas;
+          fetchedIdeas = response.data.ideas;
+        } else if (
+          Array.isArray(response?.data?.data)
+        ) {
+          // some APIs nest payload under `data` twice: { data: { data: [...] } }
+          fetchedIdeas = response.data.data;
+        } else if (
+          Array.isArray(response?.data?.data?.ideas)
+        ) {
+          fetchedIdeas = response.data.data.ideas;
         }
+
+        // (silent) parsed ideas are assigned to state
 
         setIdeas(
           fetchedIdeas
@@ -134,27 +137,22 @@ function Ideas() {
             }
           );
 
+        // (silent)
+
         //
         // FIXED ARRAY ISSUE
         //
+
         let requests = [];
 
-        if (
-          Array.isArray(
-            response?.data
-          )
-        ) {
-          requests =
-            response.data;
-        } else if (
-          Array.isArray(
-            response?.data
-              ?.requests
-          )
-        ) {
-          requests =
-            response.data
-              .requests;
+        if (Array.isArray(response?.data)) {
+          requests = response.data;
+        } else if (Array.isArray(response?.data?.requests)) {
+          requests = response.data.requests;
+        } else if (Array.isArray(response?.data?.data)) {
+          requests = response.data.data;
+        } else if (Array.isArray(response?.data?.data?.requests)) {
+          requests = response.data.data.requests;
         }
 
         setSentRequests(
@@ -458,7 +456,7 @@ function Ideas() {
             </div>
 
             <Link
-              to="/postidea"
+              to="/post-idea"
               style={{
                 padding:
                   "16px 28px",
