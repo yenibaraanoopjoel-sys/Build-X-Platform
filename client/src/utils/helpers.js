@@ -30,7 +30,8 @@ export const getInitials = (name) => {
 
   return name
     .split(" ")
-    .map((word) => word[0])
+    .filter((w) => w && w.length > 0)
+    .map((word) => word.charAt(0))
     .join("")
     .toUpperCase();
 };
