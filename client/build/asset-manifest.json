@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/static/css/main.8b8683cf.css",
+    "main.js": "/static/js/main.a2b4b322.js",
+    "static/media/cinzel-latin-400-normal.woff": "/static/media/cinzel-latin-400-normal.ed555798de0f93737677.woff",
+    "static/media/cinzel-latin-400-normal.woff2": "/static/media/cinzel-latin-400-normal.608dff6ec7bd91c96c40.woff2",
+    "static/media/cinzel-latin-ext-400-normal.woff": "/static/media/cinzel-latin-ext-400-normal.bd23222ab971db921671.woff",
+    "static/media/cinzel-latin-ext-400-normal.woff2": "/static/media/cinzel-latin-ext-400-normal.953151a899918f13cf8b.woff2",
+    "index.html": "/index.html",
+    "main.8b8683cf.css.map": "/static/css/main.8b8683cf.css.map",
+    "main.a2b4b322.js.map": "/static/js/main.a2b4b322.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.8b8683cf.css",
+    "static/js/main.a2b4b322.js"
+  ]
+}
