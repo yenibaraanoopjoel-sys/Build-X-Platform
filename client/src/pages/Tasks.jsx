@@ -522,79 +522,10 @@ Include:
                   >
                     <TaskCard
                       task={task}
+                      updateTaskStatus={updateTaskStatus}
+                      deleteTask={deleteTask}
                     />
 
-                    <div
-                      style={{
-                        display:
-                          "flex",
-                        gap: "12px",
-                        marginTop:
-                          "12px",
-                        flexWrap:
-                          "wrap",
-                      }}
-                    >
-                      <button
-                        onClick={() =>
-                          updateTaskStatus(
-                            task?._id,
-                            "Pending",
-                            0
-                          )
-                        }
-                        style={
-                          buttonStyle
-                        }
-                      >
-                        Pending
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          updateTaskStatus(
-                            task?._id,
-                            "In Progress",
-                            50
-                          )
-                        }
-                        style={
-                          buttonStyle
-                        }
-                      >
-                        In Progress
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          updateTaskStatus(
-                            task?._id,
-                            "Completed",
-                            100
-                          )
-                        }
-                        style={
-                          buttonStyle
-                        }
-                      >
-                        Completed
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          deleteTask(
-                            task?._id
-                          )
-                        }
-                        style={{
-                          ...buttonStyle,
-                          background:
-                            "linear-gradient(135deg, #DC2626, #F43F5E)",
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
                   </div>
                 )
               )
@@ -606,15 +537,5 @@ Include:
   );
 }
 
-const buttonStyle = {
-  padding: "10px 18px",
-  borderRadius: "12px",
-  border: "none",
-  cursor: "pointer",
-  background:
-    "linear-gradient(135deg, #2563EB, #7C3AED)",
-  color: "white",
-  fontWeight: "700",
-};
 
 export default Tasks;
