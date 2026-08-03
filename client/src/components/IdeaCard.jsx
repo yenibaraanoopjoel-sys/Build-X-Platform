@@ -1,44 +1,36 @@
-function IdeaCard({ idea }) {
-  const techStack = Array.isArray(
-    idea?.techStack
-  )
+function IdeaCard({ idea = {} }) {
+  const techStack = Array.isArray(idea.techStack)
     ? idea.techStack
     : [];
 
   return (
     <div
       style={{
-        border: "1px solid #D1D5DB",
+        border: "1px solid #586e90",
         borderRadius: "10px",
         padding: "20px",
         marginBottom: "20px",
         backgroundColor: "white",
-        boxShadow:
-          "0 2px 5px rgba(0,0,0,0.1)",
+        boxShadow: "0 2px 5px rgba(59, 53, 53, 0.1)",
       }}
     >
-      {/* Idea Title */}
       <h2
         style={{
           marginBottom: "10px",
         }}
       >
-        {idea?.title ||
-          "Untitled Idea"}
+        {idea.title || "Untitled Idea"}
       </h2>
 
-      {/* Description */}
       <p
         style={{
           marginBottom: "15px",
           color: "#4B5563",
         }}
       >
-        {idea?.description ||
-          "No description available"}
+        {idea.description || "No description available"}
       </p>
 
-      {/* Tech Stack */}
       <div
         style={{
           display: "flex",
@@ -47,30 +39,24 @@ function IdeaCard({ idea }) {
           marginBottom: "15px",
         }}
       >
-        {techStack.length > 0 ? (
-          techStack.map(
-            (tech, index) => (
-              <span
-                key={index}
-                style={{
-                  padding:
-                    "5px 10px",
-                  backgroundColor:
-                    "#E5E7EB",
-                  borderRadius:
-                    "20px",
-                  fontSize:
-                    "14px",
-                }}
-              >
-                {tech}
-              </span>
-            )
-          )
+        {techStack.length ? (
+          techStack.map((tech, index) => (
+            <span
+              key={`${tech}-${index}`}
+              style={{
+                padding: "5px 10px",
+                backgroundColor: "#d6378c",
+                borderRadius: "20px",
+                fontSize: "14px",
+              }}
+            >
+              {tech}
+            </span>
+          ))
         ) : (
           <span
             style={{
-              color: "#9CA3AF",
+              color: "#6b8bc2",
               fontSize: "14px",
             }}
           >
@@ -79,16 +65,12 @@ function IdeaCard({ idea }) {
         )}
       </div>
 
-      {/* Creator Info */}
       <small
         style={{
           color: "#6B7280",
         }}
       >
-        Posted by:{" "}
-        {idea?.createdBy
-          ?.name ||
-          "Unknown User"}
+        Posted by: {idea.createdBy?.name || "Unknown User"}
       </small>
     </div>
   );

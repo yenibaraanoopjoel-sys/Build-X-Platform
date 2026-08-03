@@ -12,7 +12,7 @@ function Jarvis() {
         sender: "Jarvis",
 
         text:
-          "Hello boss 👋 I am JARVIS, your BuildX AI assistant. How can I help you today?",
+          "Hello 👋 I am JARVIS, your BuildX AI assistant. How can I help you today?",
       },
     ]);
 
