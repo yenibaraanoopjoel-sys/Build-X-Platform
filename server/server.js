@@ -20,8 +20,7 @@ const app = express();
 //
 // CREATE HTTP SERVER
 //
-const server =
-  http.createServer(app);
+const server = http.createServer(app);
 
 //
 // SOCKET.IO
@@ -29,7 +28,6 @@ const server =
 const io = new Server(server, {
   cors: {
     origin: "*",
-
     methods: [
       "GET",
       "POST",
@@ -42,8 +40,7 @@ const io = new Server(server, {
 //
 // ONLINE USERS
 //
-const onlineUsers =
-  new Map();
+const onlineUsers = new Map();
 
 //
 // SOCKET CONNECTION
@@ -62,13 +59,11 @@ io.on("connection", (socket) => {
     (userId) => {
       socket.join(userId);
 
-      // STORE ONLINE USER
       onlineUsers.set(
         userId,
         socket.id
       );
 
-      // SEND ONLINE USERS
       io.emit(
         "online_users",
         Array.from(
@@ -159,7 +154,6 @@ io.on("connection", (socket) => {
   socket.on(
     "disconnect",
     () => {
-      // REMOVE USER
       for (const [
         userId,
         socketId,
@@ -180,7 +174,6 @@ io.on("connection", (socket) => {
         }
       }
 
-      // UPDATE ONLINE USERS
       io.emit(
         "online_users",
         Array.from(
@@ -204,14 +197,10 @@ connectDB();
 //
 // MIDDLEWARE
 //
-
-// ENABLE CORS
 app.use(cors());
 
-// JSON PARSER
 app.use(express.json());
 
-// URL ENCODED PARSER
 app.use(
   express.urlencoded({
     extended: true,
@@ -221,7 +210,6 @@ app.use(
 //
 // DEBUG ENV VARIABLES
 //
-
 console.log(
   "OPENROUTER KEY EXISTS:",
   !!process.env.OPENROUTER_API_KEY
@@ -233,52 +221,66 @@ console.log(
 );
 
 //
+// HEALTH CHECK
+//
+app.get(
+  "/api/health/check",
+  (req, res) => {
+    res.json({
+      success: true,
+      message:
+        "BuildX Backend Running 🚀",
+    });
+  }
+);
+
+//
 // ROUTES
 //
 
-// AUTH ROUTES
+// AUTH
 app.use(
   "/api/auth",
   require("./routes/authRoutes")
 );
 
-// USER ROUTES
+// USERS
 app.use(
-  "/api/user",
+  "/api/users",
   require("./routes/userRoutes")
 );
 
-// IDEA ROUTES
+// IDEAS
 app.use(
   "/api/ideas",
   require("./routes/ideaRoutes")
 );
 
-// PROJECT ROUTES
+// PROJECTS
 app.use(
   "/api/projects",
   require("./routes/projectRoutes")
 );
 
-// TASK ROUTES
+// TASKS
 app.use(
   "/api/tasks",
   require("./routes/taskRoutes")
 );
 
-// MESSAGE ROUTES
+// MESSAGES
 app.use(
   "/api/messages",
   require("./routes/messageRoutes")
 );
 
-// SKILL SWAP ROUTES
+// SKILL SWAP
 app.use(
   "/api/skillswap",
   require("./routes/skillSwapRoutes")
 );
 
-// COLLABORATION ROUTES
+// COLLABORATIONS
 app.use(
   "/api/collaborations",
   require(
@@ -286,7 +288,7 @@ app.use(
   )
 );
 
-// NOTIFICATION ROUTES
+// NOTIFICATIONS
 app.use(
   "/api/notifications",
   require(
@@ -294,16 +296,15 @@ app.use(
   )
 );
 
-// AI ROUTES
+// AI
 app.use(
   "/api/ai",
   require("./routes/aiRoutes")
 );
 
 //
-// ROOT ROUTE
+// ROOT
 //
-
 app.get("/", (req, res) => {
   res.send(
     "BuildX API Running 🚀"
@@ -313,20 +314,17 @@ app.get("/", (req, res) => {
 //
 // ERROR HANDLER
 //
-
 app.use(errorHandler);
 
 //
 // PORT
 //
-
 const PORT =
   process.env.PORT || 5000;
 
 //
 // START SERVER
 //
-
 server.listen(PORT, () => {
   console.log(
     `🚀 Server running on port ${PORT}`
