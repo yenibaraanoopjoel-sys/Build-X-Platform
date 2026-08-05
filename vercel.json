@@ -12,6 +12,6 @@
   "routes": [
     { "src": "/(.*)", "dest": "/index.html" }
   ],
-  "installCommand": "npm install",
-  "buildCommand": "npm run build"
+  "installCommand": "cd buildx/client 2>/dev/null || cd client && npm install",
+  "buildCommand": "cd buildx/client 2>/dev/null || cd client && npm run build"
 }
