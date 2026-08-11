@@ -192,6 +192,24 @@ cd client
 npm start
 ```
 
+## Load Demo Workspace Data
+
+After configuring `server/.env` with a working `MONGO_URI`, run this once from the server folder:
+
+```bash
+cd server
+npm run seed:demo
+```
+
+The command is safe to run again and creates demo users, ideas, a project, tasks, messages, notifications, and a pending collaboration request. All demo accounts use the password `BuildXDemo123!`:
+
+```text
+aarav.demo@buildx.dev
+maya.demo@buildx.dev
+leo.demo@buildx.dev
+zoya.demo@buildx.dev
+```
+
 ---
 
 # 🌐 API Base URL
