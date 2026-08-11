@@ -9,7 +9,7 @@
     "client:port": "cd client && cross-env PORT=3001 npm start",
     "dev": "concurrently \"npm run server\" \"npm run client:port\"",
     "install-all": "npm install && cd client && npm install && cd ../server && npm install",
-    "build": "npm install --prefix client && npm run build --prefix client"
+    "build": "npm run build --prefix client"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
