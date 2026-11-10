@@ -1,967 +1,543 @@
-import {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-} from "react";
-
+import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
 import Loader from "../components/Loader";
-
+import { useAuth } from "../context/AuthContext";
+import {
+  subscribeMessages,
+  sendMessage,
+  getOrCreateDirectConversation,
+  getMatchingUsers,
+} from "../services/firestoreService";
 import API from "../services/api";
+import {
+  MessageSquare,
+  Send,
+  Video,
+  Users,
+  Paperclip,
+  Search,
+  Image,
+} from "lucide-react";
 
-import socket from "../socket";
+// Default public channels
+const PUBLIC_CHANNELS = [
+  {
+    id: "channel_general_community",
+    name: "General Community",
+    type: "channel",
+    description: "BuildX global innovation room",
+  },
+  {
+    id: "channel_tech_architecture",
+    name: "Tech & Architecture",
+    type: "channel",
+    description: "Discuss stacks, databases, and APIs",
+  },
+  {
+    id: "channel_startup_founders",
+    name: "Startup & Co-Founders",
+    type: "channel",
+    description: "Connect with entrepreneurs and creators",
+  },
+];
 
 function Chat() {
-  //
-  // SCROLL REF
-  //
-  const messagesEndRef =
-    useRef(null);
+  const { currentUser, userProfile } = useAuth();
 
-  //
-  // SAFE USER
-  //
-  const storedUser =
-    localStorage.getItem(
-      "user"
-    );
+  const [activeChannel, setActiveChannel] = useState(PUBLIC_CHANNELS[0]);
 
-  const currentUser =
-    storedUser
-      ? JSON.parse(
-          storedUser
-        )
-      : {};
+  const [messages, setMessages] = useState([]);
+  const [inputText, setInputText] = useState("");
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [attachmentPreview, setAttachmentPreview] = useState(null);
 
-  const currentUserId =
-    currentUser?._id ||
-    currentUser?.userId ||
-    "";
+  const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
-  //
-  // STATES
-  //
-  const [
-    collaborators,
-    setCollaborators,
-  ] = useState([]);
-
-  const [
-    selectedUser,
-    setSelectedUser,
-  ] = useState(null);
-
-  const [messages, setMessages] =
-    useState([]);
-
-  const [input, setInput] =
-    useState("");
-
-  const [typing, setTyping] =
-    useState(false);
-
-  const [
-    onlineUsers,
-    setOnlineUsers,
-  ] = useState([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  //
-  // TOKEN
-  //
-  const token =
-    localStorage.getItem(
-      "token"
-    );
-
-  //
-  // AUTO SCROLL
-  //
-  const scrollToBottom =
-    () => {
-      messagesEndRef.current?.scrollIntoView(
-        {
-          behavior:
-            "smooth",
-        }
-      );
-    };
-
-  //
-  // FETCH USERS
-  //
-  const fetchCollaborators =
-    useCallback(
-      async () => {
-        try {
-          setLoading(true);
-
-          const response =
-            await API.get(
-              "/users/all",
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-
-          if (
-            response?.data
-              ?.success
-          ) {
-            const filtered =
-              Array.isArray(
-                response.data
-                  .users
-              )
-                ? response.data.users.filter(
-                    (
-                      user
-                    ) =>
-                      user?._id !==
-                      currentUserId
-                  )
-                : [];
-
-            setCollaborators(
-              filtered
-            );
-          } else {
-            setCollaborators([]);
-          }
-        } catch (error) {
-          console.log(
-            "COLLABORATOR ERROR:",
-            error
-              ?.response
-              ?.data ||
-              error.message
-          );
-
-          setCollaborators([]);
-        } finally {
-          setLoading(false);
-        }
-      },
-      [
-        token,
-        currentUserId,
-      ]
-    );
-
-  //
-  // FETCH MESSAGES
-  //
-  const fetchMessages =
-    useCallback(
-      async (receiverId) => {
-        try {
-          const response =
-            await API.get(
-              `/messages/${receiverId}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-
-          if (
-            response?.data
-              ?.success
-          ) {
-            setMessages(
-              Array.isArray(
-                response.data
-                  .messages
-              )
-                ? response.data
-                    .messages
-                : []
-            );
-          } else {
-            setMessages([]);
-          }
-        } catch (error) {
-          console.log(
-            "MESSAGE ERROR:",
-            error
-              ?.response
-              ?.data ||
-              error.message
-          );
-
-          setMessages([]);
-        }
-      },
-      [token]
-    );
-
-  //
-  // LOAD USERS
-  //
+  // Auto scroll to latest message
   useEffect(() => {
-    fetchCollaborators();
-  }, [
-    fetchCollaborators,
-  ]);
-
-  //
-  // SOCKET CONNECTION
-  //
-  useEffect(() => {
-    if (!currentUserId)
-      return;
-
-    socket.emit(
-      "join",
-      currentUserId
-    );
-
-    socket.on(
-      "receiveMessage",
-      (message) => {
-        if (
-          message?.sender ===
-            selectedUser?._id ||
-          message?.receiver ===
-            selectedUser?._id ||
-          message?.sender
-            ?._id ===
-            selectedUser?._id
-        ) {
-          setMessages(
-            (prev) => [
-              ...prev,
-              message,
-            ]
-          );
-        }
-      }
-    );
-
-    socket.on(
-      "typing",
-      () => {
-        setTyping(true);
-
-        setTimeout(() => {
-          setTyping(false);
-        }, 2000);
-      }
-    );
-
-    socket.on(
-      "onlineUsers",
-      (users) => {
-        setOnlineUsers(
-          Array.isArray(
-            users
-          )
-            ? users
-            : []
-        );
-      }
-    );
-
-    return () => {
-      socket.off(
-        "receiveMessage"
-      );
-
-      socket.off("typing");
-
-      socket.off(
-        "onlineUsers"
-      );
-    };
-  }, [
-    currentUserId,
-    selectedUser,
-  ]);
-
-  //
-  // AUTO SCROLL
-  //
-  useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  //
-  // SELECT USER
-  //
-  const selectUser =
-    async (user) => {
-      setSelectedUser(user);
-
-      await fetchMessages(
-        user?._id
-      );
-    };
-
-  //
-  // SEND MESSAGE
-  //
-  const sendMessage =
-    async () => {
-      if (
-        !input.trim() ||
-        !selectedUser
-      ) {
-        return;
-      }
-
+  // Load available users for 1:1 direct chat
+  useEffect(() => {
+    const loadUsers = async () => {
       try {
-        const response =
-          await API.post(
-            "/messages/send",
-            {
-              receiver:
-                selectedUser?._id,
-
-              text: input,
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-        if (
-          response?.data
-            ?.success
-        ) {
-          const newMessage =
-            response.data
-              .message;
-
-          setMessages(
-            (prev) => [
-              ...prev,
-              newMessage,
-            ]
-          );
-
-          socket.emit(
-            "sendMessage",
-            newMessage
-          );
-
-          setInput("");
+        const res = await API.get("/match/users").catch(() => null);
+        if (res?.data?.users && res.data.users.length > 0) {
+          setAvailableUsers(res.data.users);
+          return;
         }
-      } catch (error) {
-        console.log(
-          "SEND ERROR:",
-          error
-            ?.response
-            ?.data ||
-            error.message
-        );
+      } catch (e) {
+        // Fall through to Firestore
       }
+      const directUsers = await getMatchingUsers(currentUser);
+      setAvailableUsers(directUsers);
     };
 
-  //
-  // ENTER SEND
-  //
-  const handleKeyDown =
-    (e) => {
-      if (
-        e.key === "Enter"
-      ) {
-        sendMessage();
-      }
-    };
+    loadUsers();
+  }, [currentUser]);
 
-  //
-  // LOADING
-  //
-  if (loading) {
-    return <Loader />;
-  }
+
+
+  // Listen to real-time messages of active channel/conversation
+  useEffect(() => {
+    if (!activeChannel) return;
+    setLoading(true);
+
+    const unsub = subscribeMessages(activeChannel.id, (data) => {
+      setMessages(data);
+      setLoading(false);
+    });
+
+    return () => unsub();
+  }, [activeChannel]);
+
+  // Send message
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if ((!inputText.trim() && !attachmentPreview) || sending || !currentUser) return;
+
+    try {
+      setSending(true);
+      const user = userProfile || {
+        uid: currentUser.uid,
+        name: currentUser.displayName || currentUser.email?.split("@")[0] || "Innovator",
+        avatar: currentUser.photoURL,
+      };
+
+      await sendMessage(activeChannel.id, inputText.trim(), user, attachmentPreview);
+      setInputText("");
+      setAttachmentPreview(null);
+    } catch (err) {
+      console.error("Failed to send message:", err);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Start 1:1 Direct Chat with another member
+  const handleStartDirectChat = async (targetUser) => {
+    try {
+      const user = userProfile || { uid: currentUser.uid, name: currentUser.displayName };
+      const convo = await getOrCreateDirectConversation(user, targetUser);
+      setActiveChannel({
+        id: convo.id,
+        name: targetUser.name,
+        type: "direct",
+        targetUserId: targetUser.id || targetUser.uid,
+        avatar: targetUser.avatar,
+      });
+    } catch (err) {
+      console.error("Error opening direct chat:", err);
+    }
+  };
+
+  // Handle local image attachment preview
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAttachmentPreview({
+          name: file.name,
+          url: reader.result,
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const filteredUsers = availableUsers.filter((u) =>
+    u.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-
-        background:
-          "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
-
-        color: "white",
-
-        overflow: "hidden",
-      }}
-    >
-      {/* NAVBAR */}
+    <div style={{ minHeight: "100vh", background: "#050816", color: "#F8FAFC" }}>
       <Navbar />
 
-      <div
+      <main
         style={{
-          display: "flex",
+          maxWidth: "1440px",
+          margin: "0 auto",
+          padding: "24px",
+          height: "calc(100vh - 120px)",
+          minHeight: "600px",
         }}
       >
-        {/* SIDEBAR */}
-        <Sidebar />
-
-        {/* MAIN */}
         <div
           style={{
-            flex: 1,
-
-            padding: "30px",
-
-            display: "flex",
-
-            gap: "24px",
-
-            height:
-              "calc(100vh - 80px)",
+            height: "100%",
+            display: "grid",
+            gridTemplateColumns: "320px 1fr",
+            gap: "20px",
+            background: "rgba(15, 23, 42, 0.75)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            borderRadius: "24px",
+            overflow: "hidden",
+            boxShadow: "0 25px 60px rgba(0,0,0,0.5)",
           }}
+          className="chat-layout"
         >
-          {/* USERS PANEL */}
+          {/* LEFT SIDEBAR: CHANNELS & USERS */}
           <div
             style={{
-              width: "340px",
-
-              borderRadius:
-                "28px",
-
-              background:
-                "rgba(255,255,255,0.05)",
-
-              border:
-                "1px solid rgba(255,255,255,0.08)",
-
-              backdropFilter:
-                "blur(18px)",
-
-              overflow: "hidden",
-
+              background: "rgba(10, 15, 30, 0.6)",
+              borderRight: "1px solid rgba(255, 255, 255, 0.08)",
               display: "flex",
-
-              flexDirection:
-                "column",
+              flexDirection: "column",
             }}
           >
-            {/* HEADER */}
-            <div
-              style={{
-                padding: "24px",
-
-                borderBottom:
-                  "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              <h2
+            {/* SEARCH */}
+            <div style={{ padding: "16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div
                 style={{
-                  fontSize:
-                    "32px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "8px 12px",
+                  borderRadius: "10px",
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)",
                 }}
               >
-                Chats 💬
-              </h2>
+                <Search size={15} color="#94A3B8" />
+                <input
+                  type="text"
+                  placeholder="Find innovators..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    outline: "none",
+                    color: "white",
+                    fontSize: "12px",
+                    width: "100%",
+                  }}
+                />
+              </div>
             </div>
 
-            {/* USERS */}
+            {/* CHANNELS LIST */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "12px" }}>
+              <span style={{ fontSize: "11px", fontWeight: "700", color: "#64748B", textTransform: "uppercase", padding: "0 8px 8px", display: "block" }}>
+                Public Channels
+              </span>
+
+              {PUBLIC_CHANNELS.map((ch) => {
+                const active = activeChannel.id === ch.id;
+                return (
+                  <button
+                    key={ch.id}
+                    onClick={() => setActiveChannel(ch)}
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      padding: "10px 12px",
+                      borderRadius: "12px",
+                      background: active ? "rgba(56, 189, 248, 0.15)" : "transparent",
+                      border: "1px solid",
+                      borderColor: active ? "rgba(56, 189, 248, 0.3)" : "transparent",
+                      color: active ? "#38BDF8" : "#E2E8F0",
+                      fontSize: "13px",
+                      fontWeight: active ? "700" : "500",
+                      cursor: "pointer",
+                      marginBottom: "4px",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    <Users size={16} />
+                    <div style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {ch.name}
+                    </div>
+                  </button>
+                );
+              })}
+
+              <span style={{ fontSize: "11px", fontWeight: "700", color: "#64748B", textTransform: "uppercase", padding: "16px 8px 8px", display: "block" }}>
+                Direct Messages ({filteredUsers.length})
+              </span>
+
+              {filteredUsers.map((u) => {
+                const isSelected = activeChannel.type === "direct" && activeChannel.targetUserId === u.id;
+                return (
+                  <button
+                    key={u.id}
+                    onClick={() => handleStartDirectChat(u)}
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      padding: "8px 12px",
+                      borderRadius: "12px",
+                      background: isSelected ? "rgba(139, 92, 246, 0.15)" : "transparent",
+                      border: "1px solid",
+                      borderColor: isSelected ? "rgba(139, 92, 246, 0.3)" : "transparent",
+                      color: isSelected ? "#C084FC" : "#CBD5E1",
+                      fontSize: "13px",
+                      cursor: "pointer",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    <img
+                      src={u.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${u.id}`}
+                      alt=""
+                      style={{ width: "26px", height: "26px", borderRadius: "50%" }}
+                    />
+                    <div style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <span style={{ fontWeight: isSelected ? "700" : "500" }}>{u.name}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* RIGHT AREA: CHAT THREAD */}
+          <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+            {/* CHAT HEADER */}
+            <div
+              style={{
+                padding: "16px 24px",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                background: "rgba(15, 23, 42, 0.5)",
+              }}
+            >
+              <div>
+                <h3 style={{ margin: 0, fontSize: "17px", color: "white", fontWeight: "700" }}>
+                  {activeChannel.name}
+                </h3>
+                <span style={{ fontSize: "12px", color: "#94A3B8" }}>
+                  {activeChannel.description || "Active Firestore Realtime Discussion"}
+                </span>
+              </div>
+
+              {/* Start Video Meeting for this conversation */}
+              <Link
+                to={`/meeting/${activeChannel.id}`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "8px 14px",
+                  borderRadius: "10px",
+                  background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+                  color: "white",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  textDecoration: "none",
+                  boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)",
+                }}
+              >
+                <Video size={14} />
+                <span>Launch Video Call</span>
+              </Link>
+            </div>
+
+            {/* MESSAGES CONTAINER */}
             <div
               style={{
                 flex: 1,
-
-                overflowY:
-                  "auto",
+                overflowY: "auto",
+                padding: "20px 24px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "14px",
               }}
             >
-              {collaborators.map(
-                (user) => {
-                  const online =
-                    onlineUsers.includes(
-                      user?._id
-                    );
+              {loading ? (
+                <Loader />
+              ) : messages.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "60px 20px", color: "#64748B" }}>
+                  <MessageSquare size={36} style={{ opacity: 0.5, marginBottom: "10px" }} />
+                  <p style={{ margin: 0, fontSize: "14px" }}>
+                    Start the discussion in {activeChannel.name}!
+                  </p>
+                </div>
+              ) : (
+                messages.map((msg) => {
+                  const isMe = msg.senderId === currentUser?.uid;
 
                   return (
                     <div
-                      key={
-                        user?._id
-                      }
-                      onClick={() =>
-                        selectUser(
-                          user
-                        )
-                      }
+                      key={msg.id}
                       style={{
-                        padding:
-                          "20px",
-
-                        cursor:
-                          "pointer",
-
-                        borderBottom:
-                          "1px solid rgba(255,255,255,0.05)",
-
-                        background:
-                          selectedUser?._id ===
-                          user?._id
-                            ? "rgba(124,58,237,0.25)"
-                            : "transparent",
-
-                        transition:
-                          "0.3s",
+                        display: "flex",
+                        gap: "10px",
+                        alignSelf: isMe ? "flex-end" : "flex-start",
+                        maxWidth: "70%",
                       }}
                     >
-                      <div
-                        style={{
-                          display:
-                            "flex",
+                      {!isMe && (
+                        <img
+                          src={msg.senderAvatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${msg.senderId}`}
+                          alt=""
+                          style={{ width: "32px", height: "32px", borderRadius: "50%", marginTop: "4px" }}
+                        />
+                      )}
 
-                          alignItems:
-                            "center",
+                      <div>
+                        {!isMe && (
+                          <span style={{ fontSize: "11px", fontWeight: "600", color: "#94A3B8", display: "block", marginBottom: "3px" }}>
+                            {msg.senderName}
+                          </span>
+                        )}
 
-                          gap: "16px",
-                        }}
-                      >
-                        {/* AVATAR */}
                         <div
                           style={{
-                            width:
-                              "56px",
-
-                            height:
-                              "56px",
-
-                            borderRadius:
-                              "50%",
-
-                            background:
-                              "linear-gradient(135deg, #8B5CF6, #EC4899)",
-
-                            display:
-                              "flex",
-
-                            alignItems:
-                              "center",
-
-                            justifyContent:
-                              "center",
-
-                            fontWeight:
-                              "bold",
-
-                            fontSize:
-                              "22px",
+                            padding: "10px 16px",
+                            borderRadius: isMe ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                            background: isMe
+                              ? "linear-gradient(135deg, #2563EB 0%, #4F46E5 100%)"
+                              : "rgba(255, 255, 255, 0.06)",
+                            border: "1px solid",
+                            borderColor: isMe ? "transparent" : "rgba(255, 255, 255, 0.08)",
+                            color: "white",
+                            fontSize: "13px",
+                            lineHeight: "1.5",
                           }}
                         >
-                          {user?.name
-                            ?.charAt(
-                              0
-                            )
-                            ?.toUpperCase()}
-                        </div>
+                          {msg.text}
 
-                        {/* INFO */}
-                        <div>
-                          <h3
-                            style={{
-                              marginBottom:
-                                "6px",
-                            }}
-                          >
-                            {
-                              user?.name
-                            }
-                          </h3>
-
-                          <p
-                            style={{
-                              color:
-                                online
-                                  ? "#10B981"
-                                  : "#94A3B8",
-
-                              fontSize:
-                                "13px",
-                            }}
-                          >
-                            {online
-                              ? "Online"
-                              : "Offline"}
-                          </p>
+                          {msg.fileAttachment && (
+                            <div style={{ marginTop: "8px" }}>
+                              <img
+                                src={msg.fileAttachment.url}
+                                alt="Attachment"
+                                style={{ maxWidth: "220px", borderRadius: "8px", display: "block" }}
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
                   );
-                }
+                })
               )}
+              <div ref={messagesEndRef} />
             </div>
-          </div>
 
-          {/* CHAT PANEL */}
-          <div
-            style={{
-              flex: 1,
-
-              borderRadius:
-                "28px",
-
-              background:
-                "rgba(255,255,255,0.05)",
-
-              border:
-                "1px solid rgba(255,255,255,0.08)",
-
-              backdropFilter:
-                "blur(18px)",
-
-              display: "flex",
-
-              flexDirection:
-                "column",
-
-              overflow: "hidden",
-            }}
-          >
-            {/* EMPTY */}
-            {!selectedUser ? (
+            {/* ATTACHMENT PREVIEW */}
+            {attachmentPreview && (
               <div
                 style={{
-                  flex: 1,
-
-                  display:
-                    "flex",
-
-                  alignItems:
-                    "center",
-
-                  justifyContent:
-                    "center",
-
-                  flexDirection:
-                    "column",
+                  padding: "8px 24px",
+                  background: "rgba(0,0,0,0.4)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
                 }}
               >
-                <h1
-                  style={{
-                    fontSize:
-                      "48px",
-
-                    marginBottom:
-                      "16px",
-                  }}
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#38BDF8" }}>
+                  <Image size={14} />
+                  <span>{attachmentPreview.name}</span>
+                </div>
+                <button
+                  onClick={() => setAttachmentPreview(null)}
+                  style={{ background: "transparent", border: "none", color: "#EF4444", cursor: "pointer", fontSize: "13px" }}
                 >
-                  BuildX Chat 🚀
-                </h1>
-
-                <p
-                  style={{
-                    color:
-                      "#CBD5E1",
-                  }}
-                >
-                  Select a user
-                  to start
-                  chatting.
-                </p>
+                  Remove
+                </button>
               </div>
-            ) : (
-              <>
-                {/* HEADER */}
-                <div
-                  style={{
-                    padding:
-                      "24px",
-
-                    borderBottom:
-                      "1px solid rgba(255,255,255,0.08)",
-
-                    display:
-                      "flex",
-
-                    alignItems:
-                      "center",
-
-                    gap: "16px",
-                  }}
-                >
-                  <div
-                    style={{
-                      width:
-                        "58px",
-
-                      height:
-                        "58px",
-
-                      borderRadius:
-                        "50%",
-
-                      background:
-                        "linear-gradient(135deg, #8B5CF6, #EC4899)",
-
-                      display:
-                        "flex",
-
-                      alignItems:
-                        "center",
-
-                      justifyContent:
-                        "center",
-
-                      fontWeight:
-                        "bold",
-
-                      fontSize:
-                        "24px",
-                    }}
-                  >
-                    {selectedUser?.name
-                      ?.charAt(0)
-                      ?.toUpperCase()}
-                  </div>
-
-                  <div>
-                    <h2>
-                      {
-                        selectedUser?.name
-                      }
-                    </h2>
-
-                    <p
-                      style={{
-                        color:
-                          onlineUsers.includes(
-                            selectedUser?._id
-                          )
-                            ? "#10B981"
-                            : "#94A3B8",
-
-                        fontSize:
-                          "13px",
-                      }}
-                    >
-                      {onlineUsers.includes(
-                        selectedUser?._id
-                      )
-                        ? "Online"
-                        : "Offline"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* MESSAGES */}
-                <div
-                  style={{
-                    flex: 1,
-
-                    padding:
-                      "28px",
-
-                    overflowY:
-                      "auto",
-
-                    display:
-                      "flex",
-
-                    flexDirection:
-                      "column",
-
-                    gap: "18px",
-                  }}
-                >
-                  {messages.map(
-                    (
-                      message,
-                      index
-                    ) => {
-                      const mine =
-                        message?.sender ===
-                          currentUserId ||
-                        message
-                          ?.sender
-                          ?._id ===
-                          currentUserId;
-
-                      return (
-                        <div
-                          key={
-                            index
-                          }
-                          style={{
-                            display:
-                              "flex",
-
-                            justifyContent:
-                              mine
-                                ? "flex-end"
-                                : "flex-start",
-                          }}
-                        >
-                          <div
-                            style={{
-                              maxWidth:
-                                "70%",
-
-                              padding:
-                                "16px 20px",
-
-                              borderRadius:
-                                mine
-                                  ? "22px 22px 0 22px"
-                                  : "22px 22px 22px 0",
-
-                              background:
-                                mine
-                                  ? "linear-gradient(135deg, #8B5CF6, #EC4899)"
-                                  : "rgba(255,255,255,0.08)",
-
-                              color:
-                                "white",
-                            }}
-                          >
-                            <p
-                              style={{
-                                lineHeight:
-                                  "1.7",
-                              }}
-                            >
-                              {message?.text}
-                            </p>
-
-                            <div
-                              style={{
-                                marginTop:
-                                  "10px",
-
-                                fontSize:
-                                  "11px",
-
-                                opacity:
-                                  0.7,
-                              }}
-                            >
-                              {message?.createdAt
-                                ? new Date(
-                                    message.createdAt
-                                  ).toLocaleTimeString()
-                                : ""}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }
-                  )}
-
-                  {/* TYPING */}
-                  {typing && (
-                    <p
-                      style={{
-                        color:
-                          "#CBD5E1",
-                      }}
-                    >
-                      Typing...
-                    </p>
-                  )}
-
-                  <div
-                    ref={
-                      messagesEndRef
-                    }
-                  />
-                </div>
-
-                {/* INPUT */}
-                <div
-                  style={{
-                    padding:
-                      "24px",
-
-                    borderTop:
-                      "1px solid rgba(255,255,255,0.08)",
-
-                    display:
-                      "flex",
-
-                    gap: "16px",
-                  }}
-                >
-                  <input
-                    type="text"
-                    value={input}
-                    onChange={(e) =>
-                      setInput(
-                        e.target
-                          .value
-                      )
-                    }
-                    onKeyDown={
-                      handleKeyDown
-                    }
-                    placeholder="Type your message..."
-                    style={{
-                      flex: 1,
-
-                      padding:
-                        "18px 22px",
-
-                      borderRadius:
-                        "18px",
-
-                      border:
-                        "1px solid rgba(255,255,255,0.08)",
-
-                      background:
-                        "rgba(255,255,255,0.05)",
-
-                      color:
-                        "white",
-
-                      outline:
-                        "none",
-
-                      fontSize:
-                        "15px",
-                    }}
-                  />
-
-                  <button
-                    onClick={
-                      sendMessage
-                    }
-                    style={{
-                      padding:
-                        "18px 28px",
-
-                      borderRadius:
-                        "18px",
-
-                      border:
-                        "none",
-
-                      cursor:
-                        "pointer",
-
-                      fontWeight:
-                        "700",
-
-                      background:
-                        "linear-gradient(135deg, #8B5CF6, #EC4899)",
-
-                      color:
-                        "white",
-                    }}
-                  >
-                    Send 🚀
-                  </button>
-                </div>
-              </>
             )}
+
+            {/* INPUT FORM */}
+            <form
+              onSubmit={handleSend}
+              style={{
+                padding: "14px 24px",
+                borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                display: "flex",
+                gap: "10px",
+                alignItems: "center",
+                background: "rgba(15, 23, 42, 0.6)",
+              }}
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                style={{ display: "none" }}
+              />
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                title="Attach image"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#94A3B8",
+                  cursor: "pointer",
+                  padding: "6px",
+                }}
+              >
+                <Paperclip size={18} />
+              </button>
+
+              <input
+                type="text"
+                placeholder={`Message #${activeChannel.name}...`}
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                disabled={sending}
+                style={{
+                  flex: 1,
+                  padding: "10px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  color: "white",
+                  fontSize: "13px",
+                  outline: "none",
+                }}
+              />
+
+              <button
+                type="submit"
+                disabled={(!inputText.trim() && !attachmentPreview) || sending}
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "10px",
+                  background:
+                    inputText.trim() || attachmentPreview
+                      ? "linear-gradient(135deg, #3B82F6, #8B5CF6)"
+                      : "rgba(255,255,255,0.05)",
+                  border: "none",
+                  color: inputText.trim() || attachmentPreview ? "white" : "#64748B",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: inputText.trim() || attachmentPreview ? "pointer" : "default",
+                }}
+              >
+                <Send size={16} />
+              </button>
+            </form>
           </div>
         </div>
-      </div>
+      </main>
+
+      <style>{`
+        @media (max-width: 820px) {
+          .chat-layout { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }

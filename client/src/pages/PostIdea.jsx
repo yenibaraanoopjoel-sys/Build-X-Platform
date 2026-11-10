@@ -1,553 +1,373 @@
-import { useState } from "react";
-
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-import axios from "axios";
-
 import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
+import { useAuth } from "../context/AuthContext";
+import { createIdea } from "../services/firestoreService";
+import { askJarvisAI } from "../services/aiService";
+import {
+  Lightbulb,
+  Sparkles,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 
-import API from "../services/api";
-import { API_BASE_URL } from "../config";
+const CATEGORIES = [
+  "Technology",
+  "Artificial Intelligence",
+  "Web3 & Blockchain",
+  "EdTech & Learning",
+  "FinTech",
+  "Design & UI/UX",
+  "Health & Wellness",
+  "Open Source",
+  "SaaS & Productivity",
+];
 
 function PostIdea() {
   const navigate = useNavigate();
+  const { currentUser, userProfile } = useAuth();
 
-  const [formData, setFormData] =
-    useState({
-      title: "",
-      description: "",
-      techStack: "",
-    });
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    category: "Technology",
+    requiredSkills: "React, Firebase, UI/UX Design",
+  });
 
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const [aiLoading, setAiLoading] =
-    useState(false);
-
-  const changeHandler = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]:
-        e.target.value,
-    });
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   // AI Idea Enhancer
-  const enhanceIdea =
-    async () => {
-      if (
-        !formData.title ||
-        !formData.description
-      ) {
-        alert(
-          "Please enter title and description first"
-        );
+  const handleEnhanceWithAI = async () => {
+    if (!formData.title && !formData.description) {
+      setError("Please provide a title or draft description before requesting AI enhancement.");
+      return;
+    }
 
-        return;
-      }
+    try {
+      setAiLoading(true);
+      setError("");
 
-      try {
-        setAiLoading(true);
-
-        const response =
-          await axios.post(
-            `${API_BASE_URL.replace(/\/api$/, "")}/api/ai`,
-            {
-              message: `
-Enhance this startup/project idea professionally.
-
-Idea Title:
-${formData.title}
-
-Idea Description:
-${formData.description}
+      const prompt = `You are JARVIS, an expert startup advisor inside BuildX.
+Enhance and structure this project idea:
+Title: "${formData.title}"
+Rough Draft: "${formData.description}"
 
 Provide:
-1. Improved Idea Description
-2. Key Features
-3. Monetization Strategy
-4. Suggested Roadmap
-5. Best Technologies
-`,
-            }
-          );
+1. A refined, compelling 2-sentence value proposition.
+2. 3 essential recommended skills or tech stacks.`;
 
+      const response = await askJarvisAI({ message: prompt });
+      const reply = response.reply;
+
+      if (reply) {
         setFormData((prev) => ({
           ...prev,
-
-          description:
-            response.data.reply,
+          description: prev.description
+            ? `${prev.description}\n\n[JARVIS Insights]:\n${reply}`
+            : reply,
         }));
-      } catch (error) {
-        console.log(error);
-
-        alert(
-          "AI enhancement failed"
-        );
-      } finally {
-        setAiLoading(false);
+        setSuccess("Idea enriched with JARVIS AI insights!");
       }
-    };
+    } catch (err) {
+      console.error("AI enhancement error:", err);
+      setError("AI service unavailable. You can continue publishing manually.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
-  // Submit Idea
-  const submitHandler = async (
-    e
-  ) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    if (!formData.title.trim() || !formData.description.trim()) {
+      setError("Title and description are required.");
+      return;
+    }
 
     try {
       setLoading(true);
+      const user = userProfile || {
+        uid: currentUser.uid,
+        name: currentUser.displayName,
+        email: currentUser.email,
+        role: "Creator",
+      };
 
-      const token =
-        localStorage.getItem(
-          "token"
-        );
-
-      await API.post(
-        "/ideas",
-        {
-          title:
-            formData.title,
-
-          description:
-            formData.description,
-
-          techStack:
-            formData.techStack.split(
-              ","
-            ),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      alert(
-        "Idea Posted Successfully 🚀"
-      );
-
-      navigate("/ideas");
-    } catch (error) {
-      alert(
-        error.response?.data
-          ?.message ||
-          "Failed to post idea"
-      );
+      await createIdea(formData, user);
+      setSuccess("Idea published successfully! Redirecting to Ideas Hub...");
+      setTimeout(() => {
+        navigate("/ideas");
+      }, 1000);
+    } catch (err) {
+      console.error("Error creating idea:", err);
+      setError(err.message || "Failed to publish idea.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-
-        background:
-          "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
-
-        color: "white",
-
-        overflow: "hidden",
-
-        position: "relative",
-      }}
-    >
-      {/* Glow Effects */}
-      <div
-        style={{
-          position: "absolute",
-
-          width: "500px",
-
-          height: "500px",
-
-          background:
-            "rgba(59,130,246,0.10)",
-
-          borderRadius: "50%",
-
-          filter: "blur(140px)",
-
-          top: "-180px",
-
-          left: "-120px",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-
-          width: "450px",
-
-          height: "450px",
-
-          background:
-            "rgba(124,58,237,0.12)",
-
-          borderRadius: "50%",
-
-          filter: "blur(130px)",
-
-          bottom: "-150px",
-
-          right: "-100px",
-        }}
-      />
-
-      {/* Navbar */}
+    <div style={{ minHeight: "100vh", background: "#050816", color: "#F8FAFC" }}>
       <Navbar />
 
-      <div
-        style={{
-          display: "flex",
-
-          position: "relative",
-
-          zIndex: 2,
-        }}
-      >
-        {/* Sidebar */}
-        <Sidebar />
-
-        {/* MAIN */}
-        <div
+      <main style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 24px" }}>
+        {/* BACK LINK */}
+        <button
+          onClick={() => navigate("/ideas")}
           style={{
-            flex: 1,
-
-            padding: "42px",
-
-            display: "flex",
-
-            justifyContent:
-              "center",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            background: "transparent",
+            border: "none",
+            color: "#94A3B8",
+            cursor: "pointer",
+            fontSize: "14px",
+            marginBottom: "24px",
+            padding: 0,
           }}
         >
-          <div
-            className="glass-card"
-            style={{
-              width: "100%",
+          <ArrowLeft size={16} />
+          <span>Back to Ideas Hub</span>
+        </button>
 
-              maxWidth: "850px",
-
-              padding: "48px",
-
-              position: "relative",
-
-              overflow: "hidden",
-            }}
-          >
-            {/* Glow */}
-            <div
-              style={{
-                position: "absolute",
-
-                width: "260px",
-
-                height: "260px",
-
-                background:
-                  "rgba(91,95,255,0.10)",
-
-                borderRadius: "50%",
-
-                filter: "blur(90px)",
-
-                top: "-70px",
-
-                right: "-40px",
-              }}
-            />
-
-            {/* HEADER */}
-            <div
-              style={{
-                marginBottom: "36px",
-
-                position: "relative",
-
-                zIndex: 2,
-              }}
-            >
-              <h1
-                className="welcome-title"
-                style={{
-                  fontSize: "48px",
-
-                  marginBottom:
-                    "18px",
-
-                  lineHeight:
-                    "1.3",
-                }}
-              >
-                AI STARTUP BUILDER
+        <div
+          style={{
+            background: "rgba(15, 23, 42, 0.8)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            borderRadius: "28px",
+            padding: "40px",
+            boxShadow: "0 25px 60px rgba(0, 0, 0, 0.6)",
+          }}
+        >
+          {/* HEADER */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px" }}>
+            <div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: "#F59E0B", fontSize: "12px", fontWeight: "700", marginBottom: "6px" }}>
+                <Lightbulb size={16} />
+                <span>STARTUP & PROJECT CREATOR</span>
+              </div>
+              <h1 style={{ margin: 0, fontSize: "28px", fontWeight: "800", color: "#FFFFFF" }}>
+                Publish an Idea
               </h1>
-
-              <p
-                style={{
-                  color: "#CBD5E1",
-
-                  fontSize: "17px",
-
-                  lineHeight:
-                    "2",
-
-                  maxWidth:
-                    "760px",
-                }}
-              >
-                Create, enhance,
-                optimize, and share
-                futuristic startup
-                ideas using BuildX
-                AI-powered innovation
-                systems.
+              <p style={{ margin: "4px 0 0", color: "#94A3B8", fontSize: "14px" }}>
+                Share your vision with developers, designers, and collaborators worldwide.
               </p>
             </div>
 
-            {/* FORM */}
-            <form
-              onSubmit={
-                submitHandler
-              }
+            <button
+              type="button"
+              onClick={handleEnhanceWithAI}
+              disabled={aiLoading}
               style={{
-                position: "relative",
-
-                zIndex: 2,
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "10px 16px",
+                borderRadius: "12px",
+                background: "linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2))",
+                border: "1px solid rgba(99, 102, 241, 0.4)",
+                color: "#A5B4FC",
+                fontSize: "13px",
+                fontWeight: "600",
+                cursor: aiLoading ? "default" : "pointer",
+                transition: "all 0.2s",
               }}
             >
-              {/* TITLE */}
-              <div
-                style={{
-                  marginBottom: "26px",
-                }}
-              >
-                <label
-                  style={{
-                    color:
-                      "#E2E8F0",
-
-                    fontSize: "15px",
-
-                    fontWeight:
-                      "600",
-                  }}
-                >
-                  Idea Title
-                </label>
-
-                <input
-                  type="text"
-                  name="title"
-                  placeholder="Enter startup idea title"
-                  value={
-                    formData.title
-                  }
-                  onChange={
-                    changeHandler
-                  }
-                  required
-                  style={{
-                    width: "100%",
-
-                    marginTop: "10px",
-
-                    padding: "16px",
-
-                    borderRadius:
-                      "16px",
-
-                    fontSize:
-                      "15px",
-                  }}
-                />
-              </div>
-
-              {/* DESCRIPTION */}
-              <div
-                style={{
-                  marginBottom: "26px",
-                }}
-              >
-                <label
-                  style={{
-                    color:
-                      "#E2E8F0",
-
-                    fontSize: "15px",
-
-                    fontWeight:
-                      "600",
-                  }}
-                >
-                  Description
-                </label>
-
-                <textarea
-                  name="description"
-                  placeholder="Describe your startup or project idea..."
-                  value={
-                    formData.description
-                  }
-                  onChange={
-                    changeHandler
-                  }
-                  required
-                  rows="10"
-                  style={{
-                    width: "100%",
-
-                    marginTop: "10px",
-
-                    padding: "18px",
-
-                    borderRadius:
-                      "16px",
-
-                    resize:
-                      "none",
-
-                    lineHeight:
-                      "1.9",
-
-                    fontSize:
-                      "15px",
-                  }}
-                />
-              </div>
-
-              {/* AI BUTTON */}
-              <button
-                type="button"
-                onClick={
-                  enhanceIdea
-                }
-                disabled={
-                  aiLoading
-                }
-                style={{
-                  width: "100%",
-
-                  padding: "16px",
-
-                  borderRadius:
-                    "18px",
-
-                  marginBottom:
-                    "26px",
-
-                  background:
-                    "linear-gradient(135deg, #2563EB, #7C3AED)",
-
-                  color:
-                    "white",
-
-                  fontSize:
-                    "15px",
-
-                  fontWeight:
-                    "600",
-
-                  boxShadow:
-                    "0 0 24px rgba(124,58,237,0.24)",
-                }}
-              >
-                {aiLoading
-                  ? "Enhancing Idea..."
-                  : "Enhance with AI"}
-              </button>
-
-              {/* TECH STACK */}
-              <div
-                style={{
-                  marginBottom: "32px",
-                }}
-              >
-                <label
-                  style={{
-                    color:
-                      "#E2E8F0",
-
-                    fontSize: "15px",
-
-                    fontWeight:
-                      "600",
-                  }}
-                >
-                  Tech Stack
-                </label>
-
-                <input
-                  type="text"
-                  name="techStack"
-                  placeholder="React, Node.js, MongoDB..."
-                  value={
-                    formData.techStack
-                  }
-                  onChange={
-                    changeHandler
-                  }
-                  required
-                  style={{
-                    width: "100%",
-
-                    marginTop: "10px",
-
-                    padding: "16px",
-
-                    borderRadius:
-                      "16px",
-
-                    fontSize:
-                      "15px",
-                  }}
-                />
-              </div>
-
-              {/* SUBMIT */}
-              <button
-                type="submit"
-                disabled={
-                  loading
-                }
-                style={{
-                  width: "100%",
-
-                  padding: "16px",
-
-                  borderRadius:
-                    "18px",
-
-                  background:
-                    "linear-gradient(135deg, #2563EB, #7C3AED)",
-
-                  color:
-                    "white",
-
-                  fontSize:
-                    "15px",
-
-                  fontWeight:
-                    "600",
-
-                  boxShadow:
-                    "0 0 24px rgba(124,58,237,0.24)",
-                }}
-              >
-                {loading
-                  ? "Posting Idea..."
-                  : "Post Idea"}
-              </button>
-            </form>
+              <Sparkles size={15} color="#818CF8" />
+              <span>{aiLoading ? "Consulting JARVIS..." : "AI Enhance"}</span>
+            </button>
           </div>
+
+          {/* ALERTS */}
+          {error && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                background: "rgba(239, 68, 68, 0.12)",
+                border: "1px solid rgba(239, 68, 68, 0.3)",
+                borderRadius: "12px",
+                padding: "12px 14px",
+                color: "#FCA5A5",
+                fontSize: "13px",
+                marginBottom: "20px",
+              }}
+            >
+              <AlertCircle size={18} />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {success && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                background: "rgba(16, 185, 129, 0.12)",
+                border: "1px solid rgba(16, 185, 129, 0.3)",
+                borderRadius: "12px",
+                padding: "12px 14px",
+                color: "#6EE7B7",
+                fontSize: "13px",
+                marginBottom: "20px",
+              }}
+            >
+              <CheckCircle size={18} />
+              <span>{success}</span>
+            </div>
+          )}
+
+          {/* FORM */}
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
+            {/* Title */}
+            <div>
+              <label style={{ display: "block", color: "#CBD5E1", fontSize: "13px", fontWeight: "600", marginBottom: "8px" }}>
+                Idea Title *
+              </label>
+              <input
+                type="text"
+                required
+                name="title"
+                placeholder="e.g. AI-Powered Medical Diagnostic Assistant"
+                value={formData.title}
+                onChange={handleChange}
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                  color: "#FFFFFF",
+                  fontSize: "14px",
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            {/* Category */}
+            <div>
+              <label style={{ display: "block", color: "#CBD5E1", fontSize: "13px", fontWeight: "600", marginBottom: "8px" }}>
+                Category *
+              </label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: "#0F172A",
+                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                  color: "#FFFFFF",
+                  fontSize: "14px",
+                  outline: "none",
+                  cursor: "pointer",
+                  boxSizing: "border-box",
+                }}
+              >
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label style={{ display: "block", color: "#CBD5E1", fontSize: "13px", fontWeight: "600", marginBottom: "8px" }}>
+                Description & Vision *
+              </label>
+              <textarea
+                required
+                name="description"
+                rows={6}
+                placeholder="Explain the problem you are solving, target users, and why you are excited to build this..."
+                value={formData.description}
+                onChange={handleChange}
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                  color: "#FFFFFF",
+                  fontSize: "14px",
+                  lineHeight: "1.6",
+                  outline: "none",
+                  boxSizing: "border-box",
+                  resize: "vertical",
+                }}
+              />
+            </div>
+
+            {/* Required Skills */}
+            <div>
+              <label style={{ display: "block", color: "#CBD5E1", fontSize: "13px", fontWeight: "600", marginBottom: "8px" }}>
+                Skills Needed from Collaborators (Comma separated)
+              </label>
+              <input
+                type="text"
+                name="requiredSkills"
+                placeholder="React, PyTorch, UX Research, Mobile"
+                value={formData.requiredSkills}
+                onChange={handleChange}
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                  color: "#FFFFFF",
+                  fontSize: "14px",
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "10px",
+                padding: "14px",
+                borderRadius: "14px",
+                background: "linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)",
+                border: "none",
+                color: "#FFFFFF",
+                fontSize: "15px",
+                fontWeight: "700",
+                cursor: loading ? "default" : "pointer",
+                boxShadow: "0 10px 25px rgba(59, 130, 246, 0.4)",
+                marginTop: "10px",
+              }}
+            >
+              <span>{loading ? "Publishing to BuildX..." : "Publish Idea"}</span>
+              <ArrowRight size={16} />
+            </button>
+          </form>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

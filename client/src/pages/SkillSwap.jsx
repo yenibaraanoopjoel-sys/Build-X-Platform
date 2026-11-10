@@ -1,734 +1,615 @@
-import {
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
-
+import React, { useState, useEffect, useCallback } from "react";
 import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
 import Loader from "../components/Loader";
-
+import { useAuth } from "../context/AuthContext";
+import {
+  sendSkillExchangeRequest,
+  respondSkillExchange,
+  getSkillExchanges,
+  getMatchingUsers,
+} from "../services/firestoreService";
 import API from "../services/api";
+import {
+  Repeat,
+  Sparkles,
+  Award,
+  BookOpen,
+} from "lucide-react";
 
 function SkillSwap() {
-  //
-  // TOKEN
-  //
-  const token =
-    localStorage.getItem(
-      "token"
-    );
+  const { currentUser, userProfile } = useAuth();
 
-  //
-  // USER
-  //
-  const storedUser =
-    localStorage.getItem(
-      "user"
-    );
+  const [matchedUsers, setMatchedUsers] = useState([]);
+  const [exchanges, setExchanges] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const parsedUser =
-    storedUser
-      ? JSON.parse(
-          storedUser
-        )
-      : {};
+  // Send request modal state
+  const [selectedUserForSwap, setSelectedUserForSwap] = useState(null);
+  const [offerSkill, setOfferSkill] = useState("");
+  const [wantSkill, setWantSkill] = useState("");
+  const [modalLoading, setModalLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
 
-  //
-  // CURRENT USER IDS
-  //
-  const currentUserId =
-    parsedUser?._id ||
-    parsedUser?.userId ||
-    "";
+  const userSkillsHave = userProfile?.skills || ["React", "JavaScript"];
+  const userSkillsWant = userProfile?.skillsToLearn || ["AI Integration", "Cloud Architecture"];
 
-  //
-  // STATES
-  //
-  const [users, setUsers] =
-    useState([]);
+  const fetchSkillSwapData = useCallback(async () => {
+    try {
+      setLoading(true);
 
-  const [loading, setLoading] =
-    useState(true);
+      const [matchRes, exchangesData] = await Promise.all([
+        API.get("/match/users").catch(() => ({ data: { users: [] } })),
+        currentUser ? getSkillExchanges(currentUser.uid) : Promise.resolve([]),
+      ]);
 
-  const [
-    requestLoading,
-    setRequestLoading,
-  ] = useState("");
-
-  const [
-    sentRequests,
-    setSentRequests,
-  ] = useState([]);
-
-  //
-  // FETCH USERS
-  //
-  const fetchUsers =
-    useCallback(
-      async () => {
-        try {
-          setLoading(true);
-
-          const response =
-            await API.get(
-              "/users/all",
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-
-          if (
-            response?.data
-              ?.success
-          ) {
-            const filteredUsers =
-              Array.isArray(
-                response.data
-                  .users
-              )
-                ? response.data.users.filter(
-                    (
-                      user
-                    ) =>
-                      user?._id !==
-                      currentUserId
-                  )
-                : [];
-
-            setUsers(
-              filteredUsers
-            );
-          } else {
-            setUsers([]);
-          }
-        } catch (error) {
-          console.log(
-            "USER FETCH ERROR:",
-            error
-              ?.response
-              ?.data ||
-              error.message
-          );
-
-          setUsers([]);
-        } finally {
-          setLoading(false);
-        }
-      },
-      [
-        token,
-        currentUserId,
-      ]
-    );
-
-  //
-  // FETCH SENT REQUESTS
-  //
-  const fetchSentRequests =
-    useCallback(
-      async () => {
-        try {
-          const response =
-            await API.get(
-              "/collaborations/sent",
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-
-          if (
-            response?.data
-              ?.success
-          ) {
-            setSentRequests(
-              Array.isArray(
-                response.data
-                  .requests
-              )
-                ? response.data
-                    .requests
-                : []
-            );
-          } else {
-            setSentRequests([]);
-          }
-        } catch (error) {
-          console.log(
-            "REQUEST ERROR:",
-            error
-              ?.response
-              ?.data ||
-              error.message
-          );
-
-          setSentRequests([]);
-        }
-      },
-      [token]
-    );
-
-  //
-  // LOAD
-  //
-  useEffect(() => {
-    fetchUsers();
-
-    fetchSentRequests();
-  }, [
-    fetchUsers,
-    fetchSentRequests,
-  ]);
-
-  //
-  // SEND SKILL REQUEST
-  //
-  const sendSkillRequest =
-    async (user) => {
-      try {
-        setRequestLoading(
-          user?._id
-        );
-
-        await API.post(
-          "/collaborations/send",
-          {
-            receiver:
-              user?._id,
-
-            title:
-              "Skill Swap Request",
-
-            requestType:
-              "Skill Swap",
-
-            message:
-              "I'd like to collaborate through a futuristic skill swap partnership inside BuildX.",
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        fetchSentRequests();
-
-        alert(
-          "Skill Swap Request Sent 🚀"
-        );
-      } catch (error) {
-        console.log(
-          error
-        );
-
-        alert(
-          error?.response
-            ?.data
-            ?.message ||
-            "Failed to send request"
-        );
-      } finally {
-        setRequestLoading(
-          ""
-        );
+      let users = matchRes.data?.users;
+      if (!users || users.length === 0) {
+        users = await getMatchingUsers(currentUser);
       }
-    };
 
-  //
-  // GET REQUEST STATUS
-  //
-  const getRequestStatus =
-    (receiverId) => {
-      return sentRequests.find(
-        (request) =>
-          request?.receiver
-            ?._id ===
-            receiverId &&
-          request?.requestType ===
-            "Skill Swap"
+      setMatchedUsers(users || []);
+      setExchanges(exchangesData);
+    } catch (err) {
+      console.error("Error loading skill swap data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    fetchSkillSwapData();
+  }, [fetchSkillSwapData]);
+
+  // Open Swap Modal
+  const openSwapModal = (targetUser) => {
+    setSelectedUserForSwap(targetUser);
+    setOfferSkill(userSkillsHave[0] || "");
+    setWantSkill(targetUser.skills?.[0] || "");
+    setSuccessMsg("");
+  };
+
+  // Submit Swap Request
+  const handleSendSwap = async (e) => {
+    e.preventDefault();
+    if (!offerSkill.trim() || !wantSkill.trim() || !selectedUserForSwap || !currentUser) return;
+
+    try {
+      setModalLoading(true);
+      const user = userProfile || {
+        uid: currentUser.uid,
+        name: currentUser.displayName,
+        role: "Developer",
+      };
+
+      await sendSkillExchangeRequest(selectedUserForSwap, offerSkill, wantSkill, user);
+      setSuccessMsg(`Skill swap request sent to ${selectedUserForSwap.name}!`);
+
+      setTimeout(() => {
+        setSelectedUserForSwap(null);
+        fetchSkillSwapData();
+      }, 1200);
+    } catch (err) {
+      console.error("Failed to send skill swap request:", err);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  // Accept or Reject Request
+  const handleResponse = async (exchangeId, status, requesterId, requesterName) => {
+    try {
+      const user = userProfile || { uid: currentUser.uid, name: currentUser.displayName };
+      await respondSkillExchange(exchangeId, status, requesterId, requesterName, user);
+      setExchanges((prev) =>
+        prev.map((ex) => (ex.id === exchangeId ? { ...ex, status } : ex))
       );
-    };
-
-  //
-  // LOADING
-  //
-  if (loading) {
-    return <Loader />;
-  }
+    } catch (err) {
+      console.error("Failed to update exchange status:", err);
+    }
+  };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-
-        background:
-          "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
-
-        color: "white",
-
-        overflow: "hidden",
-      }}
-    >
-      {/* NAVBAR */}
+    <div style={{ minHeight: "100vh", background: "#050816", color: "#F8FAFC" }}>
       <Navbar />
 
-      <div
-        style={{
-          display: "flex",
-        }}
-      >
-        {/* SIDEBAR */}
-        <Sidebar />
+      <main style={{ maxWidth: "1320px", margin: "0 auto", padding: "36px 24px" }}>
+        {/* HEADER */}
+        <div style={{ marginBottom: "32px" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: "#A855F7", fontSize: "13px", fontWeight: "600", marginBottom: "6px" }}>
+            <Repeat size={16} />
+            <span>PEER-TO-PEER KNOWLEDGE EXCHANGE</span>
+          </div>
+          <h1 style={{ margin: 0, fontSize: "32px", fontWeight: "800", color: "#FFFFFF" }}>
+            Skill Swap
+          </h1>
+          <p style={{ margin: "4px 0 0", color: "#94A3B8", fontSize: "14px" }}>
+            Teach what you master, learn what you desire. Connect with engineers for 1-on-1 skill exchanges.
+          </p>
+        </div>
 
-        {/* MAIN */}
+        {/* MY SKILL OVERVIEW BAR */}
         <div
           style={{
-            flex: 1,
-
-            padding: "40px",
+            background: "linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            borderRadius: "22px",
+            padding: "26px",
+            marginBottom: "36px",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "24px",
           }}
+          className="skills-grid"
         >
-          {/* HEADER */}
-          <div
-            style={{
-              marginBottom:
-                "40px",
-            }}
-          >
-            <h1
-              style={{
-                fontSize: "52px",
-
-                marginBottom:
-                  "16px",
-              }}
-            >
-              Skill Swap Hub 🚀
-            </h1>
-
-            <p
-              style={{
-                color: "#CBD5E1",
-
-                lineHeight:
-                  "1.9",
-
-                fontSize: "17px",
-
-                maxWidth:
-                  "820px",
-              }}
-            >
-              Connect with
-              developers,
-              designers,
-              creators, and
-              innovators to
-              exchange skills
-              and build amazing
-              futuristic
-              collaborations.
-            </p>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+              <Award size={18} color="#10B981" />
+              <h3 style={{ margin: 0, fontSize: "16px", color: "white" }}>Skills I Can Teach (Skills I Have)</h3>
+            </div>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {userSkillsHave.map((sk, idx) => (
+                <span
+                  key={idx}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: "10px",
+                    background: "rgba(16, 185, 129, 0.15)",
+                    border: "1px solid rgba(16, 185, 129, 0.3)",
+                    color: "#34D399",
+                    fontSize: "13px",
+                    fontWeight: "600",
+                  }}
+                >
+                  {sk}
+                </span>
+              ))}
+            </div>
           </div>
 
-          {/* EMPTY */}
-          {users.length ===
-          0 ? (
-            <div
-              style={{
-                padding: "60px",
-
-                borderRadius:
-                  "24px",
-
-                background:
-                  "rgba(255,255,255,0.05)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                textAlign:
-                  "center",
-              }}
-            >
-              <h2
-                style={{
-                  fontSize:
-                    "38px",
-
-                  marginBottom:
-                    "16px",
-                }}
-              >
-                No Users Found
-              </h2>
-
-              <p
-                style={{
-                  color:
-                    "#CBD5E1",
-                }}
-              >
-                No available
-                users for skill
-                swapping right
-                now.
-              </p>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+              <BookOpen size={18} color="#3B82F6" />
+              <h3 style={{ margin: 0, fontSize: "16px", color: "white" }}>Skills I Want to Learn</h3>
             </div>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {userSkillsWant.map((sk, idx) => (
+                <span
+                  key={idx}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: "10px",
+                    background: "rgba(59, 130, 246, 0.15)",
+                    border: "1px solid rgba(59, 130, 246, 0.3)",
+                    color: "#60A5FA",
+                    fontSize: "13px",
+                    fontWeight: "600",
+                  }}
+                >
+                  {sk}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ACTIVE / PENDING EXCHANGES SECTION */}
+        {exchanges.length > 0 && (
+          <div style={{ marginBottom: "40px" }}>
+            <h2 style={{ fontSize: "20px", fontWeight: "700", color: "#FFFFFF", marginBottom: "16px" }}>
+              My Skill Exchanges ({exchanges.length})
+            </h2>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "16px" }}>
+              {exchanges.map((ex) => {
+                const isIncoming = ex.targetUserId === currentUser?.uid;
+
+                const statusBg =
+                  ex.status === "accepted"
+                    ? "rgba(16, 185, 129, 0.15)"
+                    : ex.status === "rejected"
+                    ? "rgba(239, 68, 68, 0.15)"
+                    : "rgba(245, 158, 11, 0.15)";
+                const statusColor =
+                  ex.status === "accepted" ? "#10B981" : ex.status === "rejected" ? "#EF4444" : "#F59E0B";
+
+                return (
+                  <div
+                    key={ex.id}
+                    style={{
+                      background: "rgba(15, 23, 42, 0.75)",
+                      border: "1px solid rgba(255, 255, 255, 0.08)",
+                      borderRadius: "18px",
+                      padding: "20px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                        <span style={{ fontSize: "12px", color: "#94A3B8" }}>
+                          {isIncoming ? `From ${ex.requesterName}` : `To ${ex.targetUserName}`}
+                        </span>
+                        <span
+                          style={{
+                            padding: "3px 8px",
+                            borderRadius: "6px",
+                            background: statusBg,
+                            color: statusColor,
+                            fontSize: "11px",
+                            fontWeight: "700",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {ex.status}
+                        </span>
+                      </div>
+
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+                        <div style={{ flex: 1, padding: "8px 12px", background: "rgba(16,185,129,0.08)", borderRadius: "10px" }}>
+                          <span style={{ fontSize: "10px", color: "#94A3B8", display: "block" }}>Offered:</span>
+                          <span style={{ color: "#34D399", fontSize: "13px", fontWeight: "600" }}>{ex.offerSkill}</span>
+                        </div>
+                        <Repeat size={16} color="#94A3B8" />
+                        <div style={{ flex: 1, padding: "8px 12px", background: "rgba(59,130,246,0.08)", borderRadius: "10px" }}>
+                          <span style={{ fontSize: "10px", color: "#94A3B8", display: "block" }}>Wanted:</span>
+                          <span style={{ color: "#60A5FA", fontSize: "13px", fontWeight: "600" }}>{ex.wantSkill}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {isIncoming && ex.status === "pending" && (
+                      <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+                        <button
+                          onClick={() => handleResponse(ex.id, "accepted", ex.requesterId, ex.requesterName)}
+                          style={{
+                            flex: 1,
+                            padding: "8px",
+                            borderRadius: "8px",
+                            background: "linear-gradient(135deg, #10B981, #059669)",
+                            border: "none",
+                            color: "white",
+                            fontSize: "12px",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => handleResponse(ex.id, "rejected", ex.requesterId, ex.requesterName)}
+                          style={{
+                            flex: 1,
+                            padding: "8px",
+                            borderRadius: "8px",
+                            background: "rgba(239, 68, 68, 0.15)",
+                            border: "1px solid rgba(239, 68, 68, 0.3)",
+                            color: "#F87171",
+                            fontSize: "12px",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* INTELLIGENT MATCHING USERS GRID */}
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "18px" }}>
+            <Sparkles size={18} color="#38BDF8" />
+            <h2 style={{ fontSize: "20px", fontWeight: "700", color: "#FFFFFF", margin: 0 }}>
+              AI Intelligent Skill Matches ({matchedUsers.length})
+            </h2>
+          </div>
+
+          {loading ? (
+            <Loader />
+          ) : matchedUsers.length === 0 ? (
+            <p style={{ color: "#64748B", textAlign: "center", padding: "60px 0" }}>
+              No other users found for skill matching yet. Invite friends and collaborators to join BuildX!
+            </p>
           ) : (
             <div
               style={{
                 display: "grid",
-
-                gridTemplateColumns:
-                  "repeat(auto-fit, minmax(340px, 1fr))",
-
-                gap: "28px",
+                gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))",
+                gap: "22px",
               }}
             >
-              {users.map(
-                (user) => {
-                  const request =
-                    getRequestStatus(
-                      user?._id
-                    );
+              {matchedUsers.map((targetUser) => (
+                <div
+                  key={targetUser.id}
+                  style={{
+                    background: "rgba(15, 23, 42, 0.75)",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    borderRadius: "20px",
+                    padding: "24px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    {/* USER HEADER */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <img
+                          src={targetUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${targetUser.id}`}
+                          alt=""
+                          style={{ width: "46px", height: "46px", borderRadius: "50%", background: "#1E293B" }}
+                        />
+                        <div>
+                          <h4 style={{ margin: 0, fontSize: "16px", color: "white", fontWeight: "700" }}>
+                            {targetUser.name}
+                          </h4>
+                          <span style={{ fontSize: "12px", color: "#94A3B8" }}>{targetUser.role}</span>
+                        </div>
+                      </div>
 
-                  return (
-                    <div
-                      key={
-                        user?._id
-                      }
-                      style={{
-                        padding:
-                          "34px",
-
-                        borderRadius:
-                          "28px",
-
-                        background:
-                          "rgba(255,255,255,0.05)",
-
-                        border:
-                          "1px solid rgba(255,255,255,0.08)",
-
-                        backdropFilter:
-                          "blur(18px)",
-
-                        boxShadow:
-                          "0 0 30px rgba(124,58,237,0.12)",
-                      }}
-                    >
-                      {/* PROFILE */}
-                      <div
-                        style={{
-                          display:
-                            "flex",
-
-                          flexDirection:
-                            "column",
-
-                          alignItems:
-                            "center",
-
-                          textAlign:
-                            "center",
-                        }}
-                      >
-                        {/* AVATAR */}
+                      {targetUser.matchScore > 0 && (
                         <div
                           style={{
-                            width:
-                              "100px",
-
-                            height:
-                              "100px",
-
-                            borderRadius:
-                              "50%",
-
-                            background:
-                              "linear-gradient(135deg, #8B5CF6, #EC4899)",
-
-                            display:
-                              "flex",
-
-                            alignItems:
-                              "center",
-
-                            justifyContent:
-                              "center",
-
-                            fontSize:
-                              "40px",
-
-                            fontWeight:
-                              "bold",
-
-                            marginBottom:
-                              "22px",
+                            padding: "4px 10px",
+                            borderRadius: "12px",
+                            background: "rgba(56, 189, 248, 0.15)",
+                            border: "1px solid rgba(56, 189, 248, 0.3)",
+                            color: "#38BDF8",
+                            fontSize: "12px",
+                            fontWeight: "700",
                           }}
                         >
-                          {user?.name
-                            ?.charAt(
-                              0
-                            )
-                            ?.toUpperCase() ||
-                            "U"}
+                          {targetUser.matchScore} pts match
                         </div>
+                      )}
+                    </div>
 
-                        {/* NAME */}
-                        <h2
-                          style={{
-                            fontSize:
-                              "30px",
+                    <p style={{ margin: "0 0 16px", color: "#94A3B8", fontSize: "13px", lineHeight: "1.5" }}>
+                      {targetUser.bio || "Active innovator on BuildX."}
+                    </p>
 
-                            marginBottom:
-                              "12px",
-                          }}
-                        >
-                          {user?.name ||
-                            "Unknown User"}
-                        </h2>
+                    {/* MATCHED RATIONALE */}
+                    {targetUser.matchedSkills && targetUser.matchedSkills.length > 0 && (
+                      <div style={{ marginBottom: "14px", padding: "8px 12px", background: "rgba(56, 189, 248, 0.06)", borderRadius: "10px" }}>
+                        {targetUser.matchedSkills.map((m, idx) => (
+                          <div key={idx} style={{ color: "#38BDF8", fontSize: "11px", fontWeight: "600" }}>
+                            ✓ {m}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
-                        {/* EMAIL */}
-                        <p
-                          style={{
-                            color:
-                              "#CBD5E1",
-
-                            marginBottom:
-                              "18px",
-                          }}
-                        >
-                          {user?.email ||
-                            "No Email"}
-                        </p>
-
-                        {/* BIO */}
-                        <p
-                          style={{
-                            color:
-                              "#CBD5E1",
-
-                            lineHeight:
-                              "1.9",
-
-                            marginBottom:
-                              "24px",
-                          }}
-                        >
-                          {user?.bio ||
-                            "Creative innovator building futuristic products inside BuildX."}
-                        </p>
-
-                        {/* SKILLS */}
-                        <div
-                          style={{
-                            display:
-                              "flex",
-
-                            flexWrap:
-                              "wrap",
-
-                            justifyContent:
-                              "center",
-
-                            gap: "12px",
-
-                            marginBottom:
-                              "28px",
-                          }}
-                        >
-                          {Array.isArray(
-                            user?.skills
-                          ) &&
-                          user.skills
-                            .length >
-                            0 ? (
-                            user.skills.map(
-                              (
-                                skill,
-                                index
-                              ) => (
-                                <span
-                                  key={
-                                    index
-                                  }
-                                  style={{
-                                    padding:
-                                      "10px 16px",
-
-                                    borderRadius:
-                                      "18px",
-
-                                    background:
-                                      "rgba(255,255,255,0.06)",
-
-                                    border:
-                                      "1px solid rgba(255,255,255,0.08)",
-
-                                    fontSize:
-                                      "13px",
-                                  }}
-                                >
-                                  {skill}
-                                </span>
-                              )
-                            )
-                          ) : (
-                            <span
-                              style={{
-                                color:
-                                  "#94A3B8",
-                              }}
-                            >
-                              No skills added
-                            </span>
-                          )}
-                        </div>
-
-                        {/* ACTION */}
-                        {request?.status ===
-                        "Accepted" ? (
-                          <button
+                    {/* SKILLS THEY HAVE */}
+                    <div style={{ marginBottom: "12px" }}>
+                      <span style={{ fontSize: "11px", color: "#64748B", fontWeight: "600", textTransform: "uppercase" }}>
+                        Can Teach You:
+                      </span>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "4px" }}>
+                        {(targetUser.skills || []).map((sk, idx) => (
+                          <span
+                            key={idx}
                             style={{
-                              width:
-                                "100%",
-
-                              padding:
-                                "16px",
-
-                              borderRadius:
-                                "18px",
-
-                              border:
-                                "none",
-
-                              background:
-                                "linear-gradient(135deg, #10B981, #059669)",
-
-                              color:
-                                "white",
-
-                              fontWeight:
-                                "700",
+                              padding: "2px 8px",
+                              borderRadius: "6px",
+                              background: "rgba(16, 185, 129, 0.1)",
+                              color: "#34D399",
+                              fontSize: "11px",
                             }}
                           >
-                            Connected ✅
-                          </button>
-                        ) : request?.status ===
-                          "Rejected" ? (
-                          <button
-                            style={{
-                              width:
-                                "100%",
-
-                              padding:
-                                "16px",
-
-                              borderRadius:
-                                "18px",
-
-                              border:
-                                "none",
-
-                              background:
-                                "linear-gradient(135deg, #EF4444, #DC2626)",
-
-                              color:
-                                "white",
-
-                              fontWeight:
-                                "700",
-                            }}
-                          >
-                            Request Rejected
-                          </button>
-                        ) : request?.status ===
-                          "Pending" ? (
-                          <button
-                            style={{
-                              width:
-                                "100%",
-
-                              padding:
-                                "16px",
-
-                              borderRadius:
-                                "18px",
-
-                              border:
-                                "none",
-
-                              background:
-                                "rgba(255,255,255,0.08)",
-
-                              color:
-                                "#CBD5E1",
-
-                              fontWeight:
-                                "700",
-                            }}
-                          >
-                            Request Sent ⏳
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() =>
-                              sendSkillRequest(
-                                user
-                              )
-                            }
-                            disabled={
-                              requestLoading ===
-                              user?._id
-                            }
-                            style={{
-                              width:
-                                "100%",
-
-                              padding:
-                                "16px",
-
-                              borderRadius:
-                                "18px",
-
-                              border:
-                                "none",
-
-                              cursor:
-                                "pointer",
-
-                              fontWeight:
-                                "700",
-
-                              background:
-                                "linear-gradient(135deg, #8B5CF6, #EC4899)",
-
-                              color:
-                                "white",
-                            }}
-                          >
-                            {requestLoading ===
-                            user?._id
-                              ? "Sending..."
-                              : "Start Skill Swap 🚀"}
-                          </button>
-                        )}
+                            {sk}
+                          </span>
+                        ))}
                       </div>
                     </div>
-                  );
-                }
-              )}
+
+                    {/* SKILLS THEY WANT */}
+                    <div style={{ marginBottom: "18px" }}>
+                      <span style={{ fontSize: "11px", color: "#64748B", fontWeight: "600", textTransform: "uppercase" }}>
+                        Wants to Learn:
+                      </span>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "4px" }}>
+                        {(targetUser.skillsToLearn || []).map((sk, idx) => (
+                          <span
+                            key={idx}
+                            style={{
+                              padding: "2px 8px",
+                              borderRadius: "6px",
+                              background: "rgba(59, 130, 246, 0.1)",
+                              color: "#60A5FA",
+                              fontSize: "11px",
+                            }}
+                          >
+                            {sk}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => openSwapModal(targetUser)}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      padding: "10px",
+                      borderRadius: "12px",
+                      background: "linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)",
+                      border: "none",
+                      color: "white",
+                      fontSize: "13px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      boxShadow: "0 6px 16px rgba(59, 130, 246, 0.3)",
+                    }}
+                  >
+                    <Repeat size={14} />
+                    <span>Send Swap Request</span>
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>
-      </div>
+      </main>
+
+      {/* SWAP REQUEST MODAL */}
+      {selectedUserForSwap && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.8)",
+            backdropFilter: "blur(8px)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+          onClick={() => setSelectedUserForSwap(null)}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "480px",
+              background: "#0F172A",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: "24px",
+              padding: "28px",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
+              <h3 style={{ margin: 0, fontSize: "18px", color: "white" }}>
+                Swap Skills with {selectedUserForSwap.name}
+              </h3>
+              <button
+                onClick={() => setSelectedUserForSwap(null)}
+                style={{ background: "transparent", border: "none", color: "#94A3B8", cursor: "pointer", fontSize: "18px" }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {successMsg ? (
+              <div
+                style={{
+                  padding: "16px",
+                  borderRadius: "12px",
+                  background: "rgba(16, 185, 129, 0.15)",
+                  color: "#6EE7B7",
+                  fontSize: "14px",
+                  textAlign: "center",
+                }}
+              >
+                {successMsg}
+              </div>
+            ) : (
+              <form onSubmit={handleSendSwap} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div>
+                  <label style={{ display: "block", color: "#CBD5E1", fontSize: "12px", fontWeight: "600", marginBottom: "6px" }}>
+                    Skill You Will Teach (Offer)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. React Architecture"
+                    value={offerSkill}
+                    onChange={(e) => setOfferSkill(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      borderRadius: "10px",
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "white",
+                      fontSize: "13px",
+                      outline: "none",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", color: "#CBD5E1", fontSize: "12px", fontWeight: "600", marginBottom: "6px" }}>
+                    Skill You Want to Learn (Request from {selectedUserForSwap.name})
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. UI/UX Design System"
+                    value={wantSkill}
+                    onChange={(e) => setWantSkill(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      borderRadius: "10px",
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "white",
+                      fontSize: "13px",
+                      outline: "none",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: "flex", gap: "10px", marginTop: "12px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedUserForSwap(null)}
+                    style={{
+                      flex: 1,
+                      padding: "10px",
+                      borderRadius: "10px",
+                      background: "rgba(255,255,255,0.06)",
+                      border: "none",
+                      color: "#94A3B8",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={modalLoading}
+                    style={{
+                      flex: 1,
+                      padding: "10px",
+                      borderRadius: "10px",
+                      background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+                      border: "none",
+                      color: "white",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                    }}
+                  >
+                    {modalLoading ? "Sending..." : "Submit Exchange"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @media (max-width: 768px) {
+          .skills-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }

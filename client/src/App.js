@@ -1,188 +1,152 @@
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-
-//
-// PAGES
-//
-import Welcome from "./pages/Welcome";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
-import Ideas from "./pages/Ideas";
-import Tasks from "./pages/Tasks";
-import PostIdea from "./pages/PostIdea";
-import ProjectWorkspace from "./pages/ProjectWorkspace";
-import Chat from "./pages/Chat";
-import Profile from "./pages/Profile";
-import Settings from "./pages/Settings";
-import SkillSwap from "./pages/SkillSwap";
-import VideoCall from "./pages/VideoCall";
-import CollaborationRequests from "./pages/CollaborationRequests";
-import NotFound from "./pages/NotFound";
-
-//
-// COMPONENTS
-//
+import React, { lazy, Suspense } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { PrivateRoute, PublicOnlyRoute } from "./routes";
+import Loader from "./components/Loader";
 import Jarvis from "./components/Jarvis";
 
-//
-// PROTECTED ROUTE
-//
-import { PrivateRoute } from "./routes";
+const Welcome = lazy(() => import("./pages/Welcome"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Ideas = lazy(() => import("./pages/Ideas"));
+const PostIdea = lazy(() => import("./pages/PostIdea"));
+const ProjectWorkspace = lazy(() => import("./pages/ProjectWorkspace"));
+const Tasks = lazy(() => import("./pages/Tasks"));
+const SkillSwap = lazy(() => import("./pages/SkillSwap"));
+const CollaborationRequests = lazy(() => import("./pages/CollaborationRequests"));
+const Chat = lazy(() => import("./pages/Chat"));
+const VideoCall = lazy(() => import("./pages/VideoCall"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Settings = lazy(() => import("./pages/Settings"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* WELCOME */}
-        <Route
-          path="/"
-          element={<Welcome />}
-        />
+    <AuthProvider>
+      <BrowserRouter>
+        <Suspense fallback={<Loader />}>
+          <Routes>
+            {/* Public Landing */}
+            <Route path="/" element={<Welcome />} />
 
-        {/* PUBLIC ROUTES */}
-        <Route
-          path="/login"
-          element={<Login />}
-        />
+            {/* Public Auth */}
+            <Route
+              path="/login"
+              element={
+                <PublicOnlyRoute>
+                  <Login />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <PublicOnlyRoute>
+                  <Register />
+                </PublicOnlyRoute>
+              }
+            />
 
-        <Route
-          path="/register"
-          element={<Register />}
-        />
+            {/* Authenticated Application Modules */}
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/ideas"
+              element={
+                <PrivateRoute>
+                  <Ideas />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/post-idea"
+              element={
+                <PrivateRoute>
+                  <PostIdea />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/projects"
+              element={
+                <PrivateRoute>
+                  <ProjectWorkspace />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/tasks"
+              element={
+                <PrivateRoute>
+                  <Tasks />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/skill-swap"
+              element={
+                <PrivateRoute>
+                  <SkillSwap />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/collaboration-requests"
+              element={
+                <PrivateRoute>
+                  <CollaborationRequests />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/chat"
+              element={
+                <PrivateRoute>
+                  <Chat />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/meeting/:roomId"
+              element={
+                <PrivateRoute>
+                  <VideoCall />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <Profile />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <PrivateRoute>
+                  <Settings />
+                </PrivateRoute>
+              }
+            />
 
-        {/* DASHBOARD */}
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          }
-        />
+            <Route path="/home" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
 
-        {/* IDEAS */}
-        <Route
-          path="/ideas"
-          element={
-            <PrivateRoute>
-              <Ideas />
-            </PrivateRoute>
-          }
-        />
-
-        {/* POST IDEA */}
-        <Route
-          path="/post-idea"
-          element={
-            <PrivateRoute>
-              <PostIdea />
-            </PrivateRoute>
-          }
-        />
-
-        {/* PROJECTS */}
-        <Route
-          path="/projects"
-          element={
-            <PrivateRoute>
-              <ProjectWorkspace />
-            </PrivateRoute>
-          }
-        />
-
-        {/* TASKS */}
-        <Route
-          path="/tasks"
-          element={
-            <PrivateRoute>
-              <Tasks />
-            </PrivateRoute>
-          }
-        />
-
-        {/* CHAT */}
-        <Route
-          path="/chat"
-          element={
-            <PrivateRoute>
-              <Chat />
-            </PrivateRoute>
-          }
-        />
-
-        {/* SKILL SWAP */}
-        <Route
-          path="/skill-swap"
-          element={
-            <PrivateRoute>
-              <SkillSwap />
-            </PrivateRoute>
-          }
-        />
-
-        {/* VIDEO CALL */}
-        <Route
-          path="/meeting/:roomId"
-          element={
-            <PrivateRoute>
-              <VideoCall />
-            </PrivateRoute>
-          }
-        />
-
-        {/* REQUESTS */}
-        <Route
-          path="/collaboration-requests"
-          element={
-            <PrivateRoute>
-              <CollaborationRequests />
-            </PrivateRoute>
-          }
-        />
-
-        {/* PROFILE */}
-        <Route
-          path="/profile"
-          element={
-            <PrivateRoute>
-              <Profile />
-            </PrivateRoute>
-          }
-        />
-
-        {/* SETTINGS */}
-        <Route
-          path="/settings"
-          element={
-            <PrivateRoute>
-              <Settings />
-            </PrivateRoute>
-          }
-        />
-
-        {/* REDIRECT */}
-        <Route
-          path="/home"
-          element={
-            <Navigate to="/" />
-          }
-        />
-
-        {/* 404 */}
-        <Route
-          path="*"
-          element={<NotFound />}
-        />
-      </Routes>
-
-      {/* GLOBAL AI */}
-      <Jarvis />
-    </BrowserRouter>
+        {/* Global Floating AI Assistant */}
+        <Jarvis />
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

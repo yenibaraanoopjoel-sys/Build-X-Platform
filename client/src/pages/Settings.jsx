@@ -1,933 +1,225 @@
-import {
-  useState,
-  useEffect,
-} from "react";
-
+import React, { useState } from "react";
 import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
-
-import API from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import {
+  Settings as SettingsIcon,
+  Bell,
+  Shield,
+  Save,
+  CheckCircle,
+} from "lucide-react";
 
 function Settings() {
-  //
-  // USER STATE
-  //
-  const [user, setUser] =
-    useState({
-      name: "",
+  const { currentUser, updateUserProfile, resetPassword } = useAuth();
 
-      email: "",
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [publicProfile, setPublicProfile] = useState(true);
+  const [success, setSuccess] = useState("");
+  const [resetSuccess, setResetSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
-      password: "",
-    });
-
-  //
-  // SETTINGS STATE
-  //
-  const [settings, setSettings] =
-    useState({
-      darkMode: true,
-
-      emailNotifications: true,
-
-      teamInvites: true,
-
-      publicProfile: false,
-
-      aiAssistant: true,
-
-      futuristicMode: true,
-
-      focusMode: false,
-
-      soundEffects: true,
-
-      onlineStatus: true,
-
-      autoAcceptSkillSwap: false,
-
-      productivityInsights: true,
-
-      collaborationAlerts: true,
-    });
-
-  //
-  // THEME
-  //
-  const [theme, setTheme] =
-    useState("Luxury Purple");
-
-  //
-  // FETCH USER
-  //
-  useEffect(() => {
-    const fetchProfile =
-      async () => {
-        try {
-          const response = await API.get(
-            "/user/profile"
-          );
-
-          setUser({
-            name:
-              response.data?.name ||
-              "",
-
-            email:
-              response.data?.email ||
-              "",
-
-            password: "",
-          });
-        } catch (error) {
-          console.log(
-            "SETTINGS ERROR:",
-            error.response?.data ||
-              error.message
-          );
-        }
-      };
-
-    fetchProfile();
-  }, []);
-
-  //
-  // TOGGLE SETTINGS
-  //
-  const toggleSetting = (
-    key
-  ) => {
-    setSettings((prev) => ({
-      ...prev,
-
-      [key]: !prev[key],
-    }));
+  const handleSaveSettings = async () => {
+    try {
+      setLoading(true);
+      await updateUserProfile({
+        settings: {
+          notificationsEnabled,
+          soundEnabled,
+          publicProfile,
+        },
+      });
+      setSuccess("Platform preferences updated successfully!");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  //
-  // INPUT CHANGE
-  //
-  const handleChange = (
-    e
-  ) => {
-    setUser({
-      ...user,
-
-      [e.target.name]:
-        e.target.value,
-    });
+  const handleSendResetEmail = async () => {
+    if (!currentUser?.email) return;
+    try {
+      await resetPassword(currentUser.email);
+      setResetSuccess("Password reset instructions dispatched to your email!");
+      setTimeout(() => setResetSuccess(""), 4000);
+    } catch (err) {
+      console.error(err);
+    }
   };
-
-  //
-  // SAVE PROFILE
-  //
-  const handleSave =
-    async () => {
-      try {
-        await API.put("/user/profile", {
-          name: user.name,
-          password: user.password,
-        });
-
-        alert(
-          "Settings Updated Successfully 🚀"
-        );
-      } catch (error) {
-        console.log(
-          "UPDATE ERROR:",
-          error.response?.data ||
-            error.message
-        );
-
-        alert(
-          "Failed To Update Settings"
-        );
-      }
-    };
-
-  //
-  // TOGGLE SWITCH
-  //
-  const ToggleSwitch = ({
-    enabled,
-    onClick,
-  }) => (
-    <div
-      onClick={onClick}
-      style={{
-        width: "58px",
-
-        height: "30px",
-
-        borderRadius:
-          "999px",
-
-        background: enabled
-          ? "linear-gradient(135deg, #8B5CF6, #EC4899)"
-          : "rgba(255,255,255,0.12)",
-
-        position:
-          "relative",
-
-        cursor: "pointer",
-
-        transition:
-          "0.3s",
-      }}
-    >
-      <div
-        style={{
-          width: "24px",
-
-          height: "24px",
-
-          borderRadius:
-            "50%",
-
-          background:
-            "white",
-
-          position:
-            "absolute",
-
-          top: "3px",
-
-          left: enabled
-            ? "31px"
-            : "3px",
-
-          transition:
-            "0.3s",
-        }}
-      />
-    </div>
-  );
-
-  //
-  // SETTINGS OPTIONS
-  //
-  const appearanceSettings =
-    [
-      {
-        label:
-          "Dark Mode",
-
-        key: "darkMode",
-      },
-
-      {
-        label:
-          "Futuristic Mode",
-
-        key:
-          "futuristicMode",
-      },
-
-      {
-        label:
-          "Sound Effects",
-
-        key:
-          "soundEffects",
-      },
-    ];
-
-  const notificationSettings =
-    [
-      {
-        label:
-          "Email Notifications",
-
-        key:
-          "emailNotifications",
-      },
-
-      {
-        label:
-          "Team Invites",
-
-        key:
-          "teamInvites",
-      },
-
-      {
-        label:
-          "Collaboration Alerts",
-
-        key:
-          "collaborationAlerts",
-      },
-    ];
-
-  const productivitySettings =
-    [
-      {
-        label:
-          "Focus Mode",
-
-        key:
-          "focusMode",
-      },
-
-      {
-        label:
-          "AI Assistant",
-
-        key:
-          "aiAssistant",
-      },
-
-      {
-        label:
-          "Productivity Insights",
-
-        key:
-          "productivityInsights",
-      },
-    ];
-
-  const privacySettings =
-    [
-      {
-        label:
-          "Public Profile",
-
-        key:
-          "publicProfile",
-      },
-
-      {
-        label:
-          "Online Status",
-
-        key:
-          "onlineStatus",
-      },
-
-      {
-        label:
-          "Auto Accept Skill Swap",
-
-        key:
-          "autoAcceptSkillSwap",
-      },
-    ];
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-
-        background:
-          "linear-gradient(135deg, #050816 0%, #0B1023 40%, #1E1B4B 100%)",
-
-        color: "white",
-
-        overflow: "hidden",
-      }}
-    >
-      {/* NAVBAR */}
+    <div style={{ minHeight: "100vh", background: "#050816", color: "#F8FAFC" }}>
       <Navbar />
 
-      <div
-        style={{
-          display: "flex",
-        }}
-      >
-        {/* SIDEBAR */}
-        <Sidebar />
-
-        {/* MAIN */}
-        <div
-          style={{
-            flex: 1,
-
-            padding: "42px",
-          }}
-        >
-          {/* HERO */}
-          <div
-            style={{
-              padding: "48px",
-
-              marginBottom:
-                "38px",
-
-              borderRadius:
-                "28px",
-
-              background:
-                "rgba(255,255,255,0.05)",
-
-              border:
-                "1px solid rgba(255,255,255,0.08)",
-
-              backdropFilter:
-                "blur(18px)",
-            }}
-          >
-            <h1
-              style={{
-                fontSize:
-                  "54px",
-
-                marginBottom:
-                  "18px",
-              }}
-            >
-              SETTINGS CENTER ⚙️
-            </h1>
-
-            <p
-              style={{
-                color:
-                  "#CBD5E1",
-
-                fontSize:
-                  "18px",
-
-                lineHeight:
-                  "1.9",
-
-                maxWidth:
-                  "850px",
-              }}
-            >
-              Customize your
-              futuristic BuildX
-              experience with AI
-              preferences,
-              collaboration
-              settings, security
-              controls, and
-              premium appearance
-              customization.
-            </p>
+      <main style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 24px" }}>
+        <div style={{ marginBottom: "32px" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: "#A855F7", fontSize: "13px", fontWeight: "600", marginBottom: "6px" }}>
+            <SettingsIcon size={16} />
+            <span>ACCOUNT & SYSTEM PREFERENCES</span>
           </div>
+          <h1 style={{ margin: 0, fontSize: "32px", fontWeight: "800", color: "#FFFFFF" }}>
+            Settings
+          </h1>
+          <p style={{ margin: "4px 0 0", color: "#94A3B8", fontSize: "14px" }}>
+            Manage notification preferences, account credentials, and platform behaviors.
+          </p>
+        </div>
 
-          {/* GRID */}
+        {success && (
           <div
             style={{
-              display: "grid",
-
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(360px, 1fr))",
-
-              gap: "28px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "12px 16px",
+              borderRadius: "12px",
+              background: "rgba(16, 185, 129, 0.15)",
+              color: "#6EE7B7",
+              fontSize: "13px",
+              marginBottom: "20px",
             }}
           >
-            {/* ACCOUNT */}
-            <div
-              style={{
-                padding: "34px",
+            <CheckCircle size={16} />
+            <span>{success}</span>
+          </div>
+        )}
 
-                borderRadius:
-                  "28px",
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          {/* SECTION 1: ACCOUNT & SECURITY */}
+          <div
+            style={{
+              background: "rgba(15, 23, 42, 0.75)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              borderRadius: "20px",
+              padding: "28px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+              <Shield size={18} color="#38BDF8" />
+              <h3 style={{ margin: 0, fontSize: "16px", color: "white" }}>Authentication & Security</h3>
+            </div>
 
-                background:
-                  "rgba(255,255,255,0.05)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                backdropFilter:
-                  "blur(18px)",
-              }}
-            >
-              <h2
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div>
+                <div style={{ fontSize: "14px", fontWeight: "600", color: "white" }}>Registered Email</div>
+                <div style={{ fontSize: "12px", color: "#94A3B8" }}>{currentUser?.email}</div>
+              </div>
+              <span
                 style={{
-                  marginBottom:
-                    "28px",
-
-                  fontSize:
-                    "34px",
+                  fontSize: "11px",
+                  color: currentUser?.emailVerified ? "#10B981" : "#F59E0B",
+                  fontWeight: "600",
                 }}
               >
-                Account Settings
-              </h2>
+                {currentUser?.emailVerified ? "Verified" : "Verification Sent"}
+              </span>
+            </div>
 
-              <input
-                type="text"
-                name="name"
-                value={user.name}
-                onChange={
-                  handleChange
-                }
-                placeholder="Your Name"
-                style={{
-                  width: "100%",
-
-                  padding: "16px",
-
-                  borderRadius:
-                    "16px",
-
-                  marginBottom:
-                    "18px",
-
-                  background:
-                    "rgba(255,255,255,0.05)",
-
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  color: "white",
-
-                  outline:
-                    "none",
-                }}
-              />
-
-              <input
-                type="email"
-                value={user.email}
-                disabled
-                style={{
-                  width: "100%",
-
-                  padding: "16px",
-
-                  borderRadius:
-                    "16px",
-
-                  marginBottom:
-                    "18px",
-
-                  background:
-                    "rgba(255,255,255,0.05)",
-
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  color: "white",
-
-                  opacity: 0.7,
-                }}
-              />
-
-              <input
-                type="password"
-                name="password"
-                value={
-                  user.password
-                }
-                onChange={
-                  handleChange
-                }
-                placeholder="New Password"
-                style={{
-                  width: "100%",
-
-                  padding: "16px",
-
-                  borderRadius:
-                    "16px",
-
-                  marginBottom:
-                    "24px",
-
-                  background:
-                    "rgba(255,255,255,0.05)",
-
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  color: "white",
-
-                  outline:
-                    "none",
-                }}
-              />
-
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "14px" }}>
+              <div>
+                <div style={{ fontSize: "14px", fontWeight: "600", color: "white" }}>Password Reset</div>
+                <div style={{ fontSize: "12px", color: "#94A3B8" }}>Receive a secure reset link to change password</div>
+              </div>
               <button
-                onClick={
-                  handleSave
-                }
+                onClick={handleSendResetEmail}
                 style={{
-                  width: "100%",
-
-                  padding: "16px",
-
-                  borderRadius:
-                    "18px",
-
-                  border: "none",
-
-                  cursor:
-                    "pointer",
-
-                  background:
-                    "linear-gradient(135deg, #8B5CF6, #EC4899)",
-
-                  color: "white",
-
-                  fontWeight:
-                    "700",
-
-                  fontSize:
-                    "15px",
+                  padding: "8px 14px",
+                  borderRadius: "10px",
+                  background: "rgba(56, 189, 248, 0.15)",
+                  border: "1px solid rgba(56, 189, 248, 0.3)",
+                  color: "#38BDF8",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  cursor: "pointer",
                 }}
               >
-                Save Changes 🚀
+                Send Reset Link
               </button>
             </div>
+            {resetSuccess && (
+              <p style={{ color: "#6EE7B7", fontSize: "12px", margin: "10px 0 0" }}>{resetSuccess}</p>
+            )}
+          </div>
 
-            {/* APPEARANCE */}
-            <div
-              style={{
-                padding: "34px",
-
-                borderRadius:
-                  "28px",
-
-                background:
-                  "rgba(255,255,255,0.05)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                backdropFilter:
-                  "blur(18px)",
-              }}
-            >
-              <h2
-                style={{
-                  marginBottom:
-                    "28px",
-
-                  fontSize:
-                    "34px",
-                }}
-              >
-                Appearance
-              </h2>
-
-              <p
-                style={{
-                  marginBottom:
-                    "14px",
-
-                  color:
-                    "#CBD5E1",
-                }}
-              >
-                Theme Selection
-              </p>
-
-              <select
-                value={theme}
-                onChange={(e) =>
-                  setTheme(
-                    e.target
-                      .value
-                  )
-                }
-                style={{
-                  width: "100%",
-
-                  padding: "16px",
-
-                  borderRadius:
-                    "16px",
-
-                  marginBottom:
-                    "28px",
-
-                  background:
-                    "rgba(255,255,255,0.05)",
-
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  color: "white",
-                }}
-              >
-                <option>
-                  Luxury Purple
-                </option>
-
-                <option>
-                  Neon Pink
-                </option>
-
-                <option>
-                  AI Futuristic
-                </option>
-
-                <option>
-                  Cyber Blue
-                </option>
-              </select>
-
-              {appearanceSettings.map(
-                (item) => (
-                  <div
-                    key={
-                      item.key
-                    }
-                    style={{
-                      display:
-                        "flex",
-
-                      justifyContent:
-                        "space-between",
-
-                      alignItems:
-                        "center",
-
-                      marginBottom:
-                        "24px",
-                    }}
-                  >
-                    <span>
-                      {
-                        item.label
-                      }
-                    </span>
-
-                    <ToggleSwitch
-                      enabled={
-                        settings[
-                          item
-                            .key
-                        ]
-                      }
-                      onClick={() =>
-                        toggleSetting(
-                          item.key
-                        )
-                      }
-                    />
-                  </div>
-                )
-              )}
+          {/* SECTION 2: PREFERENCES */}
+          <div
+            style={{
+              background: "rgba(15, 23, 42, 0.75)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              borderRadius: "20px",
+              padding: "28px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+              <Bell size={18} color="#A855F7" />
+              <h3 style={{ margin: 0, fontSize: "16px", color: "white" }}>Notification & Interface</h3>
             </div>
 
-            {/* NOTIFICATIONS */}
-            <div
-              style={{
-                padding: "34px",
-
-                borderRadius:
-                  "28px",
-
-                background:
-                  "rgba(255,255,255,0.05)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                backdropFilter:
-                  "blur(18px)",
-              }}
-            >
-              <h2
-                style={{
-                  marginBottom:
-                    "28px",
-
-                  fontSize:
-                    "34px",
-                }}
-              >
-                Notifications
-              </h2>
-
-              {notificationSettings.map(
-                (item) => (
-                  <div
-                    key={
-                      item.key
-                    }
-                    style={{
-                      display:
-                        "flex",
-
-                      justifyContent:
-                        "space-between",
-
-                      alignItems:
-                        "center",
-
-                      marginBottom:
-                        "24px",
-                    }}
-                  >
-                    <span>
-                      {
-                        item.label
-                      }
-                    </span>
-
-                    <ToggleSwitch
-                      enabled={
-                        settings[
-                          item
-                            .key
-                        ]
-                      }
-                      onClick={() =>
-                        toggleSetting(
-                          item.key
-                        )
-                      }
-                    />
-                  </div>
-                )
-              )}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div>
+                <div style={{ fontSize: "14px", fontWeight: "600", color: "white" }}>Push Notifications</div>
+                <div style={{ fontSize: "12px", color: "#94A3B8" }}>Receive alerts for new collabs and skill swap requests</div>
+              </div>
+              <input
+                type="checkbox"
+                checked={notificationsEnabled}
+                onChange={(e) => setNotificationsEnabled(e.target.checked)}
+                style={{ cursor: "pointer", width: "18px", height: "18px" }}
+              />
             </div>
 
-            {/* PRODUCTIVITY */}
-            <div
-              style={{
-                padding: "34px",
-
-                borderRadius:
-                  "28px",
-
-                background:
-                  "rgba(255,255,255,0.05)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                backdropFilter:
-                  "blur(18px)",
-              }}
-            >
-              <h2
-                style={{
-                  marginBottom:
-                    "28px",
-
-                  fontSize:
-                    "34px",
-                }}
-              >
-                Productivity
-              </h2>
-
-              {productivitySettings.map(
-                (item) => (
-                  <div
-                    key={
-                      item.key
-                    }
-                    style={{
-                      display:
-                        "flex",
-
-                      justifyContent:
-                        "space-between",
-
-                      alignItems:
-                        "center",
-
-                      marginBottom:
-                        "24px",
-                    }}
-                  >
-                    <span>
-                      {
-                        item.label
-                      }
-                    </span>
-
-                    <ToggleSwitch
-                      enabled={
-                        settings[
-                          item
-                            .key
-                        ]
-                      }
-                      onClick={() =>
-                        toggleSetting(
-                          item.key
-                        )
-                      }
-                    />
-                  </div>
-                )
-              )}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div>
+                <div style={{ fontSize: "14px", fontWeight: "600", color: "white" }}>Public Innovation Profile</div>
+                <div style={{ fontSize: "12px", color: "#94A3B8" }}>Allow your profile and skills to appear in recommendations</div>
+              </div>
+              <input
+                type="checkbox"
+                checked={publicProfile}
+                onChange={(e) => setPublicProfile(e.target.checked)}
+                style={{ cursor: "pointer", width: "18px", height: "18px" }}
+              />
             </div>
 
-            {/* PRIVACY */}
-            <div
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "14px" }}>
+              <div>
+                <div style={{ fontSize: "14px", fontWeight: "600", color: "white" }}>Audio Feedback</div>
+                <div style={{ fontSize: "12px", color: "#94A3B8" }}>Play subtle tones for chat and video meeting events</div>
+              </div>
+              <input
+                type="checkbox"
+                checked={soundEnabled}
+                onChange={(e) => setSoundEnabled(e.target.checked)}
+                style={{ cursor: "pointer", width: "18px", height: "18px" }}
+              />
+            </div>
+
+            <button
+              onClick={handleSaveSettings}
+              disabled={loading}
               style={{
-                padding: "34px",
-
-                borderRadius:
-                  "28px",
-
-                background:
-                  "rgba(255,255,255,0.05)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.08)",
-
-                backdropFilter:
-                  "blur(18px)",
+                marginTop: "24px",
+                padding: "12px 20px",
+                borderRadius: "12px",
+                background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+                border: "none",
+                color: "white",
+                fontSize: "14px",
+                fontWeight: "700",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
               }}
             >
-              <h2
-                style={{
-                  marginBottom:
-                    "28px",
-
-                  fontSize:
-                    "34px",
-                }}
-              >
-                Privacy &
-                Security
-              </h2>
-
-              {privacySettings.map(
-                (item) => (
-                  <div
-                    key={
-                      item.key
-                    }
-                    style={{
-                      display:
-                        "flex",
-
-                      justifyContent:
-                        "space-between",
-
-                      alignItems:
-                        "center",
-
-                      marginBottom:
-                        "24px",
-                    }}
-                  >
-                    <span>
-                      {
-                        item.label
-                      }
-                    </span>
-
-                    <ToggleSwitch
-                      enabled={
-                        settings[
-                          item
-                            .key
-                        ]
-                      }
-                      onClick={() =>
-                        toggleSetting(
-                          item.key
-                        )
-                      }
-                    />
-                  </div>
-                )
-              )}
-            </div>
+              <Save size={16} />
+              <span>{loading ? "Saving..." : "Save Preferences"}</span>
+            </button>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
