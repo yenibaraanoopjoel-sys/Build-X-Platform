@@ -8,7 +8,7 @@ import {
   sendMessage,
   getOrCreateDirectConversation,
   getMatchingUsers,
-} from "../services/firestoreService";
+} from "../services/dataService";
 import API from "../services/api";
 import {
   MessageSquare,

@@ -1,24 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-  signOut,
-  sendPasswordResetEmail,
-  sendEmailVerification,
-  onAuthStateChanged,
-  updateProfile,
-} from "firebase/auth";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  serverTimestamp,
-} from "firebase/firestore";
-import { auth, db, googleProvider } from "../firebase/config";
+import API from "../services/api";
 
 export const AuthContext = createContext(null);
 
@@ -30,342 +11,204 @@ export const useAuth = () => {
   return context;
 };
 
-// Default profile builder
-const buildDefaultProfile = (user) => ({
-  uid: user.uid,
-  email: user.email || "",
-  name:
-    user.displayName ||
-    (user.email ? user.email.split("@")[0] : "BuildX Innovator"),
-  username:
-    user.displayName?.toLowerCase().replace(/\s+/g, "_") ||
-    (user.email ? user.email.split("@")[0] : `user_${user.uid.slice(0, 6)}`),
-  role: "Developer",
-  skills: ["JavaScript", "React", "Node.js", "Firebase"],
-  skillsToLearn: ["AI Integration", "Cloud Architecture"],
-  areasOfInterest: ["Full Stack", "Collaboration", "Open Source"],
-  bio: "Passionate builder collaborating on the BuildX platform.",
-  avatar:
-    user.photoURL ||
-    `https://api.dicebear.com/7.x/bottts/svg?seed=${user.uid}`,
-  socialLinks: { github: "", linkedin: "", twitter: "", website: "" },
-  achievements: ["Early Innovator", "Platform Pioneer"],
-  totalProjects: 0,
-  activeProjects: 0,
-  provider: user.providerData?.[0]?.providerId || "google",
-  emailVerified: user.emailVerified || false,
-  createdAt: serverTimestamp(),
-  updatedAt: serverTimestamp(),
+// ─── Build default profile from JWT response ─────────────────────────────────
+const buildDefaultProfile = (userData) => ({
+  uid: userData._id || userData.id || userData.uid,
+  id: userData._id || userData.id || userData.uid,
+  email: userData.email || "",
+  name: userData.name || userData.email?.split("@")[0] || "BuildX Innovator",
+  username: userData.username || userData.email?.split("@")[0] || "innovator",
+  role: userData.role || "Developer",
+  skills: userData.skills || ["JavaScript", "React", "Node.js"],
+  skillsToLearn: userData.skillsToLearn || ["AI Integration", "Cloud Architecture"],
+  areasOfInterest: userData.areasOfInterest || ["Full Stack", "Collaboration"],
+  bio: userData.bio || "Passionate builder collaborating on the BuildX platform.",
+  avatar: userData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${userData._id || userData.email}`,
+  socialLinks: userData.socialLinks || { github: "", linkedin: "", twitter: "", website: "" },
+  achievements: userData.achievements || ["Early Innovator"],
+  totalProjects: userData.totalProjects || 0,
+  activeProjects: userData.activeProjects || 0,
+  emailVerified: true,
+  provider: "email",
+  createdAt: userData.createdAt || new Date().toISOString(),
+  updatedAt: userData.updatedAt || new Date().toISOString(),
 });
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem("token") || null);
+  const [token, setTokenState] = useState(localStorage.getItem("token") || null);
 
-  // ─── Fetch or create Firestore profile ───────────────────────────────────────
-  const fetchUserProfile = useCallback(async (user) => {
-    if (!user) {
-      setUserProfile(null);
-      localStorage.removeItem("user");
+  const setToken = (t) => {
+    setTokenState(t);
+    if (t) {
+      localStorage.setItem("token", t);
+    } else {
       localStorage.removeItem("token");
-      return null;
     }
+  };
 
-    try {
-      const userRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(userRef);
+  // ─── On mount: restore session from localStorage ─────────────────────────────
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
 
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const merged = {
-          id: docSnap.id,
-          ...data,
-          avatar: data.avatar || user.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.uid}`,
-          name: data.name || user.displayName || "BuildX User",
-          emailVerified: user.emailVerified,
-        };
-        setUserProfile(merged);
-        localStorage.setItem("user", JSON.stringify(merged));
-        return merged;
-      } else {
-        const defaultProfile = buildDefaultProfile(user);
-        try {
-          await setDoc(userRef, defaultProfile);
-        } catch (dbErr) {
-          console.warn("Could not save initial profile to Firestore:", dbErr.message);
-        }
-        const cacheProfile = {
-          ...defaultProfile,
-          id: user.uid,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        setUserProfile(cacheProfile);
-        localStorage.setItem("user", JSON.stringify(cacheProfile));
-        return cacheProfile;
+    if (storedToken && storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setCurrentUser(parsed);
+        setUserProfile(parsed);
+        setTokenState(storedToken);
+
+        // Verify token is still valid by calling /api/auth/me
+        API.get("/auth/me")
+          .then((res) => {
+            const profile = buildDefaultProfile(res.data.user || res.data);
+            setCurrentUser(profile);
+            setUserProfile(profile);
+            localStorage.setItem("user", JSON.stringify(profile));
+          })
+          .catch(() => {
+            // Token expired — clear session
+            setCurrentUser(null);
+            setUserProfile(null);
+            setTokenState(null);
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+          })
+          .finally(() => setLoading(false));
+      } catch {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Failed to fetch/create user profile:", err);
-      // Fallback in-memory profile
-      const fallback = buildDefaultProfile(user);
-      setUserProfile(fallback);
-      localStorage.setItem("user", JSON.stringify(fallback));
-      return fallback;
+    } else {
+      setLoading(false);
     }
   }, []);
 
-  // ─── Instant Fallback / Demo Session Generator ───────────────────────────────
+  // ─── Demo / Instant Access Session ───────────────────────────────────────────
   const createFallbackSession = useCallback((customEmail, customName) => {
-    const email = customEmail || "anoopjoelyenibara@gmail.com";
-    const name = customName || "Anoop Joel";
-    const uid = "innovator_" + email.replace(/[^a-zA-Z0-9]/g, "_");
-    const demoUser = {
-      uid,
-      email,
-      displayName: name,
-      photoURL: `https://api.dicebear.com/7.x/bottts/svg?seed=${uid}`,
-      getIdToken: async () => "demo_buildx_auth_token",
-    };
+    const email = customEmail || "demo@buildx.app";
+    const name = customName || "Demo User";
+    const uid = "demo-" + Math.random().toString(36).slice(2, 8);
+    const fakeToken = "demo-token-" + uid;
 
     const demoProfile = {
-      id: uid,
       uid,
+      id: uid,
       email,
       name,
       username: name.toLowerCase().replace(/\s+/g, "_"),
-      role: "Lead Architect & Developer",
-      skills: ["React", "JavaScript", "Firebase", "Node.js", "Cloud Architecture"],
-      skillsToLearn: ["AI Integration", "Distributed Systems", "WebRTC"],
-      areasOfInterest: ["Full-Stack", "Collaboration Platforms", "Innovation Hubs"],
-      bio: "Lead builder on the BuildX innovation and collaboration platform.",
-      avatar: demoUser.photoURL,
-      socialLinks: {
-        github: "https://github.com/yenibaraanoops134-commits/Build-X-Platform",
-        linkedin: "",
-        twitter: "",
-        website: "https://buildx-63e3f.web.app",
-      },
-      achievements: ["Platform Creator", "Full Stack Innovator"],
-      totalProjects: 3,
-      activeProjects: 2,
+      role: "Developer",
+      skills: ["React", "JavaScript", "Node.js", "MongoDB"],
+      skillsToLearn: ["AI/ML", "Cloud Architecture", "DevOps"],
+      areasOfInterest: ["Full Stack", "Collaboration", "Open Source"],
+      bio: "Demo user exploring the BuildX platform.",
+      avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${uid}`,
+      socialLinks: { github: "", linkedin: "", twitter: "", website: "" },
+      achievements: ["Early Innovator", "Platform Pioneer"],
+      totalProjects: 0,
+      activeProjects: 0,
+      emailVerified: true,
+      provider: "demo",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
-    setCurrentUser(demoUser);
+    setToken(fakeToken);
+    setCurrentUser(demoProfile);
     setUserProfile(demoProfile);
-    setToken("demo_buildx_auth_token");
     localStorage.setItem("user", JSON.stringify(demoProfile));
-    localStorage.setItem("token", "demo_buildx_auth_token");
-
-    // Also attempt writing to Firestore in background
-    try {
-      setDoc(doc(db, "users", uid), demoProfile, { merge: true }).catch(() => {});
-    } catch (e) {}
-
-    return demoUser;
+    return demoProfile;
   }, []);
 
-  // ─── Listen to Firebase Auth state ───────────────────────────────────────────
-  useEffect(() => {
-    getRedirectResult(auth)
-      .then(async (result) => {
-        if (result?.user) {
-          const user = result.user;
-          const idToken = await user.getIdToken();
-          setToken(idToken);
-          localStorage.setItem("token", idToken);
-          await fetchUserProfile(user);
-        }
-      })
-      .catch((err) => {
-        if (err.code !== "auth/no-auth-event") {
-          console.warn("Redirect result error:", err.code);
-        }
-      });
-
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setCurrentUser(user);
-        try {
-          const idToken = await user.getIdToken();
-          setToken(idToken);
-          localStorage.setItem("token", idToken);
-          await fetchUserProfile(user);
-        } catch (e) {
-          console.error("Error retrieving ID token:", e);
-        }
-      } else {
-        // Check if a saved session exists in localStorage
-        const cachedUser = localStorage.getItem("user");
-        const cachedToken = localStorage.getItem("token");
-        if (cachedUser && cachedToken) {
-          try {
-            const parsed = JSON.parse(cachedUser);
-            setCurrentUser({
-              uid: parsed.uid || parsed.id,
-              email: parsed.email,
-              displayName: parsed.name,
-              photoURL: parsed.avatar,
-              getIdToken: async () => cachedToken,
-            });
-            setUserProfile(parsed);
-            setToken(cachedToken);
-          } catch (e) {
-            setUserProfile(null);
-            setToken(null);
-          }
-        } else {
-          setUserProfile(null);
-          setToken(null);
-        }
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [fetchUserProfile]);
-
-  // ─── Email / Password Login ───────────────────────────────────────────────────
+  // ─── Login with Email / Password ─────────────────────────────────────────────
   const loginWithEmail = async (email, password) => {
     try {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      const idToken = await cred.user.getIdToken();
-      setToken(idToken);
-      localStorage.setItem("token", idToken);
-      await fetchUserProfile(cred.user);
-      return cred.user;
+      const res = await API.post("/auth/login", { email, password });
+      const { token: jwt, user } = res.data;
+
+      setToken(jwt);
+      const profile = buildDefaultProfile(user);
+      setCurrentUser(profile);
+      setUserProfile(profile);
+      localStorage.setItem("user", JSON.stringify(profile));
+      return profile;
     } catch (err) {
-      if (
-        err.code === "auth/configuration-not-found" ||
-        err.message?.includes("configuration-not-found")
-      ) {
-        console.warn("Firebase Auth unconfigured in console — logging in via resilient session.");
-        return createFallbackSession(email, email.split("@")[0]);
-      }
-      throw err;
+      const msg = err.response?.data?.message || err.message || "Login failed";
+      const code = err.response?.status;
+      const error = new Error(msg);
+      if (code === 401) error.code = "auth/invalid-credential";
+      else if (code === 429) error.code = "auth/too-many-requests";
+      throw error;
     }
   };
 
-  // ─── Email / Password Registration ───────────────────────────────────────────
-  const registerWithEmail = async (email, password, profileData = {}) => {
+  // ─── Register with Email ──────────────────────────────────────────────────────
+  const registerWithEmail = async (email, password, extraData = {}) => {
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const user = cred.user;
+      const res = await API.post("/auth/register", {
+        email,
+        password,
+        name: extraData.name || email.split("@")[0],
+        role: extraData.role || "Developer",
+        skills: extraData.skills || [],
+        skillsToLearn: extraData.skillsToLearn || [],
+        areasOfInterest: extraData.areasOfInterest || [],
+        bio: extraData.bio || "",
+      });
+      const { token: jwt, user } = res.data;
 
-      const displayName = profileData.name || email.split("@")[0];
-      await updateProfile(user, { displayName });
-
-      sendEmailVerification(user).catch(() => {});
-
-      const userRef = doc(db, "users", user.uid);
-      const newProfile = {
-        uid: user.uid,
-        email: user.email,
-        name: displayName,
-        username: displayName.toLowerCase().replace(/\s+/g, "_"),
-        role: profileData.role || "Developer",
-        skills: Array.isArray(profileData.skills)
-          ? profileData.skills
-          : ["React", "JavaScript"],
-        skillsToLearn: Array.isArray(profileData.skillsToLearn)
-          ? profileData.skillsToLearn
-          : ["AI", "Cloud"],
-        areasOfInterest: Array.isArray(profileData.areasOfInterest)
-          ? profileData.areasOfInterest
-          : ["Full Stack"],
-        bio:
-          profileData.bio ||
-          `Passionate ${profileData.role || "Developer"} building the future on BuildX.`,
-        avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${user.uid}`,
-        socialLinks: { github: "", linkedin: "", twitter: "", website: "" },
-        achievements: [],
-        totalProjects: 0,
-        activeProjects: 0,
-        provider: "password",
-        emailVerified: false,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      };
-
-      try {
-        await setDoc(userRef, newProfile);
-      } catch (e) {}
-
-      const cacheProfile = {
-        ...newProfile,
-        id: user.uid,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setUserProfile(cacheProfile);
-      localStorage.setItem("user", JSON.stringify(cacheProfile));
-
-      const idToken = await user.getIdToken();
-      setToken(idToken);
-      localStorage.setItem("token", idToken);
-
-      return user;
+      setToken(jwt);
+      const profile = buildDefaultProfile(user);
+      setCurrentUser(profile);
+      setUserProfile(profile);
+      localStorage.setItem("user", JSON.stringify(profile));
+      return profile;
     } catch (err) {
-      if (
-        err.code === "auth/configuration-not-found" ||
-        err.message?.includes("configuration-not-found")
-      ) {
-        console.warn("Firebase Auth unconfigured in console — creating resilient registered session.");
-        return createFallbackSession(email, profileData.name || email.split("@")[0]);
-      }
-      throw err;
+      const msg = err.response?.data?.message || err.message || "Registration failed";
+      const code = err.response?.status;
+      const error = new Error(msg);
+      if (code === 409) error.code = "auth/email-already-in-use";
+      throw error;
     }
   };
 
-  // ─── Google Sign-In (with popup + redirect + auto-fallback) ───────────────────
+  // ─── Google Sign-In (falls back to demo since backend OAuth not configured) ───
   const loginWithGoogle = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      const idToken = await user.getIdToken();
-      setToken(idToken);
-      localStorage.setItem("token", idToken);
-      await fetchUserProfile(user);
-      return user;
-    } catch (err) {
-      if (
-        err.code === "auth/configuration-not-found" ||
-        err.message?.includes("configuration-not-found")
-      ) {
-        console.warn("Firebase Auth configuration not active in Console — providing instant session.");
-        return createFallbackSession("anoopjoelyenibara@gmail.com", "Anoop Joel");
-      }
-
-      if (err.code === "auth/popup-blocked") {
-        console.warn("Popup blocked — falling back to redirect sign-in.");
-        await signInWithRedirect(auth, googleProvider);
+      // Try backend Google OAuth endpoint if available
+      const res = await API.get("/auth/google");
+      if (res.data?.redirectUrl) {
+        window.location.href = res.data.redirectUrl;
         return;
       }
-
-      if (
-        err.code === "auth/popup-closed-by-user" ||
-        err.code === "auth/cancelled-popup-request"
-      ) {
-        throw err;
-      }
-
-      console.error("Google sign-in error:", err.code, err.message);
-      // If any unexpected provider failure occurs, grant access so the user is never stuck
-      return createFallbackSession("anoopjoelyenibara@gmail.com", "Anoop Joel");
+    } catch {
+      // Not configured — provide instant demo session
     }
+    return createFallbackSession("google-user@buildx.app", "Google User");
   };
 
-  // ─── Quick Instant Access ──────────────────────────────────────────────────
+  // ─── Quick Demo Login ─────────────────────────────────────────────────────────
   const quickDemoLogin = () => {
-    return createFallbackSession("anoopjoelyenibara@gmail.com", "Anoop Joel");
+    return createFallbackSession("demo@buildx.app", "Anoop Joel");
+  };
+
+  // ─── Reset Password ───────────────────────────────────────────────────────────
+  const resetPassword = async (email) => {
+    try {
+      await API.post("/auth/forgot-password", { email });
+    } catch {
+      // Silently resolve — don't reveal user existence
+    }
+    return Promise.resolve();
   };
 
   // ─── Logout ───────────────────────────────────────────────────────────────────
   const logout = async () => {
     try {
-      await signOut(auth);
-    } catch (e) {}
+      await API.post("/auth/logout");
+    } catch {}
     setCurrentUser(null);
     setUserProfile(null);
     setToken(null);
@@ -373,32 +216,37 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
   };
 
-  // ─── Password Reset ───────────────────────────────────────────────────────────
-  const resetPassword = async (email) => {
-    try {
-      return await sendPasswordResetEmail(auth, email);
-    } catch (e) {
-      return Promise.resolve();
-    }
-  };
-
   // ─── Update Profile ───────────────────────────────────────────────────────────
   const updateUserProfile = async (updates) => {
-    if (!currentUser) throw new Error("No authenticated user");
     try {
-      const userRef = doc(db, "users", currentUser.uid);
-      await updateDoc(userRef, { ...updates, updatedAt: serverTimestamp() });
-    } catch (e) {}
+      if (token && !token.startsWith("demo-")) {
+        const res = await API.put("/auth/profile", updates);
+        const profile = buildDefaultProfile(res.data.user || res.data);
+        setUserProfile(profile);
+        setCurrentUser(profile);
+        localStorage.setItem("user", JSON.stringify(profile));
+        return;
+      }
+    } catch {}
 
+    // Local-only update for demo sessions
     setUserProfile((prev) => {
       const merged = { ...prev, ...updates };
       localStorage.setItem("user", JSON.stringify(merged));
       return merged;
     });
+    setCurrentUser((prev) => ({ ...prev, ...updates }));
   };
 
   const refreshUserProfile = async () => {
-    if (currentUser) await fetchUserProfile(currentUser);
+    if (!token || token.startsWith("demo-")) return;
+    try {
+      const res = await API.get("/auth/me");
+      const profile = buildDefaultProfile(res.data.user || res.data);
+      setCurrentUser(profile);
+      setUserProfile(profile);
+      localStorage.setItem("user", JSON.stringify(profile));
+    } catch {}
   };
 
   const value = {

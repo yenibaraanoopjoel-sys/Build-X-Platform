@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
-import { createIdea } from "../services/firestoreService";
+import { createIdea } from "../services/dataService";
 import { askJarvisAI } from "../services/aiService";
 import {
   Lightbulb,

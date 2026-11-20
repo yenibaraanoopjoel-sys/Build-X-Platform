@@ -59,7 +59,7 @@ const userSchema = new mongoose.Schema(
     },
 
     // SKILLS USER HAS
-    skillsHave: {
+    // ALIASES: skills = skillsHave, skillsToLearn = skillsWant`r`n    skills: { type: [String], default: [] },`r`n    skillsToLearn: { type: [String], default: [] },`r`n    areasOfInterest: { type: [String], default: [] },`r`n    avatar: { type: String, default: "" },`r`n    socialLinks: { type: Object, default: {} },`r`n    skillsHave: {
       type: [String],
 
       default: [],

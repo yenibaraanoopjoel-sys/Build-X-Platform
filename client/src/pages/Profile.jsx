@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
-import { getProjects } from "../services/firestoreService";
+import { getProjects } from "../services/dataService";
 import {
   Edit3,
   Save,

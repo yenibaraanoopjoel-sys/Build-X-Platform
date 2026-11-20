@@ -9,7 +9,7 @@ import {
   getCollaborationRequests,
   getPlatformAnalytics,
   getMatchingUsers,
-} from "../services/firestoreService";
+} from "../services/dataService";
 import API from "../services/api";
 import {
   FolderKanban,

@@ -309,6 +309,12 @@ app.use(
   require("./routes/aiRoutes")
 );
 
+// ANALYTICS
+app.use(
+  "/api/analytics",
+  require("./routes/analyticsRoutes")
+);
+
 //
 // ROOT
 //

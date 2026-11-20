@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import {
   getCollaborationRequests,
   respondCollaborationRequest,
-} from "../services/firestoreService";
+} from "../services/dataService";
 import {
   Users,
   Check,

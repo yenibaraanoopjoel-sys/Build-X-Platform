@@ -10,7 +10,7 @@ import {
   getIdeaComments,
   addIdeaComment,
   sendCollaborationRequest,
-} from "../services/firestoreService";
+} from "../services/dataService";
 import {
   Lightbulb,
   Plus,

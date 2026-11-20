@@ -8,7 +8,7 @@ import {
   createProject,
   deleteProject,
   joinProject,
-} from "../services/firestoreService";
+} from "../services/dataService";
 import {
   FolderKanban,
   Plus,

@@ -8,7 +8,7 @@ import {
   updateTaskStatus,
   deleteTask,
   getProjects,
-} from "../services/firestoreService";
+} from "../services/dataService";
 import { askJarvisAI } from "../services/aiService";
 import {
   ListTodo,
