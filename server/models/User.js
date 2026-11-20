@@ -58,10 +58,16 @@ const userSchema = new mongoose.Schema(
         "Beginner",
     },
 
-    // SKILLS USER HAS
-    // ALIASES: skills = skillsHave, skillsToLearn = skillsWant`r`n    skills: { type: [String], default: [] },`r`n    skillsToLearn: { type: [String], default: [] },`r`n    areasOfInterest: { type: [String], default: [] },`r`n    avatar: { type: String, default: "" },`r`n    socialLinks: { type: Object, default: {} },`r`n    skillsHave: {
-      type: [String],
+    // SKILLS & PROFILE
+    skills: { type: [String], default: [] },
+    skillsToLearn: { type: [String], default: [] },
+    areasOfInterest: { type: [String], default: [] },
+    avatar: { type: String, default: "" },
+    socialLinks: { type: Object, default: {} },
 
+    // SKILLS USER HAS
+    skillsHave: {
+      type: [String],
       default: [],
     },
 
