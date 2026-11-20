@@ -1,8 +1,8 @@
 # Low-Level Design (LLD) — BuildX Platform
 
 **Project Name:** BuildX Platform  
-**Target Runtime:** Node.js 20.x, React 18.x, Firebase Web SDK 10.x  
-**Document Version:** 1.0.0  
+**Target Runtime:** Node.js 20.x, React 18.x, Express 4.x, MongoDB 7.x, PostgreSQL  
+**Document Version:** 2.0.0 (Production Release)  
 **Status:** Approved & Implemented  
 
 ---
@@ -11,207 +11,135 @@
 
 ```text
 BuildX/
-├── client/
+├── client/                     # React 18 SPA Frontend (Vercel)
 │   ├── public/
 │   │   ├── index.html
 │   │   └── manifest.json
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── Jarvis.jsx          # AI Co-pilot floating assistant
-│   │   │   ├── Loader.jsx          # Glassmorphic loading spinner
-│   │   │   └── Navbar.jsx          # Main navigation & notifications
+│   │   ├── components/         # Reusable UI components
+│   │   │   ├── Jarvis.jsx      # AI Co-pilot floating assistant
+│   │   │   ├── Loader.jsx      # Glassmorphic loading spinner
+│   │   │   └── Navbar.jsx      # Global navigation & live presence
 │   │   ├── context/
-│   │   │   └── AuthContext.js      # Global authentication provider
-│   │   ├── firebase/
-│   │   │   └── config.js           # Firebase Client SDK initialization
-│   │   ├── pages/
-│   │   │   ├── Chat.jsx            # Real-time messaging & public channels
-│   │   │   ├── CollaborationRequests.jsx # Proposal management
-│   │   │   ├── Dashboard.jsx       # Analytics & recommendation overview
-│   │   │   ├── Ideas.jsx           # Ideas hub & social engagement
-│   │   │   ├── Login.jsx           # OAuth & password login
-│   │   │   ├── NotFound.jsx        # 404 error page
-│   │   │   ├── PostIdea.jsx        # Idea creation with AI enhancer
-│   │   │   ├── Profile.jsx         # Profile inspection & editing
-│   │   │   ├── ProjectWorkspace.jsx# Project creation & member rosters
-│   │   │   ├── Register.jsx        # User onboarding with role selection
-│   │   │   ├── Settings.jsx        # Preferences & password reset
-│   │   │   ├── SkillSwap.jsx       # P2P skill exchange marketplace
-│   │   │   ├── Tasks.jsx           # Kanban board with AI sprint generator
-│   │   │   ├── VideoCall.jsx       # ZEGOCLOUD WebRTC meeting room
-│   │   │   └── Welcome.jsx         # Public landing page
+│   │   │   └── AuthContext.js  # Global JWT authentication provider
+│   │   ├── pages/              # Application views
+│   │   │   ├── Chat.jsx        # Socket.IO real-time direct & channel chat
+│   │   │   ├── Dashboard.jsx   # Analytics & personalized dashboard
+│   │   │   ├── Ideas.jsx       # Ideas discovery & collaboration hub
+│   │   │   ├── Login.jsx       # JWT authentication & session login
+│   │   │   ├── PostIdea.jsx    # Idea creation with AI assistance
+│   │   │   ├── Profile.jsx     # Profile management & public portfolios
+│   │   │   ├── ProjectWorkspace.jsx # Project management & team rosters
+│   │   │   ├── Register.jsx    # User registration with role selection
+│   │   │   ├── SkillSwap.jsx   # P2P skill matching marketplace
+│   │   │   ├── Tasks.jsx       # Kanban board with AI task generator
+│   │   │   └── VideoCall.jsx   # ZEGOCLOUD WebRTC video rooms
 │   │   ├── services/
-│   │   │   ├── aiService.js        # Multi-tier AI communication handler
-│   │   │   ├── api.js              # Axios instance with auth interceptors
-│   │   │   └── firestoreService.js # Granular Firestore CRUD operations
-│   │   ├── styles/
-│   │   │   └── global.css          # Futuristic SaaS styling system
-│   │   ├── App.js                  # Application routing & provider tree
-│   │   ├── index.js                # React DOM root render
-│   │   └── routes.jsx              # Private & Public Route guards
-│   └── package.json
-├── functions/
-│   ├── src/
-│   │   ├── controllers/
-│   │   │   ├── aiController.js     # Server-side Gemini & OpenRouter bridge
-│   │   │   ├── analyticsController.js # Firestore metrics aggregation
-│   │   │   ├── authController.js   # User profile synchronization
-│   │   │   ├── matchController.js  # Skill matching affinity scoring
-│   │   │   └── videoController.js  # ZEGOCLOUD token generator
-│   │   ├── middleware/
-│   │   │   └── authMiddleware.js   # Bearer JWT verification
-│   │   ├── routes/
-│   │   │   └── api.js              # Express API router
-│   │   └── index.js                # Cloud Functions export entry point
-│   └── package.json
-├── firebase.json                   # Hosting & Functions configuration
-├── firestore.rules                 # Cloud Firestore security rules
-├── firestore.indexes.json          # Composite query index definitions
-├── storage.rules                   # Firebase Storage security rules
-├── HLD.md                          # High-Level Design specification
-├── LLD.md                          # Low-Level Design specification
-├── PRD.md                          # Product Requirements Document
-└── README.md                       # Repository overview & setup guide
+│   │   │   ├── aiService.js    # Multi-tier AI communication handler
+│   │   │   └── api.js          # Axios client with JWT interceptor
+│   │   └── styles/
+│   │       └── global.css      # SaaS glassmorphism styling
+├── server/                     # Express.js REST & Socket.IO Backend (Render)
+│   ├── config/
+│   │   └── db.js               # MongoDB Mongoose connection
+│   ├── controllers/            # Controller business logic
+│   │   ├── authController.js   # Registration, JWT login, bcrypt hashing
+│   │   ├── ideaController.js   # Ideas CRUD & comments
+│   │   ├── projectController.js# Projects CRUD & MongoDB Aggregation Pipelines
+│   │   ├── taskController.js   # Kanban tasks CRUD & assignment
+│   │   └── userControllers.js  # User profiles & skill directory
+│   ├── database/               # SQL & Relational Models
+│   │   ├── schema.sql          # PostgreSQL DDL with PK/FK, JOINS, Normalization
+│   │   └── prisma/
+│   │       └── schema.prisma   # Prisma ORM schema
+│   ├── middleware/             # Express middlewares
+│   │   ├── authMiddleware.js   # JWT token verification
+│   │   ├── errorMiddleware.js  # Global centralized error handler
+│   │   └── security.js         # Rate limiting, NoSQL sanitizer, RBAC
+│   ├── models/                 # Mongoose NoSQL Schemas
+│   │   ├── Idea.js
+│   │   ├── Message.js
+│   │   ├── Notification.js
+│   │   ├── Project.js
+│   │   ├── Task.js
+│   │   └── User.js
+│   ├── routes/                 # REST Route definitions
+│   │   ├── aiRoutes.js         # AI endpoints (SSE, Tools, Structured Outputs, RAG)
+│   │   ├── authRoutes.js
+│   │   ├── ideaRoutes.js
+│   │   ├── projectRoutes.js
+│   │   └── taskRoutes.js
+│   ├── tests/                  # Automated Test Suite
+│   │   ├── runner.test.js      # Native Node test runner suite
+│   │   └── api.test.js         # Jest/Integration test suite
+│   ├── utils/                  # Core JS concepts & matching algorithm
+│   │   ├── jsConcepts.js       # Closures, Hoisting, Promises, Event Loop
+│   │   └── matchAlgorithm.js   # Jaccard skill-match score calculator
+│   ├── Dockerfile              # Multi-stage production container
+│   ├── package.json
+│   └── server.js               # Main HTTP & Socket.IO entry point
+├── docker-compose.yml          # Local multi-service orchestration
+├── render.yaml                 # Render Infrastructure-as-Code blueprint
+├── vercel.json                 # Vercel Edge routing configuration
+├── HLD.md                      # High-Level Design document
+├── LLD.md                      # Low-Level Design document
+└── PRD.md                      # Product Requirements Document
 ```
 
 ---
 
-## 2. Core Service Modules & Interfaces
+## 2. API Contract Specification
 
-### 2.1 Firestore Service (`client/src/services/firestoreService.js`)
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Register new user with password hash | No |
+| `POST` | `/api/auth/login` | Authenticate user & issue JWT token | No |
+| `GET` | `/api/users/profile` | Get authenticated user profile | Yes (Bearer) |
+| `GET` | `/api/projects` | List projects with filters | No |
+| `POST` | `/api/projects` | Create new project | Yes (Bearer) |
+| `GET` | `/api/projects/analytics/stats` | MongoDB Aggregation Pipeline stats | No |
+| `GET` | `/api/tasks/project/:projectId` | Fetch project Kanban tasks | Yes (Bearer) |
+| `POST` | `/api/tasks` | Create new task | Yes (Bearer) |
+| `POST` | `/api/ai` | JARVIS chat assistant | No |
+| `POST` | `/api/ai/task-breakdown` | Structured JSON task sprint breakdown | No |
+| `GET` | `/api/ai/tools` | Function calling / tool use spec | No |
+| `GET` | `/api/ai/stream` | Server-Sent Events (SSE) token stream | No |
+| `POST` | `/api/ai/rag-search` | Vector / embedding similarity search | No |
+| `GET` | `/api/ai/metrics` | Token and cost telemetry | No |
 
-Provides strongly typed asynchronous functions for database operations:
+---
 
-```javascript
-// Ideas
-export const getIdeas = async (category = "All", search = ""): Promise<Idea[]>
-export const createIdea = async (ideaData: Partial<Idea>, user: User): Promise<Idea>
-export const toggleLikeIdea = async (ideaId: string, userId: string): Promise<void>
-export const getIdeaComments = async (ideaId: string): Promise<Comment[]>
-export const addIdeaComment = async (ideaId: string, content: string, user: User): Promise<Comment>
+## 3. Database Modeling & Relationships
 
-// Projects
-export const getProjects = async (status = "All", search = ""): Promise<Project[]>
-export const createProject = async (projectData: Partial<Project>, user: User): Promise<Project>
-export const joinProject = async (projectId: string, user: User, role: string): Promise<void>
+### MongoDB (NoSQL Implementation)
+```text
+User ──── (1:N) ──── Owned Projects
+User ──── (N:M) ──── Project Members
+Project ── (1:N) ──── Tasks (Referenced)
+Idea ──── (1:N) ──── Comments (Embedded Subdocuments)
+User ──── (1:N) ──── Notifications (Embedded / Referenced)
+```
 
-// Tasks (Kanban)
-export const subscribeTasks = (projectId: string, callback: (tasks: Task[]) => void): Unsubscribe
-export const createTask = async (taskData: Partial<Task>, user: User): Promise<Task>
-export const updateTaskStatus = async (taskId: string, newStatus: string): Promise<void>
-
-// Messaging & Channels
-export const subscribeConversations = (userId: string, callback: (convos: Conversation[]) => void): Unsubscribe
-export const subscribeMessages = (conversationId: string, callback: (msgs: Message[]) => void): Unsubscribe
-export const sendMessage = async (conversationId: string, text: string, user: User, fileUrl?: string): Promise<Message>
-export const getOrCreateDirectConversation = async (currentUser: User, targetUser: User): Promise<Conversation>
-
-// Skill Exchanges & Matching
-export const sendSkillExchangeRequest = async (targetUser: User, offerSkill: string, wantSkill: string, user: User): Promise<SkillExchange>
-export const getMatchingUsers = async (currentUser: User): Promise<MatchedUser[]>
-export const getPlatformAnalytics = async (): Promise<PlatformAnalytics>
+### PostgreSQL (Relational Implementation)
+```text
+users (PK: user_id)
+  ├── user_skills (FK: user_id -> users.user_id ON DELETE CASCADE)
+  ├── projects (FK: owner_id -> users.user_id ON DELETE RESTRICT)
+  │     ├── project_members (Composite PK: project_id, user_id)
+  │     └── tasks (FK: project_id -> projects.project_id ON DELETE CASCADE)
+  └── task_assignee (FK: assigned_to -> users.user_id ON DELETE SET NULL)
 ```
 
 ---
 
-## 3. Algorithmic Specifications
+## 4. Real-Time Socket.IO Event Map
 
-### 3.1 Skill Swap Matching Algorithm
-The matching algorithm pairs users based on complementary skill interests:
-
-$$\text{MatchScore} = (\text{CommonSkills} \times 10) + (\text{TeachMatches} \times 20) + (\text{LearnMatches} \times 20)$$
-
-1. **Extraction**: Normalize all skill tags to lowercase trimmed strings.
-2. **Teach Match**: Check if current user's `skillsToLearn` intersects with target user's `skills`.
-3. **Learn Match**: Check if current user's `skills` intersects with target user's `skillsToLearn`.
-4. **Ranking**: Sort candidates in descending order by `MatchScore` with ties broken by profile activity.
-
-### 3.2 Multi-Tier AI Fallback Workflow
-When a prompt is dispatched to `askJarvisAI({ message, history })`:
-
-1. **Tier 1 (Cloud Function)**: `POST /api/ai/chat` with 5s timeout.
-2. **Tier 2 (Gemini REST)**: On Tier 1 failure, invoke Google Gemini 1.5 Flash endpoint (`generativelanguage.googleapis.com`) using `systemInstruction`.
-3. **Tier 3 (OpenRouter)**: On Tier 2 failure, forward prompt to OpenRouter API (`google/gemini-2.0-flash-001`).
-4. **Tier 4 (Contextual Heuristic Engine)**: If all network calls fail, generate an expert, structured response based on message intent (Milestone breakdown, Pitch refinement, Skill pair recommendation).
-
----
-
-## 4. Database Schema & Field Types
-
-### Collection: `users/{userId}`
-| Field | Type | Description |
-|---|---|---|
-| `uid` | string | Firebase Auth User ID |
-| `name` | string | Full display name |
-| `email` | string | Registered email address |
-| `role` | string | Chosen professional persona |
-| `skills` | string[] | Array of proficient skills |
-| `skillsToLearn` | string[] | Desired learning topics |
-| `avatar` | string | Avatar image URL |
-| `socialLinks` | map | `{ github, linkedin, twitter, website }` |
-| `totalProjects`| number | Count of owned projects |
-| `createdAt` | timestamp | Document creation timestamp |
-
-### Collection: `tasks/{taskId}`
-| Field | Type | Description |
-|---|---|---|
-| `title` | string | Task summary |
-| `description` | string | Detailed instructions |
-| `status` | string | `todo`, `in_progress`, `review`, `completed` |
-| `priority` | string | `High`, `Medium`, `Low` |
-| `projectId` | string | Associated project reference |
-| `assignedTo` | string | Assignee name |
-| `deadline` | string | Due date ISO string |
-| `createdAt` | timestamp | Creation timestamp |
-
----
-
-## 5. Security Rules Implementation
-
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    function isAuthenticated() { return request.auth != null; }
-    function isOwner(userId) { return isAuthenticated() && request.auth.uid == userId; }
-
-    match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow write: if isOwner(userId);
-    }
-    match /ideas/{ideaId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && request.resource.data.authorId == request.auth.uid;
-      allow update, delete: if isAuthenticated() && resource.data.authorId == request.auth.uid;
-      match /comments/{commentId} {
-        allow read, create: if isAuthenticated();
-      }
-    }
-    match /projects/{projectId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
-      allow update: if isAuthenticated();
-      allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
-    }
-    match /tasks/{taskId} {
-      allow read, create, update, delete: if isAuthenticated();
-    }
-    match /conversations/{conversationId} {
-      allow read, create, update: if isAuthenticated();
-      match /messages/{messageId} {
-        allow read, create: if isAuthenticated();
-      }
-    }
-    match /collaborations/{collabId} {
-      allow read, create, update, delete: if isAuthenticated();
-    }
-    match /skillExchanges/{exchangeId} {
-      allow read, create, update, delete: if isAuthenticated();
-    }
-    match /notifications/{notificationId} {
-      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isAuthenticated();
-    }
-  }
-}
-```
+| Event Name | Direction | Payload | Description |
+|---|---|---|---|
+| `join_user` | Client -> Server | `userId: string` | Registers user to private socket room |
+| `online_users` | Server -> Client | `userIds: string[]` | Broadcasts active user presence list |
+| `send_message` | Client -> Server | `{ senderId, receiverId, text }` | Direct peer-to-peer message |
+| `receive_message`| Server -> Client | Message Object | Delivers message to recipient room |
+| `task_updated` | Client -> Server | `{ taskId, status, projectId }` | Broadcasts Kanban task movement |
+| `task_update_received`| Server -> Client | Task Object | Synchronizes Kanban UI across clients |
+| `typing` | Client -> Server | `{ sender, receiver }` | Live typing indicator |

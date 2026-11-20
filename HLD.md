@@ -1,119 +1,140 @@
 # High-Level Design (HLD) — BuildX Platform
 
 **Project Name:** BuildX — Full-Stack Collaboration & Innovation Platform  
-**Architecture Style:** Serverless Cloud Architecture (JAMstack / BaaS)  
-**Primary Cloud Provider:** Google Firebase & Google Cloud Platform  
-**Document Version:** 1.0.0  
+**Architecture Style:** Distributed Client-Server / Microservices (MERN Stack)  
+**Deployment Infrastructure:**  
+- **Backend Service:** Render (`https://dashboard.render.com/project/prj-dc0ao3t6e07s73c73ffg`)  
+- **Frontend SPA:** Vercel (`https://vercel.com/anoop-e9ee`)  
+- **Databases:** MongoDB Atlas (NoSQL) & PostgreSQL (Relational Reference)  
+**Document Version:** 2.0.0 (Production Release)  
 **Status:** Approved & Implemented  
 
 ---
 
 ## 1. System Overview & Architecture Diagram
 
-BuildX utilizes a serverless event-driven architecture designed for high availability, zero cold-start latency for static assets, and real-time bidirectional synchronization.
+BuildX utilizes an enterprise-grade full-stack architecture decoupling the React Single Page Application (hosted globally on Vercel Edge CDN) from the high-performance Node.js & Express REST & WebSocket API (hosted on Render).
 
 ```mermaid
 graph TD
-    UserClient["Web Browser Client (React.js SPA)"]
+    Client["Client Browser (React 18 SPA on Vercel Edge)"]
     
-    subgraph "Google Firebase Cloud Infrastructure"
-        Hosting["Firebase Hosting (Global Edge CDN)"]
-        Auth["Firebase Authentication (OAuth & Email/PW)"]
-        Firestore["Cloud Firestore (Real-Time NoSQL DB)"]
-        Functions["Firebase Cloud Functions (Node.js API)"]
-        Storage["Firebase Cloud Storage (Media & Avatars)"]
+    subgraph "Vercel Frontend Platform (anoop-e9ee)"
+        VercelCDN["Vercel Edge Network / CDN"]
+        ClientRoutes["Client-Side Router (react-router-dom)"]
+        ReactState["Context API & Axios HTTP Client"]
+    end
+
+    subgraph "Render Cloud Backend (prj-dc0ao3t6e07s73c73ffg)"
+        RenderLoadBalancer["Render Reverse Proxy & SSL Termination"]
+        ExpressApp["Express.js Application Server"]
+        SocketServer["Socket.IO Full-Duplex Real-Time Engine"]
+        SecurityLayer["Security Layer: Rate Limiting & NoSQL Sanitizer"]
+        RAGService["RAG Vector Retrieval & Embeddings Engine"]
+    end
+    
+    subgraph "Data Storage Layer"
+        MongoDB[("Cloud MongoDB NoSQL (Mongoose ODM)")]
+        PostgresDB[("PostgreSQL Relational DB (Prisma / SQL)")]
+        RedisCache[("Redis Distributed In-Memory Cache")]
     end
     
     subgraph "External AI & WebRTC Services"
         Gemini["Google Gemini 1.5 Flash API"]
-        OpenRouter["OpenRouter AI Gateway"]
+        OpenRouter["OpenRouter Multi-LLM Gateway"]
         ZegoCloud["ZEGOCLOUD WebRTC Video Infrastructure"]
     end
 
-    UserClient -->|HTTPS / Assets| Hosting
-    UserClient -->|ID Tokens / Auth| Auth
-    UserClient -->|Real-Time onSnapshot & CRUD| Firestore
-    UserClient -->|REST API /api/*| Functions
-    UserClient -->|Media Uploads| Storage
-    UserClient -->|P2P WebRTC Streams| ZegoCloud
-    
-    Functions -->|Admin SDK| Firestore
-    Functions -->|Generative Prompts| Gemini
-    Functions -->|Fallback LLM| OpenRouter
-    Functions -->|Token Signing| ZegoCloud
+    Client -->|HTTPS Static Assets| VercelCDN
+    Client -->|REST API /api/* with Bearer JWT| RenderLoadBalancer
+    Client -->|WSS Bidirectional Events| SocketServer
+    Client -->|P2P WebRTC Streams| ZegoCloud
+
+    RenderLoadBalancer --> SecurityLayer
+    SecurityLayer --> ExpressApp
+    ExpressApp --> MongoDB
+    ExpressApp --> PostgresDB
+    ExpressApp --> RedisCache
+    ExpressApp --> Gemini
+    ExpressApp --> OpenRouter
 ```
 
 ---
 
-## 2. Frontend Architecture
+## 2. Frontend Architecture (Vercel)
 
-The client application is built with React.js using standard JavaScript (ES6+) and modern architectural patterns:
-
-- **Component-Based Hierarchy**: Atomic components (`Navbar`, `Loader`, `Jarvis`) combined with page-level views (`Dashboard`, `ProjectWorkspace`, `Tasks`, `Ideas`, `Chat`, `VideoCall`).
-- **Client-Side Routing**: `react-router-dom` v6 with route-level code splitting using `React.lazy` and `Suspense` for sub-second bundle load times.
-- **State Management**: React Context API (`AuthContext`) providing application-wide reactive state for user identity, JWT session tokens, and cached profile documents.
-- **Styling Architecture**: Futuristic dark-mode SaaS UI with CSS glassmorphism, responsive grid layouts, and Lucide React iconography.
-- **Data Visualizations**: Responsive vector analytics built with Recharts (`AreaChart`, `XAxis`, `YAxis`, `Tooltip`).
-
----
-
-## 3. Backend & API Routing Architecture
-
-The backend infrastructure is deployed as serverless micro-services running on Node.js:
-
-- **Gateway Rewrite**: Firebase Hosting rewrites all `/api/**` endpoints to the `api` Cloud Function.
-- **Express.js Router**: Handles RESTful endpoints within the Cloud Function:
-  - `/api/auth/sync`: User synchronization with Firestore.
-  - `/api/ai/chat`: Multi-model conversational AI processor.
-  - `/api/video/token`: Secure ZEGOCLOUD meeting token generator.
-  - `/api/analytics`: Aggregates cross-collection metrics.
-  - `/api/match/users`: Algorithmic skill-matching recommendations.
-- **Client Fallback Tier**: The frontend incorporates client-side service fallbacks (`firestoreService.js`, `aiService.js`) to guarantee uninterrupted platform availability.
+The client application is hosted on Vercel with single-page application routing rewrites configured via `vercel.json`:
+- **Framework:** React 18.x with functional component composition and custom hooks.
+- **Client-Side Routing:** `react-router-dom` v6 with protected routes and role-based redirects.
+- **State Management:** React Context API for global session tokens, active user profiles, and notification counters.
+- **Design System:** Glassmorphic modern dark theme with responsive CSS grid and flexbox.
+- **Real-Time Client:** `socket.io-client` handling live chat, typing indicators, and collaboration notifications.
 
 ---
 
-## 4. Database Architecture (Cloud Firestore)
+## 3. Backend Architecture (Render)
 
-BuildX uses Google Cloud Firestore as its primary NoSQL document database:
-
-```mermaid
-erDiagram
-    USERS ||--o{ PROJECTS : owns
-    USERS ||--o{ IDEAS : publishes
-    USERS ||--o{ TASKS : assigned
-    USERS ||--o{ COLLABORATIONS : participates
-    USERS ||--o{ SKILL_EXCHANGES : requests
-    PROJECTS ||--o{ TASKS : contains
-    IDEAS ||--o{ COMMENTS : has
-    CONVERSATIONS ||--o{ MESSAGES : contains
-```
-
-### Collection Schemas:
-1. **`users`**: User identity, roles, skills, skills to learn, social links, project counts.
-2. **`ideas`**: Innovation pitches, category, required skills, author metadata, likes array, comments count.
-3. **`projects`**: Project details, statuses (`Planning`, `Active`, `On Hold`, `Completed`), progress percentage, team member IDs.
-4. **`tasks`**: Kanban items with status (`todo`, `in_progress`, `review`, `completed`), priority (`High`, `Medium`, `Low`), deadlines, and project IDs.
-5. **`conversations`**: Direct 1:1 and public channel threads.
-   - **`conversations/{id}/messages`**: Real-time message documents with sender info, timestamp, text, and file attachment URLs.
-6. **`collaborations`**: Formal project collaboration proposals with status (`pending`, `accepted`, `rejected`).
-7. **`skillExchanges`**: P2P knowledge exchange proposals with offered and requested skills.
-8. **`notifications`**: Targeted user alerts with read/unread flags and direct entity links.
+The backend runs as a continuous Dockerized Node.js service on Render:
+- **Runtime:** Node.js 20+ with Express 4.x.
+- **Real-Time Protocol:** WebSocket via `socket.io` supporting room-based isolation and presence tracking.
+- **Authentication:** Stateless JSON Web Tokens (JWT) with HMAC SHA-256 signatures and expiration claims.
+- **Security Middleware:** Sliding-window rate limiting, input sanitization against NoSQL injection, and prompt injection filters.
+- **Automated Containerization:** Multi-stage `Dockerfile` and `docker-compose.yml` for unified local and production parity.
 
 ---
 
-## 5. Security & Authorization Architecture
+## 4. Dual Database Architecture: NoSQL (MongoDB) & SQL (PostgreSQL)
 
-1. **Authentication Gate**: Tokens verified using Firebase Admin SDK on the backend and Firebase Client SDK on the frontend.
-2. **Firestore Security Rules (`firestore.rules`)**:
-   - `users`: Authenticated read, write restricted to document owner (`request.auth.uid == userId`).
-   - `ideas`: Public read for authenticated users; updates restricted to author or social interactions (likes/comments count).
-   - `projects`: Public read; mutation restricted to project owner and registered team members.
-   - `conversations & messages`: Authenticated access with strict sender validation.
-3. **Network Security**: Enforced HTTPS across all endpoints via Firebase Edge CDN with automatic TLS certificate renewals.
+BuildX implements both leading database paradigms to maximize flexibility and satisfy enterprise data modeling standards:
+
+### A. Cloud MongoDB (Primary Active Store)
+- **Schema Modeling:** Mongoose ODM models for `User`, `Project`, `Idea`, `Task`, `Message`, `Notification`, and `CollaborationRequest`.
+- **Aggregation Pipelines:** Multi-stage pipelines (`$match`, `$lookup`, `$unwind`, `$group`, `$project`, `$sort`) for analytics and real-time dashboard statistics.
+- **Indexing Strategy:** Single, composite, and text search indexes (`{ title: "text", description: "text" }`, `{ project: 1, status: 1 }`).
+- **Embedding vs Referencing:** Embedded subdocuments for comments, skill tags, and task checklists; referenced documents for User-to-Project ownership.
+
+### B. PostgreSQL Relational Model (Reference Schema)
+- **Schema Design:** Implemented in `server/database/schema.sql` and `server/database/prisma/schema.prisma`.
+- **Normalization:** Strictly normalized to Third Normal Form (1NF, 2NF, 3NF).
+- **Referential Integrity:** Enforced Primary Keys (UUID) and Foreign Keys with `ON DELETE CASCADE`.
+- **SQL JOINS:** Complete query examples for `INNER JOIN`, `LEFT JOIN`, aggregations with `GROUP BY` and `HAVING`.
+- **ACID Transactions:** `BEGIN; ... COMMIT; / ROLLBACK;` for atomic operations.
 
 ---
 
-## 6. Real-Time & WebRTC Subsystem
+## 5. AI Engineering & LLM Architecture
 
-- **Real-Time Data**: Firestore persistent WebSocket channels (`onSnapshot`) push task movements, new messages, and notification badges without polling.
-- **Video Collaboration**: ZEGOCLOUD WebRTC integration provides low-latency group calling, screen sharing, and adaptive bitrate streaming.
+- **Multi-LLM Integration:** Direct integration with Google Gemini 1.5 Flash (`@google/generative-ai`) and OpenRouter.
+- **Prompt Engineering & Structured Outputs:** Strict JSON Schema generation for automated sprint task breakdown.
+- **Function Calling / Tool Use:** Tool schema definitions for automated project task assignment and collaborator matching.
+- **Streaming Responses:** Server-Sent Events (SSE) `/api/ai/stream` endpoint for progressive token generation.
+- **RAG / Vector Retrieval:** In-memory keyword and semantic similarity search over platform knowledge base.
+- **Prompt Injection Defense:** Regex and pattern-based sanitizer detecting jailbreaks and delimiter escaping.
+- **Token & Cost Monitoring:** In-memory telemetry tracking request counts, prompt tokens, and estimated USD spend.
+
+---
+
+## 6. Kalvium Evaluation Matrix Alignment
+
+| Category | Concept | Implementation Evidence |
+|---|---|---|
+| **AI App Eng** | LLM API Integration | `server/routes/aiRoutes.js`, `@google/generative-ai`, OpenRouter |
+| **AI App Eng** | Prompt Engineering & Structured Outputs | `server/routes/aiRoutes.js` (`/api/ai/task-breakdown`) |
+| **AI App Eng** | Function Calling / Tool Use | `server/routes/aiRoutes.js` (`/api/ai/tools`) |
+| **AI App Eng** | Streaming Responses | Server-Sent Events `/api/ai/stream` |
+| **AI App Eng** | RAG & Vector Retrieval | Cosine similarity search `/api/ai/rag-search` |
+| **AI App Eng** | Prompt Injection Defenses | `detectPromptInjection()` middleware in `aiRoutes.js` |
+| **Engineering** | Git Workflow | Clean branch tracking, `HLD.md`, `LLD.md`, `PRD.md` |
+| **Engineering** | Docker Containerization | `server/Dockerfile`, `docker-compose.yml` |
+| **Engineering** | Automated Testing | `server/tests/runner.test.js` (Unit & Integration tests) |
+| **Frontend** | Client-Side Routing | `react-router-dom` in `client/src/App.js` & `routes.jsx` |
+| **Frontend** | React Component Composition | Modular components, Context providers, Layout wrappers |
+| **Frontend** | Responsive Design | Glassmorphic CSS in `global.css` with mobile layouts |
+| **NoSQL** | MongoDB CRUD & Schema Modeling | Mongoose models: `User`, `Project`, `Task`, `Idea` |
+| **NoSQL** | Aggregation Pipelines | `$match`, `$lookup`, `$group`, `$project` in `projectController.js` |
+| **SQL** | Relational PK/FK & Normalization | `server/database/schema.sql` (1NF, 2NF, 3NF compliant) |
+| **SQL** | SQL JOINS & Transactions | `server/database/schema.sql` (INNER/LEFT JOIN, ACID transactions) |
+| **Auth & Sec** | JWT & Password Hashing | `jsonwebtoken`, `bcryptjs` in `authController.js` |
+| **Auth & Sec** | Rate Limiting & Sanitization | `server/middleware/security.js` |
+| **System** | WebSocket / Real-Time | `server/server.js` & `client/src/pages/Chat.jsx` via Socket.IO |
+| **Deployment**| Render & Vercel | `render.yaml` (Backend) & `vercel.json` (Frontend) |

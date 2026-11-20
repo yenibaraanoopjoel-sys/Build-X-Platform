@@ -1,27 +1,29 @@
 {
-  "name": "buildx",
+  "name": "buildx-platform",
   "version": "1.0.0",
   "private": true,
   "description": "BuildX – Full-Stack Collaboration, Learning & Innovation Platform",
   "scripts": {
-    "start": "cd client && npm start",
-    "build": "cd client && npm run build",
-    "functions:serve": "firebase emulators:start",
-    "deploy": "firebase deploy",
-    "deploy:hosting": "npm run build && firebase deploy --only hosting",
-    "deploy:functions": "firebase deploy --only functions",
-    "deploy:firestore": "firebase deploy --only firestore",
-    "deploy:storage": "firebase deploy --only storage"
+    "start": "node server/server.js",
+    "server": "node server/server.js",
+    "client": "npm start --prefix client",
+    "build": "npm run build --prefix client",
+    "test": "cd server && npm test",
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client"
   },
   "keywords": [
     "collaboration",
     "learning",
     "innovation",
     "react",
-    "firebase",
-    "full-stack"
+    "express",
+    "mongodb",
+    "socketio",
+    "full-stack",
+    "mern",
+    "render",
+    "vercel"
   ],
   "author": "BuildX Team",
   "license": "ISC"
 }
-
