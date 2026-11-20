@@ -5,7 +5,7 @@ const API_BASE_URL =
   process.env.REACT_APP_API_URL ||
   (typeof window !== "undefined" && window.location.hostname === "localhost"
     ? "http://localhost:5000/api"
-    : "https://buildx-backend.onrender.com/api");
+    : "https://buildx-backend-ns9g.onrender.com/api");
 
 const API = axios.create({
   baseURL: API_BASE_URL,
