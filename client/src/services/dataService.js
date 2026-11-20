@@ -667,13 +667,12 @@ export const respondCollaborationRequest = async (collabId, status, collab, user
 export const subscribeMessages = (roomId, callback) => {
   // Poll the backend every 3 seconds for new messages (REST fallback for real-time)
   let active = true;
-  let lastFetch = 0;
 
   const poll = async () => {
     if (!active) return;
     try {
       if (!isDemoToken()) {
-        const res = await API.get(`/chat/${roomId}/messages`);
+        const res = await API.get(`/messages/${roomId}`);
         const messages = res.data?.messages || res.data || [];
         callback(messages);
       } else {
@@ -689,7 +688,6 @@ export const subscribeMessages = (roomId, callback) => {
         ]);
       }
     } catch {}
-    lastFetch = Date.now();
     if (active) setTimeout(poll, 3000);
   };
 
@@ -704,7 +702,7 @@ export { sendChatMessage as sendMessage };
 export const getOrCreateDirectConversation = async (user, targetUser) => {
   return withFallback(
     async () => {
-      const res = await API.post("/chat/direct", {
+      const res = await API.post("/messages/direct", {
         userId: user?.uid,
         targetUserId: targetUser?.uid || targetUser?.id,
       });
