@@ -2,12 +2,17 @@ const mongoose = require("mongoose");
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-
-    console.log("MongoDB Connected");
+    if (!process.env.MONGO_URI) {
+      console.warn("⚠️ MONGO_URI not provided. Server will run with in-memory fallbacks.");
+      return;
+    }
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 8000,
+    });
+    console.log("✅ MongoDB Connected Successfully");
   } catch (error) {
-    console.log(error);
-    process.exit(1);
+    console.error("⚠️ MongoDB Connection Warning:", error.message);
+    console.log("ℹ️ Server will continue running with API fallback responses.");
   }
 };
 
