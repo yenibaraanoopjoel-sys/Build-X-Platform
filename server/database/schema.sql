@@ -151,3 +151,4 @@ CREATE INDEX IF NOT EXISTS idx_tasks_assigned_to ON tasks(assigned_to);
 -- INSERT INTO project_members (project_id, user_id, member_role)
 -- VALUES ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'd3b07384-d113-46fb-a0ef-281b67f1a302', 'Owner');
 -- COMMIT;
+

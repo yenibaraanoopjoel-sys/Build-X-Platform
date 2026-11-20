@@ -123,3 +123,4 @@ model Task {
   @@index([projectId, status])
   @@index([assignedTo])
 }
+
